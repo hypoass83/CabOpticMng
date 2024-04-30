@@ -1,0 +1,7 @@
+﻿@font-face {
+    font-family: 'saxmono';
+    src: url('../fonts/saxmono.ttf') format('truetype');
+}
+.invoiceReceipt {
+        font-family:  'saxmono';
+    }

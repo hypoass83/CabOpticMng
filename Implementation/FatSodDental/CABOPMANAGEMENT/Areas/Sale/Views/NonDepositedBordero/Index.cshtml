@@ -1,0 +1,650 @@
+﻿@using FatSod.Ressources;
+
+@*@model IEnumerable<CABOPMANAGEMENT.Areas.CashRegister.Models.BorderoDepotModel>*@
+@{
+    ViewBag.Title = @Resources.NonDepositedBordero;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var profile = (Session["UserProfile"] == null) ? 0 : (int)Session["UserProfile"];
+    var user = (Session["UserID"] == null) ? 0 : (int)Session["UserID"];
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+
+<h4>@Resources.NonDepositedBordero</h4>
+<div class="box box-primary box-body">
+    <div class="row">
+        <input type="hidden" id="heureVente" />
+        <fieldset>
+            <div class="col-md-12">
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="col-md-4">
+                            <div class="row ipt">
+                                <!-- Branche -->
+                                <div class="col-sm-3" style="margin-left:5px;">@Resources.Branches</div>
+                                <div class="col-sm-9" style="margin-left:-15px;">
+                                    <input type="hidden" id="DefaultBranchID" value="@ViewBag.CurrentBranch" />
+                                    <select id="BranchID" class="input-sm form-control"></select>
+                                </div>
+                            </div>
+                            <div class="row ipt">
+                                <div class="col-sm-3" style="margin-left:5px;">@Resources.UIBeginDate</div>
+                                <div class="col-sm-9" style="margin-left:-15px;">
+                                    <input class="form-control datepicker" id="BeginDate" type="text" placeholder="choose Begin date" value="@ViewBag.BeginingDayMonth">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="row ipt">
+                                <!-- Till -->
+                                <div class="col-sm-3" style="margin-left:-25px;">@Resources.Insurance</div>
+                                <div class="col-sm-9" style="margin-left:-5px;">
+                                    @*<input type="hidden" id="DefaultAssuranceID" value="@ViewBag.CurrentInsurance" />*@
+                                    <input type="hidden" id="AssuranceCode" />
+                                    <select id="AssuranceID" class="input-sm form-control"></select>
+                                </div>
+                            </div>
+                                <div class="row ipt">
+                                    <div class="col-sm-3" style="margin-left:-25px;">@Resources.UIEndDate</div>
+                                    <div class="col-sm-9" style="margin-left:-5px;">
+                                        <input class="form-control datepicker checkDateNoGraterThanToday" id="EndDate" type="text" placeholder="choose End date">
+                                    </div>
+                                </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="row ipt">
+                                <!-- company -->
+                                <div class="col-sm-3" style="margin-left:-25px;">@Resources.Company</div>
+                                <div class="col-sm-9" style="margin-left:-15px;">
+                                    <select id="CompanyID" class="input-sm form-control"></select>
+                                </div>
+                            </div>
+                            <div class="row ipt">
+                                <!-- Lieu de depot -->
+                                <div class="col-sm-3" style="margin-left:-25px;">@Resources.LieuxdeDepotBordero</div>
+                                <div class="col-sm-9" style="margin-left:-15px;">
+                                    <select class="form-control" id="LieuxdeDepotBorderoID"></select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row" style="margin-left:20px;margin-top:10px;">
+                <div class="col-sm-2">
+                </div>
+                <div class="col-sm-2">
+                    <button id="btnSave" class="btn btn-primary btn-success">@Resources.ViewState</button>
+                </div>
+                <div class="col-sm-4">
+                    <!-- EstimatedAmount -->
+                    <div class="col-sm-4" style="margin-left:-25px;">@Resources.TotalAmount</div>
+                    <div class="col-sm-8" style="margin-left:-15px;">
+                        <input id="EstimatedAmount" class="input-sm form-control" readonly>
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <!-- borderocode -->
+                    <div class="col-sm-4" style="margin-left:-25px;">@Resources.borderoCode</div>
+                    <div class="col-sm-8" style="margin-left:-15px;">
+                        <input id="BorderoCode" class="input-sm form-control">
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+        
+    </div>
+
+    <div class="row">
+        <div class="panel-body2">
+            <table class="table" id="mainTable">
+                <thead>
+                    <tr class="dataTableHead">
+                        <th>
+                            ID
+                        </th>
+                        <th>
+                            @Resources.InsurreName
+                        </th>
+                        <th>
+                            @Resources.CustomerPatient
+                        </th>
+                        <th>
+                            @Resources.Company
+                        </th>
+                        <th>
+                            @Resources.UIDateOperation
+                        </th>
+                        <th>
+                            @Resources.BillNumber
+                        </th>
+                        <th>
+                            @Resources.Matricule
+                        </th>
+                        <th>
+                            @Resources.BillAmount
+                        </th>
+                        <th>
+                            @Resources.Deliverdate
+                        </th>
+                        @*<th><input name="select_all" value="1" type="checkbox"></th>*@
+                        @*<th>Select</th>*@
+</tr>
+
+                </thead>
+
+            </table>
+        </div>
+    </div>
+    <!-- Save and Reset Buttons -->
+    <div hidden class="row" style="margin-left:20px;margin-top:10px;">
+        <div class="col-sm-4">
+        </div>
+        <div class="col-sm-2">
+            <button type="button" class="btn btn-primary" id="btnSubmit">Validate</button>
+        </div>
+        <div id="borderoDepotGenerique" class="col-sm-2">
+            <button disabled type="button" id="btnPrint" class="btn bg-aqua-active show-btn" onclick="printBorderoDepot();"><i class="fa fa-print"></i> @Resources.printbordero</button>
+        </div>
+        
+    </div>
+</div>
+
+<!-- Css Begins Here -->
+
+<style>
+    .hide-btn {
+        display: none;
+    }
+    .show-btn {
+        display: block;
+    }
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 6px;
+    }
+
+    #img-upload {
+        width: 100%;
+    }
+
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin-left: 10px;
+        margin-right: 10px;
+        min-width: 0;
+        padding: 10px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+    
+
+    .panel-body {
+        height: 95px;
+        /*margin-top: 1%;*/
+        margin-bottom:1%;
+    }
+
+    .panel-body1 {
+        height: 100px;
+        margin-top: 5px;
+        /*margin-left: 10px;
+        margin-right: 10px;*/
+        /*margin-left: 15%;*/
+    }
+
+    .panel-body2 {
+        height: 215px;
+        margin-top: 10px;
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+
+    .panel-body3 {
+        height: 75px;
+        margin-top: 5px;
+        /*margin-left: 15%;*/
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+    table.dataTable.select tbody tr,
+table.dataTable thead th:first-child {
+  cursor: pointer;
+}
+</style>
+
+<!--********** JavaScripts **********-->
+<script>
+    var selectedAssuranceIDText = "";
+            // Array holding selected row IDs
+            var rows_selected = [];
+            var oTable = $('#mainTable');
+
+            function DisplayCodeBordero(BranchID, BeginDate, EndDate, AssuranceID, CompanyID, LieuxdeDepotBorderoID, isValidated)
+            {
+                $('#BorderoCode').val('');
+                $('#EstimatedAmount').val('0');
+                //chargement code
+                $.get('@Url.Action("DisplayCodeBordero", "NonDepositedBordero")', {BranchID:BranchID,BeginDate:BeginDate,EndDate:EndDate, AssuranceID: AssuranceID, CompanyID: CompanyID, LieuxdeDepotBorderoID: LieuxdeDepotBorderoID, isValidated: isValidated }, function (data) {
+                    $.each(data, function (key, value) {
+                        $('#BorderoCode').val(value.BorderoCode);
+                        $('#EstimatedAmount').val(value.EstimatedAmount);
+                    });
+                }, 'json');
+            }
+
+            function printBorderoDepot() {
+                console.log("selectedAssuranceIDText ", selectedAssuranceIDText);
+                if (selectedAssuranceIDText.includes("ASCOMA")) {
+                    location.href = '@Url.Action("RptBorderoDepotAscoma", "ReportsHome", new { area = "", BorderoDepotID = "-1" })';
+                } else {
+                    location.href = '@Url.Action("RptBorderoDepot", "ReportsHome", new { area = "", BorderoDepotID = "-1" })';
+                }
+            }
+
+            //chargement du tableau apres le click sur le bouton afficher
+            function LoadGrid(test, BranchID, AssuranceID, BeginDate, EndDate,CompanyID,LieuxdeDepotBorderoID)
+            {
+                if (test) {
+                    $('#mainTable').dataTable().fnDestroy();
+                }
+
+                oTable = $('#mainTable').dataTable({
+                    fixedColumns: true,
+                    "paging": false,
+                    "pageLength": 20,
+                    "lengthMenu": [[20, 40, 60, -1], [20, 40, 60, "All"]],
+                    "searching": true,
+                    "ordering": true,
+                    "pagingType": "full_numbers",
+                    "order": [[0, 'asc']], //, [5, 'desc'], [4, 'asc']
+                    // Ajax call
+                    "ajax": {
+                        "url": "@Url.Action("LoadBorderoDepot", "NonDepositedBordero")",
+                    "type": "GET",
+                    "datatype": "json",
+                    "data": { BranchID: BranchID, BeginDate: BeginDate, EndDate: EndDate, AssuranceID: AssuranceID, CompanyID: CompanyID, LieuxdeDepotBorderoID: LieuxdeDepotBorderoID }
+                },
+                    "columns": [
+                        { "data": "ID", "width": "1%" },
+                        { "data": "InsuranceName", "width": "16%" },
+                        { "data": "CustomerName", "width": "24%" },
+                        { "data": "CompanyName", "width": "16%" },
+                        { "data": "CustomerOrderDate", "width": "8%" },
+                        { "data": "NumeroFacture", "width": "9%" },
+                        { "data": "PoliceAssurance", "width": "9%" },
+                        { "data": "MntAssureur", "width": "9%" },
+                        { "data": "DeliverDate", "width": "8%" },
+
+                        //{// this is Actions Column
+                        //    mRender: function (data, type, row) {
+                        //        return "<input type='checkbox' onchange=defaultrole('" + row.ID + "'); >";
+                        //        //return '<input type="checkbox">';
+                        //    }
+                        //}
+                    ],
+                    'rowCallback': function(row, data, dataIndex){
+                        // Get row ID
+                        var rowId = data.ID;
+
+                        // If row ID is in the list of selected row IDs
+                        if($.inArray(rowId, rows_selected) !== -1){
+                            $(row).find('input[type="checkbox"]').prop('checked', true);
+                            $(row).addClass('selected');
+                        }
+                    },
+                dom: 'Bfrtip',
+                buttons: [
+                    'copy', 'csv', 'excel'
+                ]
+
+            });
+            }
+            // Get the Branch List
+            function populateBranch() {
+                $.get('@Url.Action("GetOpenedBranches", "NonDepositedBordero")', {}, function (data) {
+                    $('#BranchID').empty();
+                    $('#BranchID').append($("<option value='0'>@Resources.Select</option>"));
+                    $.each(data, function (key, value) {
+                        $('#BranchID').append($("<option></option>").val(value.BranchID).html(value.BranchName));
+                    });
+
+                }, 'json');
+            }
+            function populateInsurance() {
+                $.get('@Url.Action("GetInsurance", "NonDepositedBordero")', {}, function (data) {
+                    $('#AssuranceID').empty();
+                    $('#AssuranceID').append($("<option value='0'>@Resources.Select</option>"));
+                    $.each(data, function (key, value) {
+                        $('#AssuranceID').append($("<option></option>").val(value.ID).html(value.Name));
+                    });
+
+                    var _DefaultId = $('#AssuranceID').val();
+                    $('#AssuranceID').val(_DefaultId);
+
+                    populateCompany(_DefaultId);
+                    getListofDepositLocations(_DefaultId);
+                    $('#BorderoCode').val('');
+                }, 'json');
+            }
+
+            //get list of deposit locations
+            function getListofDepositLocations(InsuranceID) {
+                $.get('@Url.Action("getListofDepositLocations", "NonDepositedBordero")', { InsuranceID: InsuranceID }, function (data) {
+                    $('#LieuxdeDepotBorderoID').empty();
+                    // $('#LieuxdeDepotBorderoID').append($("<option value='0'>@Resources.Select</option>"));
+                    $.each(data, function (key, value) {
+                        $('#LieuxdeDepotBorderoID').append($("<option></option>").val(value.ID).html(value.Name));
+                    });
+                    $('#LieuxdeDepotBorderoID').val(1);
+                }, 'json');
+            }
+
+            function populateCompany(InsuranceID) {
+                $.get('@Url.Action("populateCompany", "NonDepositedBordero")', { InsuranceID: InsuranceID }, function (data) {
+                    $('#CompanyID').empty();
+                    $('#BorderoCode').val('');
+                    $('#CompanyID').append($("<option value='0'>@Resources.Select</option>"));
+                    $.each(data, function (key, value) {
+                        $('#CompanyID').append($("<option></option>").val(value.ID).html(value.Name));
+                        $('#BorderoCode').val(value.AssuranceCode);
+                    });
+
+                }, 'json');
+            }
+
+            @*function validate() {
+                var r = false;
+                $('#ajax-loader').show();
+                $('input.SelectedRows').each(function () {
+                    $this = $(this);
+                    var parentTr = $(this).parents('tr');
+                    var spanTag = parentTr.find('span.statusMsg');
+                    if ($this.is(':checked')) {
+                        r = true;
+                        $this.prop('checked', false);
+                        var dataToSend = {
+                            selection: $this.attr('data-val')
+                        };
+                        $.ajax({
+
+                            url: "@Url.Action("Submit", "NonDepositedBordero")",
+                            data: dataToSend,
+                            type: "POST",
+                            async: false,
+                            error: function (xmlHttpRequest, errorText, thrownError) {
+                                spanTag.html(errorText).css('color', 'red');
+                            },
+                            success: function (data) {
+                                if (data) {
+                                    if (data[0] == 'True')
+                                        spanTag.html(data[1]).css('color', 'green');
+                                    else
+                                        spanTag.html(data[1]).css('color', 'red');
+                                }
+                            }
+                        });
+                    }
+                });
+
+                $('#ajax-loader').hide();
+                if (!r) {
+                    alert('Error');
+                }
+                location.reload(true);
+                return false;
+
+            }*@
+
+            $(document).on('ready', function () {
+
+
+
+                $(function () {
+                    $(".datepicker").datepicker({
+                        format: 'yyyy-mm-dd'
+                    });
+                });
+
+                populateBranch();
+                populateInsurance();
+
+                $('#AssuranceID').on('change', function () {
+                    populateCompany($('#AssuranceID').val());
+                    getListofDepositLocations($('#AssuranceID').val());
+                    $('#BorderoCode').val('');
+                });
+
+                $('#BorderoCode').val('');
+                $('#btnPrint').prop('disabled', true);
+
+                $('#mainTable').dataTable();
+
+                var BranchID = '0';
+                var AssuranceID = '0';
+                var BeginDate = '1900-01-01';
+                var EndDate = '1900-01-01';
+                var CompanyID = '0';
+                var LieuxdeDepotBorderoID = '0'
+
+                LoadGrid(true, BranchID, AssuranceID, BeginDate, EndDate, CompanyID, LieuxdeDepotBorderoID);
+                DisplayCodeBordero(BranchID, BeginDate, EndDate, AssuranceID, CompanyID, LieuxdeDepotBorderoID, false);
+
+                $("#btnSave").on('click', function () {
+                    rows_selected = [];
+                    var isAllValid = true;
+                    if ($('#BranchID').val() == "0" || $('#BranchID').val() == "" || $('#BranchID').val() == null) {
+                        isAllValid = false;
+                        $("#BranchID").addClass("invalid-data");
+                    }
+                    else {
+                        $("#BranchID").addClass("valid-data");
+                    }
+
+                    if ($('#AssuranceID').val() == "0" || $('#AssuranceID').val() == "" || $('#AssuranceID').val() == null) {
+                        isAllValid = false;
+                        $("#AssuranceID").addClass("invalid-data");
+                    }
+                    else {
+                        $("#AssuranceID").addClass("valid-data");
+                    }
+
+                    if ($('#LieuxdeDepotBorderoID').val() == "0" || $('#LieuxdeDepotBorderoID').val() == "" || $('#LieuxdeDepotBorderoID').val() == null) {
+                        isAllValid = false;
+                        $("#LieuxdeDepotBorderoID").addClass("invalid-data");
+                    }
+                    else {
+                        $("#LieuxdeDepotBorderoID").addClass("valid-data");
+                    }
+
+                    if ($('#BeginDate').val() == "0" || $('#BeginDate').val() == "" || $('#BeginDate').val() == null) {
+                        isAllValid = false;
+                        $("#BeginDate").addClass("invalid-data");
+                    }
+                    else {
+                        $("#BeginDate").addClass("valid-data");
+                    }
+
+                    if ($('#EndDate').val() == "0" || $('#EndDate').val() == "" || $('#EndDate').val() == null) {
+                        isAllValid = false;
+                        $("#EndDate").addClass("invalid-data");
+                    }
+                    else {
+                        $("#EndDate").addClass("valid-data");
+                    }
+
+                    if (isAllValid) {
+                        BranchID = $("#BranchID").val();
+                        AssuranceID = $("#AssuranceID").val();
+                        BeginDate = $("#BeginDate").val();
+                        EndDate = $("#EndDate").val();
+                        CompanyID = $("#CompanyID").val();
+                        LieuxdeDepotBorderoID = $("#LieuxdeDepotBorderoID").val();
+                        LoadGrid(true, BranchID, AssuranceID, BeginDate, EndDate, CompanyID, LieuxdeDepotBorderoID);
+
+                        DisplayCodeBordero(BranchID, BeginDate, EndDate, AssuranceID, CompanyID, LieuxdeDepotBorderoID, false);
+                    }
+                });
+
+                $("#btnSubmit").on('click', function () {
+                    ValidateBordero();
+                });
+
+            });
+
+            function defaultrole(obj) {
+                var rowId = obj;
+                // Determine whether row ID is in the list of selected row IDs
+                var index = $.inArray(rowId, rows_selected);
+                // If checkbox is checked and row ID is not in list of selected row IDs
+                if (index === -1) {
+                    rows_selected.push(rowId);
+
+                    // Otherwise, if checkbox is not checked and row ID is in list of selected row IDs
+                } else if (index !== -1) {
+                    rows_selected.splice(index, 1);
+                }
+
+            }
+
+            function ValidateBordero () {
+                var isAllValid = true;
+                var d = new Date();
+                var hourPayment = d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds();
+                $('#heureVente').val(hourPayment);
+
+                if ($('#heureVente').val().trim() == '') {
+                    isAllValid = false;
+                }
+
+                if ($('#BranchID').val() == "0" || $('#BranchID').val() == "" || $('#BranchID').val() == null) {
+                    isAllValid = false;
+                    $("#BranchID").addClass("invalid-data");
+                }
+                else {
+                    $("#BranchID").addClass("valid-data");
+                }
+
+                if ($('#AssuranceID').val() == "0" || $('#AssuranceID').val() == "" || $('#AssuranceID').val() == null) {
+                    isAllValid = false;
+                    $("#AssuranceID").addClass("invalid-data");
+                }
+                else {
+                    $("#AssuranceID").addClass("valid-data");
+                }
+
+                if ($('#BeginDate').val() == "0" || $('#BeginDate').val() == "" || $('#BeginDate').val() == null) {
+                    isAllValid = false;
+                    $("#BeginDate").addClass("invalid-data");
+                }
+                else {
+                    $("#BeginDate").addClass("valid-data");
+                }
+
+                if ($('#EndDate').val() == "0" || $('#EndDate').val() == "" || $('#EndDate').val() == null) {
+                    isAllValid = false;
+                    $("#EndDate").addClass("invalid-data");
+                }
+                else {
+                    $("#EndDate").addClass("valid-data");
+                }
+
+                if ($('#BorderoCode').val() == "0" || $('#BorderoCode').val() == "" || $('#BorderoCode').val() == null) {
+                    isAllValid = false;
+                    $("#BorderoCode").addClass("invalid-data");
+                }
+                else {
+                    $("#BorderoCode").addClass("valid-data");
+                }
+
+                if (isAllValid) {
+
+
+                    var data = {
+                        heureVente: $('#heureVente').val(),
+                        BranchID: $('#BranchID').val(),
+                        AssuranceID: $('#AssuranceID').val(),
+                        BeginDate: $('#BeginDate').val(),
+                        EndDate: $('#EndDate').val(),
+                        CodeBordero: $('#BorderoCode').val(),
+                        CompanyID: $('#CompanyID').val(),
+                        LieuxdeDepotBorderoID: $('#LieuxdeDepotBorderoID').val(),
+                        rows_selected: rows_selected
+                    }
+                    selectedAssuranceIDText = $("#AssuranceID option:selected").text();
+                    console.log("selectedAssuranceIDText ", selectedAssuranceIDText);
+                    $(this).val('Please wait...');
+                    //$('#btnSubmit').prop('disabled', true);
+                    //post data to server
+                    $.ajax({
+                        url: '@Url.Action("ValiadeBordero", "NonDepositedBordero")',
+                        type: "POST",
+                        data: JSON.stringify(data),
+                        dataType: "JSON",
+                        contentType: "application/json",
+                        success: function (d) {
+                            //check is successfully save to database
+                            if (d.status == true) {
+                                //will send status from server side
+                                alert(d.Message);
+                                $('#btnPrint').prop('disabled', false);
+                                var BranchID = $("#BranchID").val();
+                                var AssuranceID = $("#AssuranceID").val();
+                                var BeginDate = $("#BeginDate").val();
+                                var EndDate = $("#EndDate").val();
+                                var CompanyID = $("#CompanyID").val();
+                                var LieuxdeDepotBorderoID = $("#LieuxdeDepotBorderoID").val();
+
+                                LoadGrid(true, BranchID, AssuranceID, BeginDate, EndDate, CompanyID, LieuxdeDepotBorderoID);
+                                DisplayCodeBordero(BranchID, BeginDate, EndDate, AssuranceID, CompanyID, LieuxdeDepotBorderoID, false);
+                                rows_selected = [];
+                            }
+                            else {
+                                rows_selected = [];
+                                alert(d.Message);
+                                //$('#btnSubmit').prop('disabled', false);
+
+                            }
+                        },
+                        error: function (response) {
+                            rows_selected = [];
+                            alert('Error. Please try again.');
+                            //$('#btnSubmit').prop('disabled', false);
+                        }
+                    });
+                }
+            }
+
+
+
+</script>
+

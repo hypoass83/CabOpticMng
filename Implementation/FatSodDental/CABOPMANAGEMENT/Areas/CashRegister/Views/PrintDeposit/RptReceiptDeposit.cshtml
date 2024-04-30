@@ -1,0 +1,125 @@
+﻿@using FatSod.Ressources;
+
+@model FatSod.Report.WrapReports.RptReceipt
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+}
+
+<section class="invoice" style="font-size:0.85em">
+    <!-- title row -->
+    <div class="row">
+        <div class="col-xs-3" style="text-align:left;padding:0px;margin-top:-10px;">
+            <img id='img-upload' src="~/User/File?id=@ViewBag.CompanyLogoID" style="height:90px; width:250px;" />
+        </div>
+        <div class="col-xs-5" style="text-align:left; margin-left:5px;padding:0px;margin-top:5px;">
+            <strong>@Model.CompanyName</strong><br />
+            @Model.CompanyAdress<br />
+            @Model.CompanyRC<br />
+            @Model.CompanyCNI<br />
+        </div>
+        @*<div class="col-xs-2">
+            </div>*@
+        <div class="col-xs-4" style="text-align:left; margin-left:-10px;padding:0px;margin-top:5px;">
+            <strong>@Model.BranchName</strong><br />
+            @Model.BranchAdress<br />
+            @Model.BranchTel<br />
+            @Model.CustomerAdress<br />
+        </div>
+        <!-- /.col -->
+    </div>
+    <!-- info row -->
+    <div class="row">
+        <div class="col-xs-12 invoice-title" style="margin-left:40%;margin-top:-10px;">
+            <strong><u> @Model.DeviseLabel </u></strong>
+            <br />
+        </div>
+    </div>
+    <br />
+    <div class="row">
+        <div class="col-xs-6">
+            @Resources.Customer :  @Model.CustomerAccount  /  @Model.CustomerName
+        </div>
+        <div class="col-xs-2 invoice-col">
+        </div>
+        <div class="col-xs-6">
+            @Resources.UIDateOperation: @Model.SaleDate
+        </div>
+    </div>
+    <div class="row">
+        <!-- /.col -->
+        <div class="col-xs-6">
+            @Resources.Operator: @Model.Operator
+        </div>
+        <div class="col-xs-2 invoice-col">
+        </div>
+        <div class="col-xs-6">
+            Transaction: @Model.Title
+        </div>
+        <!-- /.col -->
+
+    </div>
+    <hr />
+    <div class="row">
+        <!-- /.col -->
+        <div class="col-xs-5 invoice-col">
+        </div>
+        <div class="col-xs-5">
+            @Resources.Reference: @Model.Ref
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-5 invoice-col">
+        </div>
+        <div class="col-xs-6">
+            <span><b>@Resources.CashReceived: <u>@Model.ReceiveAmount</u></b></span>
+        </div>
+        <!-- /.col -->
+
+    </div>
+    <br />
+    <br />
+    <div class="row">
+        <div class="col-xs-12" style="text-align:center">
+            <span><b>Printed at <span id="datetime"></span> <span id="time"></span></b></span>
+        </div>
+        <br />
+    </div>
+    <div class="row">
+        <div class="col-xs-12" style="text-align:center">
+            <div class="col-xs-6">
+                @Resources.ClientSignature
+            </div>
+            <div class="col-xs-6">
+                @Resources.OperatorSignarture
+            </div>
+        </div>
+    </div>
+
+    <!-- /.row -->
+    <!-- this row will not appear when printing -->
+    <div class="row no-print">
+        <div class="col-xs-12">
+            <a href="#" onclick="window.focus(); window.print(); window.close();" target="_blank" class="btn btn-primary"><i class="fa fa-print"></i> Imprimer</a>
+            <a href="@Request.UrlReferrer" class="btn btn-warning"><i class="fa fa-angle-left"></i>@Resources.previous</a>
+        </div>
+    </div>
+</section>
+
+
+<script language="javascript">
+    var d = new Date();
+    var hourPayment = d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds();
+    document.getElementById('datetime').innerHTML = d.toDateString();
+    document.getElementById('time').innerHTML = hourPayment;
+</script>
+
+<style>
+    .invoice {
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+</style>
+
+
+
+

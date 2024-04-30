@@ -1,0 +1,179 @@
+﻿@using FatSod.Ressources;
+
+@model FatSod.Report.WrapReports.RptReceipt
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+}
+
+<section class="invoice" style="font-size:1.05em">
+    <!-- title row -->
+    <div class="row" style="height:115px;">
+
+    </div>
+    <br />
+    <br />
+    <!-- info row -->
+    <div class="row">
+        <div class="col-xs-12 invoice-title" style="text-align:right; margin-right:10%">
+            <span><b>@Model.Title.Trim()</b></span>, <span>@Model.SaleDateHours.ToString("dd/MM/yyyy HH:mm:ss")</span>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12 invoice-title" style="text-align:center">
+            <h3><u> Facture No: @Model.Ref </u></h3>
+        </div>
+    </div>
+    <br />
+    <div class="row invoice-info">
+        <div class="col-xs-8">
+            <span style="font-size:1.5em"><b><u>DOIT</u>: @Model.CustomerAccount</b></span><br />
+            <br />
+            <span style="font-size:1.3em"><b>ENTREPRISE: @Model.BranchAbbreviation</b></span><br />
+            <span style="font-size:1.3em"><b>MATRICULE: @Model.DeviseLabel</b></span>
+        </div>
+    </div>
+    <br />
+    <!-- /.row -->
+    <!-- Table row -->
+    <div class="row">
+        <div class="col-xs-12 table-responsive">
+            <table class="table table-striped" border="1">
+                <thead style="text-align:center;">
+                    <tr style="border:1px solid;">
+                        <th style="border:1px solid;text-align:center;padding:3px;">NOMS ET PRENOMS</th>
+                        <th style="border:1px solid;text-align:center;padding:3px;">DESIGNATION</th>
+                        <th style="border:1px solid;text-align:center;padding:3px;">MONTANT</th>
+                    </tr>
+                </thead>
+
+                <tbody style="border:1px solid">
+
+                    @foreach (var item in Model.ReceiptLines)
+                    {
+                        <tr style="border:1px dashed;">
+                            <td style="text-align:center;padding-top:0px;padding-bottom:2px;padding-left:20px;width:35%;border-right:1px solid;">
+                                <span><b>@item.ProducType</b></span>
+                            </td>
+                            @if (item.ReceiptLineID == 1)
+                            {
+                                <td style="text-align:center;padding-left:20px;padding-top:0px;padding-bottom:0px;width:50%;word-spacing:5px;">
+                                    <span><b>@item.Designation</b></span>
+                                </td>
+                            }
+                            else if (item.ReceiptLineID == 2)
+                            {
+                                <td style="text-align:left;padding-left:20px;padding-top:0px;padding-bottom:0px;width:50%;word-spacing:5px;">
+                                    @item.Designation
+                                </td>
+                            }
+                            else
+                            {
+                                <td style="text-align:left;padding-left:20px;padding-top:0px;padding-bottom:0px;width:50%;word-spacing:5px;border-bottom:1px solid;">
+                                    @item.Designation
+                                </td>
+                            }
+                            
+                            @if (item.ReceiptLineID == 1)
+                            {
+                                <td style="text-align:center; padding-left:40px;padding-top:0px;padding-bottom:0px;width:15%;border-left:1px solid;">
+                                    @item.DetailQty
+                                </td>
+                            }
+                            else if (item.ReceiptLineID == 2)
+                            {
+                                <td style="text-align:center; padding-left:40px;padding-top:0px;padding-bottom:0px;width:15%;border-left:1px solid;">
+                                    @item.DetailQty
+                                </td>
+                            }
+                            else
+                            {
+                                <td style="text-align:center; padding-left:40px;padding-top:0px;padding-bottom:0px;width:15%;border-left:1px solid;">
+                                    @item.DetailQty
+                                </td>
+                            }
+                        </tr>
+                    }
+                    
+                </tbody>
+                <tfoot style="text-align:center;">
+                    <tr style="border:1px solid;">
+                        <th style="border:1px solid;text-align:center;padding:3px;"></th>
+                        <th style="text-align:center;padding:3px;border-top:1px solid;">PRIX TOTAL </th>
+                        <th style="border:1px solid;text-align:center; padding-left:40px;width:15%">@Model.TotalAmount.ToString("N0")</th>
+                    </tr>
+                    
+                    @*@if(Model.RemiseAssurance!=0){
+                        var remise = (Model.TotalAmount * @Model.RemiseAssurance)/100;
+                        var MontantAvecRemise = (Model.TotalAmount - (Model.TotalAmount * Model.RemiseAssurance)/100);
+                        <tr style="border:1px solid;">
+                            <th style="border:1px solid;text-align:center;padding:3px;"></th>
+                            <th style="text-align:center;padding:3px;border-top:1px solid;">REMISE (@Model.RemiseAssurance%) </th>
+                            <th style="border:1px solid;text-align:center; padding-left:40px;width:15%">@remise.ToString("N0")</th>
+                        </tr>
+
+                        <tr style="border:1px solid;">
+                            <th style="border:1px solid;text-align:center;padding:3px;"></th>
+                            <th style="text-align:center;padding:3px;border-top:1px solid;">NET A PAYER </th>
+                            <th style="border:1px solid;text-align:center; padding-left:40px;width:15%"> @MontantAvecRemise.ToString("N0")</th>
+                        </tr>
+                     }*@
+                </tfoot>
+
+            </table>
+        </div>
+        <!-- /.col -->
+    </div>
+    <br />
+    
+    <div class="row invoice-info">
+        <div class="col-xs-12">
+            <span style="font-size:1.3em">ARRETE LA PRESENTE FACTURE A LA SOMME DE : <strong><b>@Model.MontantLettre FCFA</b></strong></span><br />
+        </div>
+    </div>
+    <br />
+    <br />
+    <br />
+    <div class="row">
+        <div class="col-xs-6" style="text-align:left; padding-left:20px;margin-top:5px;">
+            <span style="font-size:1.0em;"><b>SIGNATURE DU VENDEUR</b></span><br />
+        </div>
+        <div class="col-xs-6" style="text-align:right; padding-left:-60px;margin-top:5px;">
+            <span style="font-size:1.0em;"><b>SIGNATURE CLIENT</b></span><br />
+        </div>
+        <!-- /.col -->
+    </div>
+
+    @*<div class="row invoice-info">
+        <div class="col-md-12">
+            <div class="col-md-6" style="text-align:left;margin-left:10%;">
+                <span style="font-size:1.0em;"><b>SIGNATURE DU VENDEUR</b></span><br />
+            </div>
+            <div class="col-md-6" style="text-align:right;margin-right:10%;">
+                <span style="font-size:1.0em;"><b>SIGNATURE CLIENT</b></span><br />
+            </div>
+        </div>
+        </div>*@
+
+    <!-- /.row -->
+    <!-- this row will not appear when printing -->
+    <div class="row no-print">
+        <div class="col-xs-12">
+            <a href="#" onclick="window.focus(); window.print(); window.close();" target="_blank" class="btn btn-primary"><i class="fa fa-print"></i> Imprimer</a>
+            <a href="@Request.UrlReferrer" class="btn btn-warning"><i class="fa fa-angle-left"></i>@Resources.previous</a>
+        </div>
+    </div>
+</section>
+
+
+<style>
+    .invoice {
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+</style>
+
+
+
+
+
+

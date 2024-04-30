@@ -1,0 +1,113 @@
+﻿@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+@using CABOPMANAGEMENT.Tools;
+
+@model IEnumerable<FatSod.Security.Entities.Profile>
+@{
+    ViewBag.Title = "AvancedProfile";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var profile = (Session["UserProfile"] == null) ? 0 : (int)Session["UserProfile"];
+    var user = (Session["UserID"] == null) ? 0 : (int)Session["UserID"];
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+
+}
+
+<h2>@Resources.ProfileManagementAvanced</h2>
+
+<!-- Ajout de la table contenant les data deja enregistrees-->
+<h2>@Resources.ProfileList</h2>
+<div class="box box-body box-primary">
+    <table class="table" id="mainTable">
+        <thead>
+            <tr class="dataTableHead">
+                <th>
+                    Profile ID
+                </th>
+                <th>
+                    @Resources.PersonName
+                </th>
+                <th>
+                    @Resources.Description
+                </th>
+                <th>
+                    @Resources.Code
+                </th>
+                <th>
+                    Action
+                </th>
+            </tr>
+        </thead>
+        @foreach (var item in Model)
+        {
+            var idVariable = item.ProfileID;
+            <tr>
+                <td class="lineElm">
+                    @Html.DisplayFor(modelItem => item.ProfileID)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ProfileLabel)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ProfileDescription)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ProfileCode)
+                </td>
+                <td>
+                    @if (!LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, @profile, CodeValue.Security.Profile.CODE, db))
+                    {
+                        @Html.ActionLink("Edit", "Edit", new { id = item.ProfileID, profilCode = item.ProfileCode })
+                    }
+                    
+                </td>
+            </tr>
+        }
+
+    </table>
+</div>
+
+<style>
+    /*Adding some css for looks good*/
+    span.error {
+            display: block;
+            visibility: hidden;
+            color: red;
+            font-size: 90%;
+        }
+
+#after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin: 0;
+        min-width: 0;
+        padding: 10px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 35%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+
+
+
+</style>
+
+<script type="text/javascript">
+
+
+
+</script>

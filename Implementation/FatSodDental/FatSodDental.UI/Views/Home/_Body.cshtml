@@ -1,0 +1,96 @@
+﻿@using FatSod.Ressources;
+@{
+    var X = Html.X();    
+}
+
+@* -- Changer la valeur en 'OUI' ou 'NON' -- *@
+<script>
+    var Validation2 = function () {
+        var p1 = App.M1;
+        var p2 = App.M2;
+        if (p2.value == p1.value) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    };
+</script>
+@* --------------------------------------------------- *@
+
+@* Permer de positionner l'afficharge des menu *@
+<script>
+    var itemClick = function () {
+        var X = App.Bt_PayRoll.getX();
+        var Y = App.Bt_PayRoll.getY();
+        var H = App.Bt_PayRoll.getHeight();
+        var L = App.Bt_PayRoll.getWidth();
+        var XY = App.Bt_PayRoll.getXY();
+
+        var loc = (H + L) / 2;
+
+        App.Mn_Bt_PayRoll.showAt((X + loc), (Y + loc));
+    };
+</script>
+@* --------------------------------------------------------- *@
+
+@* Panel arrière plan *@
+@(
+    X.Panel()
+        .Region(Region.Center)
+        .Border(false)
+        .BodyStyle("background-color:transparent;")
+        .Layout(LayoutType.VBox)
+        .BodyPadding(5)
+        .Defaults(X.Parameter().Name("margins").Value("0 5 0 0").Mode(ParameterMode.Value))
+        .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center, Pack = BoxPack.Center })
+        .Items(
+            //X.Image()
+            //    .ImageUrl("~/Content/Images/png/FsInventory.png")
+            //    .Height(200)
+            //    .Width(500),
+
+             X.Label("").Height(130),
+            X.Label()
+                .ComponentCls("style_1")
+                    .Html(Resources.WelcomeApplication),
+                  
+            X.Label("").Height(30),
+            
+            X.Label()
+                .ComponentCls("style_2")
+                .Html(Resources.You_will_begin +  "..."),
+            
+            X.Label("").Height(30),
+            
+            X.Panel()
+                .BodyStyle("background-color:transparent;")
+                .Border(false)
+                .Layout(LayoutType.HBox)
+                .Defaults(X.Parameter().Name("margins").Value("0 0 0 0").Mode(ParameterMode.Value))
+                .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Middle, Pack = BoxPack.End })
+                .Items(
+                    X.ImageButton()
+                        .Height(38)
+                        .Width(100)
+                        .Text(Resources.To_Connect)
+                        .Handler("App.WindowLogin.show(this);")
+                        .ImageUrl(@Url.Content("~/Content/Images/png/bouton/Connexion.png"))
+                        .OverImageUrl(@Url.Content("~/Content/Images/png/bouton/Connexion_Hover.png"))
+                        .PressedImageUrl(@Url.Content("~/Content/Images/png/bouton/Connexion_Down.png"))
+                        .ToolTip(Resources.To_Connect +  "?"),
+                        
+                    X.Label("").Width(10),
+                    
+                    X.ImageButton()
+                        .Height(38)
+                        .Width(100)
+                        .Text(Resources.To_Connect)
+                        .Handler("App.WindowConfig.show(this);")
+                        .ImageUrl(@Url.Content("~/Content/Images/png/bouton/System_add.png"))
+                        .OverImageUrl(@Url.Content("~/Content/Images/png/bouton/System_add_hover.png"))
+                        .PressedImageUrl(@Url.Content("~/Content/Images/png/bouton/System_add_down.png"))
+                        .ToolTip(Resources.Create_new_system +  "?")
+                )
+        )
+)

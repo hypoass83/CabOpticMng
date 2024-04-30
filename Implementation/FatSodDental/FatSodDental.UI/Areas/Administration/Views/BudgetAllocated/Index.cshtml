@@ -1,0 +1,474 @@
+﻿﻿﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+@model System.Collections.IEnumerable
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    string labelSeparator = "  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :";
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+   
+}
+@section header
+{
+    <style>
+        .search-item {
+            font: normal 11px tahoma, arial, helvetica, sans-serif;
+            padding: 3px 10px 3px 10px;
+            border: 1px solid #fff;
+            border-bottom: 1px solid #eeeeee;
+            white-space: normal;
+            color: #555;
+        }
+
+            .search-item h3 {
+                display: block;
+                font: inherit;
+                font-weight: bold;
+                color: #222;
+                margin: 0px;
+            }
+
+                /*.search-item h3 span {
+                    float: right;
+                    font-weight: normal;
+                    margin: 0 0 5px 5px;
+                    width: 100px;
+                    display: block;
+                    clear: none;
+                }*/
+
+        p {
+            width: 650px;
+        }
+
+        .ext-ie .x-form-text {
+            position: static !important;
+        }
+    </style>
+}
+@section content
+{
+    @************************************************ Sales form informations ********************************@
+
+    @(
+ X.FormPanel()
+        .ID("GlobalForm")
+        .MarginSpec("-50 0 0 0")
+        .Padding(0)
+        .FieldDefaults(fd => { fd.LabelWidth = 120; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+        .Buttons(
+            X.Button()
+                .ID("btnSave")
+                .Text(Resources.SaveButton)
+                .Disabled(true)
+                .Icon(Icon.Disk)
+                .DirectEvents(de =>
+                {
+                    de.Click.Url = Url.Action("AllocateBudget");
+                    de.Click.EventMask.ShowMask = true;
+                    de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                }),
+
+            X.Button()
+                .Text(Resources.ResetButton)
+                .MarginSpec("0 20 10 10")
+                .OnClientClick("this.up('form').reset();")
+
+        )
+        .Listeners(
+            ls =>
+            {
+                ls.FieldChange.Handler = "if(App.GlobalForm.isValid()){App.btnSave.setDisabled(false);}else{App.btnSave.setDisabled(true);}";
+            }
+        )
+        .Items(
+            X.FormPanel()
+                .ID("BudgetAllocatedForm")
+                .MarginSpec("0 0 0 0")
+                .Title(Resources.CustomerIdentification)
+                .Listeners(ls =>
+                    {
+                        ls.FieldChange.Handler = @"if(this.isValid())
+                                            {
+                                                App.FormAllocateAmount.setDisabled(false);
+                                                App.BudgetLinesPanel.setDisabled(false);
+                                            }else{
+                                                App.FormAllocateAmount.setDisabled(true);
+                                                App.BudgetLinesPanel.setDisabled(true);
+                                            }";
+                    }
+                )
+                .Items(
+        //Top Fields, sale information
+                     X.Container()
+                     .MarginSpec("0 0 0 0")
+                     //.Title(" ")
+                     .Layout(LayoutType.HBox)
+                     .Items(
+                       X.FieldSet()
+                          .Flex(6)
+                          .Layout(LayoutType.Column)
+                          .Title("Generals Informations")
+                          .MinHeight(80)
+                          .Items(
+                                X.ComboBox()
+                                    .ID("BranchID")
+                                    .Name("BranchID")
+                                    .FieldLabel(Resources.Branches)
+                                    .AllowBlank(false)
+                                    .ForceSelection(true)
+                                    .MarginSpec("5 0 10 0")
+                                    .BlankText(Resources.Branches + " " + Resources.RequiredField)
+                                    .LabelSeparator(labelSeparator)
+                                    .EmptyText(Resources.Select)
+                                    //.Value(DefaultBranchID)
+                                    .Items(LoadComponent.GetOpenedBranches) 
+                                 ,
+                                    X.ComboBox()
+                                    .ID("FiscalYearID")
+                                    .Name("FiscalYearID")
+                                    .FieldLabel("Fiscal Year")
+                                    .Items(LoadComponent.FiscalYears)
+                                    .AllowBlank(false)
+                                    .ForceSelection(true)
+                                    .MarginSpec("5 0 10 0")
+                                    .BlankText(Resources.RequiredField)
+                                    .LabelSeparator(labelSeparator)
+                                    .EmptyText(Resources.Select)
+                                    .Width(400)     
+                                    .Listeners(ls =>
+                                                    {
+                                                        ls.Select.Handler = @"App.BudgetLineID.clear();
+                                                                App.BudgetLineID.getStore().load();
+                                                                ";
+                                                    })
+                          )
+        
+                       )
+                     )
+                     ,
+        //CommandOtherLine form and grid that present saleline of current sale
+                      X.Container()
+                        .Layout(LayoutType.HBox)
+                        .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                        .MarginSpec("0 0 0 0")
+                        .MinHeight(250)
+                        .Items(
+                            X.FormPanel()
+                                .Title(Resources.addCmdLine)
+                                .Disabled(true)
+                                .Layout(LayoutType.Anchor)
+                                .ID("FormAllocateAmount")
+                                .Width(500)
+                                .DefaultAnchor("100%")
+                                .Listeners(ls =>
+                                    {
+                                        ls.FieldChange.Handler = @"
+                                                        if(App.FormAllocateAmount.isValid()){
+                                                            App.AddToGrid.setDisabled(false);
+                                                        }else{
+                                                            App.AddToGrid.setDisabled(true);
+                                                        }
+                                                        "
+                                            ;
+                                    }
+
+                                )
+                                .Items(
+                                
+                                    X.ComboBox()
+                                                .FieldLabel("Budget Line")
+                                                .Name("BudgetLineID")
+                                                .ID("BudgetLineID")
+                                                .EmptyText(Resources.Select)
+                                                .DisplayField("BudgetLineLabel")
+                                                .ValueField("BudgetLineID")
+                                                .TypeAhead(false)
+                                                .Width(300)
+                                                .PageSize(10)
+                                                .HideTrigger(false)
+                                                .MinChars(0)
+                                                .TriggerAction(TriggerAction.Query)
+                                                .ListConfig(Html.X().BoundList()
+                                                                .LoadingText("Searching...")
+                                                                .ItemTpl(Html.X().XTemplate()
+                                                                .Html(@<text>
+                                                                    <div class="search-item">
+							                                            <h3><span>{BudgetLineLabel}</span></h3>
+						                                            </div>
+                                                                </text>)
+                                                    )
+                                                )
+                                                .Store(Html.X().Store()
+                                                    .AutoLoad(false)
+                                                    .Proxy(Html.X().AjaxProxy()
+                                                        .Url(Url.Action("GetAllBudgetLine"))
+                                                        .ActionMethods(am => am.Read = HttpMethod.POST)
+                                                        .Reader(Html.X().JsonReader().RootProperty("data"))
+                                                    )
+                                                    .Model(Html.X().Model()
+                                                        .Fields(
+                                                                Html.X().ModelField().Name("BudgetLineID").Type(ModelFieldType.Int),
+                                                                Html.X().ModelField().Name("BudgetLineLabel").Type(ModelFieldType.String)
+                                                        )
+                                                    )
+
+                                                    .Parameters(ps =>
+                                                            { //en fct de l'annee fiscal
+                                                                ps.Add(new StoreParameter("FiscalYearID", "App.FiscalYearID.getValue()", ParameterMode.Raw));
+                                                            })
+                                                        
+                                                )
+                                                ,
+                                            
+                                    X.NumberField().FieldLabel("Amount")
+                                            .Name("AllocateAmount")
+                                            .MsgTarget(MessageTarget.Side)
+                                            .ID("AllocateAmount")
+                                            .MarginSpec("5 0 0 0")
+                                            .AllowBlank(false)
+                                    )
+                                    .Buttons(
+                                        X.Button()
+                                            .Text("Add Line")
+                                            .Disabled(true)
+                                            .ID("AddToGrid")
+                                            .DirectEvents(de =>
+                                            {
+                                                de.Click.Url = Url.Action("AddBudgetAllocatedLine");
+                                                de.Click.EventMask.ShowMask = true;
+                                                de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                                                de.Click.ExtraParams.Add(new Parameter("BranchID", "App.BranchID.getValue()", ParameterMode.Raw));
+                                                de.Click.ExtraParams.Add(new Parameter("FiscalYearID", "App.FiscalYearID.getValue()", ParameterMode.Raw));
+                                            })
+                                            ,
+                                        X.Button()
+                                            .Text("Reset")
+                                            .OnClientClick("this.up('form').reset();")
+                                   )
+        //Grid of sale lines
+                              ,
+                            X.GridPanel()
+                                .Title("Budget Allocated state")
+                                .Disabled(true)
+                                .MarginSpec("0 0 0 10")
+                                .ID("BudgetLinesPanel")
+                                .Flex(1)
+                                .MarginSpec("0 0 0 0")
+                                .Frame(true)
+                                .Collapsible(true)
+                                .Store(
+                                    X.Store()
+                                        .RemotePaging(true)
+                                        .AutoLoad(false)
+                                        .PageSize(4)
+                                        .ID("BudgetAllocatedList")
+                                        .ServerProxy(
+                                           X.AjaxProxy()
+                                            .Url(Url.Action("GetBudgetAllocatedList", "BudgetAllocated"))
+                                            .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                                            .Reader(X.JsonReader().RootProperty("data"))
+                                        )
+                                        .Model(
+                                            X.Model()
+                                                .Fields(
+                                                    new ModelField() { Name = "BudgetAllocatedID", Type = ModelFieldType.Int },
+                                                    new ModelField() { Name = "BranchID", Type = ModelFieldType.Int },
+                                                    new ModelField() { Name = "BranchnName", Type = ModelFieldType.String },
+                                                    new ModelField() { Name = "FiscalYearID", Type = ModelFieldType.Int },
+                                                    new ModelField() { Name = "FiscalYearLabel", Type = ModelFieldType.String },
+                                                    new ModelField() { Name = "BudgetLine", Type = ModelFieldType.String },
+                                                    new ModelField() { Name = "BudgetLineID", Type = ModelFieldType.Int },
+                                                    //new ModelField() { Name = "BudgetAllocatedLabel", Type = ModelFieldType.String },
+                                                    new ModelField() { Name = "AllocateAmount", Type = ModelFieldType.Float }
+                                                )
+                                        )
+                                )
+                                    .ColumnModel(
+        
+                                    Html.X().Column()
+                                        .Text("Amount")
+                                        .DataIndex("AllocateAmount")
+                                        .Flex(1),
+                                    Html.X().Column()
+                                        .Text("Branch")
+                                        .DataIndex("BranchName")
+                                        .Flex(1),
+                                    Html.X().Column()
+                                        .Text("Fiscal Year")
+                                        .DataIndex("FiscalYearLabel")
+                                        .Flex(1),
+                                    Html.X().Column()
+                                        .Text("Budget Line")
+                                        .DataIndex("BudgetLine")
+                                        .Flex(1)
+                                        ,
+                                    Html.X().ImageCommandColumn()
+                                                .Width(30)
+                                                .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.DELETE, profile, CodeValue.Parameter.MoneyManagement.TillCODE,db))
+                                                .Commands(
+                                                    Html.X().ImageCommand()
+                                                        .CommandName("Delete")
+                                                        .IconCls("icon-delete")
+                                                )
+                                                .DirectEvents(de =>
+                                                {
+                                                    de.Command.Action = "DeleteBudgetAllocated";
+                                                    de.Command.Confirmation.ConfirmRequest = true;
+                                                    de.Command.Confirmation.Message = "Voulez vous supprimer ?";
+                                                    de.Command.Confirmation.Title = "Opération de suppression";
+                                                    de.Command.ExtraParams.Add(new Parameter("ID", "record.data.BudgetAllocatedID", ParameterMode.Raw));
+                                                    de.Command.EventMask.ShowMask = true;
+                                                    de.Command.EventMask.Msg = "Opération en cours...";
+                                                }),
+                                    Html.X().ImageCommandColumn()
+                                            .Width(30)
+                                            .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, profile, CodeValue.Parameter.MoneyManagement.TillCODE,db))
+                                            .Commands(
+                                            Html.X().ImageCommand()
+                                                    .CommandName("Edit")
+                                                    .IconCls("icon-edit")
+                                                    .ToolTip(tt => tt.Text = "Modifier ?")
+                                            )
+
+                                            .DirectEvents(de =>
+                                            {
+                                                de.Command.Action = "InitializeFieldsBudgetAllocated";
+                                                de.Command.ExtraParams.Add(new Parameter("ID", "record.data.BudgetAllocatedID", ParameterMode.Raw));
+                                                de.Command.EventMask.ShowMask = true;
+                                                de.Command.EventMask.Msg = "Chargement des paramètres de modification en cours...";
+                                            })
+                                    )
+                                    .BottomBar(
+                                            X.PagingToolbar()
+                                    )
+        //End Grid of sale line
+
+                            )
+                    )
+    )
+    @*************************************************** Sales list *************************************************************@
+    
+    @*
+
+    @(X.GridPanel()
+            //.Title(Resources.SaleList)
+        .ID("CustomerOrderList")
+        .Layout(LayoutType.Fit)
+        .MarginSpec("0 0 10 0")
+        .Margin(5)
+        .Frame(false)
+        .Collapsible(false)
+        .Store(X.Store()
+            .GroupField(Resources.AllCmd)
+            .ID("CommandListStore")
+            .RemotePaging(true)
+            .AutoLoad(true)
+            .PageSize(10)
+            .Model(
+                X.Model()
+                    .IDProperty("CustomerOrderID")
+                    .Fields(
+                        new ModelField("CustomerOrderDate", ModelFieldType.Date),
+                        new ModelField("CustomerOrderID", ModelFieldType.Int),
+                        new ModelField("CustomerOrderTotalPrice", ModelFieldType.Int),
+                        new ModelField("CustomerOrderNumber", ModelFieldType.String),
+                        new ModelField("CustomerName", ModelFieldType.String)
+
+                    )
+            )
+            .ServerProxy(
+                X.AjaxProxy()
+                .Url(Url.Action("GetAllCommands", "Command"))
+                .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                .Reader(X.JsonReader().RootProperty("data"))
+            )
+            .DataSource(Model)
+            .Sorters(
+                X.DataSorter()
+                .Property("CustomerName")
+                .Direction(Ext.Net.SortDirection.ASC)
+            )
+        )
+
+        .ColumnModel(
+            X.RowNumbererColumn()
+            ,
+            X.ImageCommandColumn()
+                .Width(30)
+                .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, profile, CodeValue.Sale.NewSale.C_CODE))
+                .Commands(
+                X.ImageCommand()
+                        .CommandName("Edit")
+                        .IconCls("icon-edit")
+                            .ToolTip(tt => tt.Text = Resources.msgUpdate)
+            )
+            .DirectEvents(de =>
+            {
+                de.Command.Action = "InitializeFieldsToUpdateCommand";
+                de.Command.Method = HttpMethod.POST;
+                de.Command.ExtraParams.Add(new Parameter("ID", "record.data.CustomerOrderID", ParameterMode.Raw));
+                de.Command.EventMask.ShowMask = true;
+                de.Command.EventMask.Msg = Resources.EventMaskUpdate;
+            })
+            ,
+            X.ImageCommandColumn()
+                .Width(30)
+                .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.DELETE, profile, CodeValue.Sale.NewSale.C_CODE))
+                .Commands(
+                X.ImageCommand()
+                        .CommandName("Delete")
+                        .IconCls("icon-delete")
+                        .ToolTip(tt => tt.Text = Resources.msgDelete)
+            )
+            .DirectEvents(de =>
+            {
+                de.Command.Action = "DeleteCommand";
+                de.Command.Method = HttpMethod.POST;
+                de.Command.Confirmation.ConfirmRequest = true;
+                de.Command.Confirmation.Message = Resources.ConfirmDeleteMessage;
+                de.Command.Confirmation.Title = Resources.ConfirmDeleteTitle;
+                de.Command.ExtraParams.Add(new Parameter("ID", "record.data.CustomerOrderID", ParameterMode.Raw));
+                de.Command.EventMask.ShowMask = true;
+                de.Command.EventMask.Msg = Resources.EventMaskUpdate;
+            })
+            ,
+                    X.DateColumn()
+                .Text(Resources.UIDateOperation)
+                .DataIndex("CustomerOrderDate")
+                .Flex(1),
+
+            X.Column()
+                .Text(Resources.Customer)
+                .DataIndex("CustomerName")
+                .Flex(1),
+            X.Column()
+                .Text(Resources.Commandref)
+                .DataIndex("CustomerOrderNumber")
+                .Flex(1),
+
+            X.Column()
+                .Text(Resources.CustorderEstimation)
+                .DataIndex("CustomerOrderTotalPrice")
+                .Flex(1)
+
+            )
+            .Features(
+                X.GroupingSummary()
+                 .ID("CustomerOrderDate1")
+                )
+            .Plugins(
+                X.FilterHeader()
+            )
+            .BottomBar(
+                    X.PagingToolbar()
+            )
+    )*@
+}

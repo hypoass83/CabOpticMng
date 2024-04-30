@@ -1,0 +1,558 @@
+@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+@model System.Collections.IEnumerable
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    string labelSeparator = "  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :";
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+    
+}
+@section header
+{
+    <script>
+    var template = 'color:{0};';
+
+    var change = function (value, meta) {
+        meta.style = Ext.String.format(template, (value > 0) ? "green" : "red");
+        return value;
+    };
+
+    var pctChange = function (value, meta) {
+        meta.style = Ext.String.format(template, (value > 0) ? "green" : "red");
+        return value + "%";
+    };
+
+    var edit = function (editor, e) {
+        /*
+            "e" is an edit event with the following properties:
+
+                grid - The grid
+                record - The record that was edited
+                field - The field name that was edited
+                value - The value being set
+                originalValue - The original value for the field, before the edit.
+                row - The grid table row
+                column - The grid Column defining the column that was edited.
+                rowIdx - The row index that was edited
+                colIdx - The column index that was edited
+        */
+            @*@(Url.Action("Edit"))*@
+            // Call DirectMethod
+            if (!(e.value === e.originalValue || (Ext.isDate(e.value) && Ext.Date.isEqual(e.value, e.originalValue)))) {
+                Ext.net.DirectMethod.request({
+                    url: '@(Url.Action("Edit"))',
+                    params: {
+                        id: e.record.data.ProductLocalizationID,
+                        field: e.field,
+                        oldValue: e.originalValue,
+                        newValue: e.value,
+                        customer: e.record.data
+                    }
+                });
+            }
+        };
+    </script>
+}
+@section content
+{
+
+    @***********************************************************@
+    @(
+
+
+
+
+        //formulaire général
+        //c'est ausi le container qui (contient) le fieldset des éléments de formulaire d'un achat, le formulaire du panier et le tableau représentant le contenu du panier
+
+X.Container()
+        .Layout(LayoutType.HBox)
+        .MarginSpec("-10 0 0 0")
+        .ID("DefaultContainer")
+        .Layout(LayoutType.Fit)
+        .Items(
+
+        X.FormPanel()
+                .ID("GeneralForm")
+                .Frame(true)
+                .MarginSpec("0 0 0 0")
+                .Padding(0)
+                .FieldDefaults(fd => { fd.LabelWidth = 120; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+        
+                .Buttons(
+                    
+                    X.Button()
+                        .ID("btnSave")
+                        .Text(Resources.StockReg)
+                        //.Disabled(true)
+                        .Icon(Icon.Disk)
+                        .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.ADD, profile, CodeValue.Supply.Inventory_SM.CODE,db))
+                        .DirectEvents(de =>
+                        {
+                            de.Click.Url = Url.Action("AddInventory");
+                            de.Click.EventMask.ShowMask = true;
+                            de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                        }),
+                    X.Button()
+                        .ID("Cancel1")
+                        .Text(Resources.Cancel)
+                        .MarginSpec("0 20 10 10")
+                        .DirectEvents(de =>
+                        {
+                            de.Click.Url = Url.Action("Reset");
+                            de.Click.Complete = "";
+                            de.Click.EventMask.ShowMask = true;
+                            de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                        }),
+                    X.Button()
+                            .ID("btnPrintAll")
+                            .Text(Resources.printInventory)
+                            .Icon(Icon.Printer)
+                            .DirectEvents(de =>
+                            {
+                                de.Click.Url = Url.Action("PrintAllInventory");
+                                de.Click.EventMask.ShowMask = true;
+                                de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                            })
+                )
+            .Items(
+        //Container des éléments de formulaire de la table Purchase
+                X.FormPanel()
+                    .ID("InventoryForm")
+                    .Layout(LayoutType.Column)
+                    .MarginSpec("10 10 10 10")
+                    .Title(Resources.InventoryInfo)
+                        //.Listeners(ls =>
+                        //    {
+                        //        ls.FieldChange.Handler = activateValidatePurchase;
+                        //    })
+                    .Items(
+                        X.NumberField().Name("OldQuantityID").ID("OldQuantityID").Hidden(true),
+                        X.TextField().Name("ProductLocalizationID").ID("ProductLocalizationID").Hidden(true),
+                        X.TextField().Name("ProductID").ID("ProductID").Hidden(true),
+                        X.TextField().Name("LocalizationID").ID("LocalizationID").Hidden(true),
+
+                        X.Container()
+                            .Layout(LayoutType.Anchor)
+                            .MarginSpec("10 0 0 0")
+                            .Items(
+                                X.TextField()
+                                    .ID("BranchID")
+                                    .Name("BranchID")
+                                    .FieldLabel(Resources.Branches)
+                                    .AllowBlank(false)
+                                    .LabelSeparator(labelSeparator)
+                                    .ReadOnly(true),
+                                   X.DateField().FieldLabel(Resources.UIDateOperation)
+                                    .AllowBlank(false)
+                                    .Name("ProductLocalizationDate")
+                                    .ID("ProductLocalizationDate")
+                                    .InputType(Ext.Net.InputType.DateTime)
+                                    .ReadOnly(true),
+                                    //.Format("m/d/Y H:i:s"),
+                                X.TextField()
+                                    .ID("Product")
+                                    .Name("Product")
+                                    .FieldLabel(Resources.Product)
+                                    .AllowBlank(false)
+                                    .BlankText(Resources.Product + " " + Resources.RequiredField)
+                                    .LabelSeparator(labelSeparator)
+                                    .ReadOnly(true),
+                                X.TextField()
+                                    .ID("Localization")
+                                    .Name("Localization")
+                                    .FieldLabel(Resources.a_Location)
+                                    .AllowBlank(false)
+                                    .BlankText(Resources.a_Location + " " + Resources.RequiredField)
+                                    .LabelSeparator(labelSeparator)
+                                    .ReadOnly(true)
+
+                            ),
+
+                            X.Container()
+                            .Layout(LayoutType.Anchor)
+                            .MarginSpec("10 0 0 10")
+                            .Items(
+                                    X.NumberField().FieldLabel(Resources.Quantity)
+                                    .ID("ProductLocalizationStockQuantity")
+                                    .Name("ProductLocalizationStockQuantity")
+                                    .MarginSpec("0 0 5 0")
+                                    .ReadOnly(LoadAction.IsSubMenuActionAble(MenuAction.ADD, profile, CodeValue.Supply.Inventory_SM.CODE,db))
+                                    .AllowBlank(false)
+                                    .EnforceMaxLength(true)
+                                    .MinValue(0)
+                                    //.Listeners(ls =>
+                                    //{
+                                    //    ls.Change.Handler = QuantityChanged;
+                                    //})
+                                    ,
+
+                                    X.NumberField().FieldLabel(Resources.SaleUnitPrice)
+                                    .ID("ProductLocalizationStockSellingPrice")
+                                    .Name("ProductLocalizationStockSellingPrice")
+                                    .MarginSpec("0 0 5 0")
+                                    .AllowBlank(false)
+                                    .Hidden(true)
+                                    //.EnforceMaxLength(true)
+                                    //.ReadOnly(true)
+                                    .MinValue(0),
+                                    X.NumberField().FieldLabel(Resources.PurchaseUnitPrice)
+                                    .ID("AveragePurchasePrice")
+                                    .Name("AveragePurchasePrice")
+                                    .MarginSpec("0 0 5 0")
+                                    .AllowBlank(false)
+                                    //.Hidden(true)
+                                    //.EnforceMaxLength(true)
+                                    //.ReadOnly(true)
+                                    .MinValue(0),
+                                   X.NumberField().FieldLabel(Resources.StockSecure)
+                                    .ID("ProductLocalizationSafetyStockQuantity")
+                                    .Name("ProductLocalizationSafetyStockQuantity")
+                                    .MarginSpec("0 0 5 0")
+                                    .AllowBlank(false)
+                                    .EnforceMaxLength(true)
+                                    .ReadOnly(true)
+                                    .MinValue(0)
+                            ),
+
+                             X.Container()
+                            .Layout(LayoutType.Anchor)
+                            .MarginSpec("10 0 0 10")
+                            .Items(
+
+                                X.ComboBox()
+                                    .ID("AutorizedByID")
+                                    .Name("AutorizedByID")
+                                    .FieldLabel(Resources.AutorizedBy)
+                                    .Items(LoadComponent.Users)
+                                    .AllowBlank(false).ForceSelection(true)
+                                    .BlankText(Resources.AutorizedBy + " " + Resources.RequiredField)
+                                    .LabelSeparator(labelSeparator)
+                                    .EmptyText(Resources.Select)
+                                    .Hidden(true)
+                                    .ReadOnly(false),
+                                X.ComboBox()
+                                    .ID("CountByID")
+                                    .Name("CountByID")
+                                    .FieldLabel(Resources.CountBy)
+                                    .Items(LoadComponent.Users)
+                                    .AllowBlank(false).ForceSelection(true)
+                                    .BlankText(Resources.CountBy + " " + Resources.RequiredField)
+                                    .LabelSeparator(labelSeparator)
+                                    .EmptyText(Resources.Select)
+                                    .Hidden(true)
+        //.Disabled(true)
+                                    ,
+                                X.ComboBox()
+                                    .ID("RegisteredByID")
+                                    .Name("RegisteredByID")
+                                    .FieldLabel(Resources.RegisteredBy)
+                                    .Items(LoadComponent.Users)
+                                    .Value(user)
+                                    .AllowBlank(false).ForceSelection(true)
+                                    .BlankText(Resources.RegisteredBy + " " + Resources.RequiredField)
+                                    .LabelSeparator(labelSeparator)
+                                    .EmptyText(Resources.Select)
+                                    .Hidden(true)
+                                    .ReadOnly(true),
+                                X.TextArea()
+                                    .ID("inventoryReason")
+                                    .Name("inventoryReason")
+                                    .FieldLabel(Resources.Reason)
+                                    .AllowBlank(false)
+                                    .Hidden(true)
+                             )
+
+                )
+             )//fin du items du formpanel
+
+
+        )//fin du items du container general
+
+
+    )
+
+    @* Tableau contenant la liste des achats *@
+    @(
+    X.FieldSet()
+                .Flex(1)
+                .Layout(LayoutType.Anchor)
+                .Border(false)
+                .DefaultAnchor("100%")
+                .Items(
+                        X.FieldContainer().FieldLabel(Resources.SearchCriteria)
+                    .Layout(LayoutType.HBox)
+                    .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                    .ID("SearchCriteria")
+                    .MsgTarget(MessageTarget.Side)
+                        .Items(
+                            X.ComboBox().Name("Seach Option")//.FieldLabel(Resources.UICollectifAccount)
+                            .Items(new ListItem(Resources.Product, "CODE"),
+                                    new ListItem(Resources.Category, "CAT"))
+                                .Value("CODE")
+                            .ValueField("SearchOption")
+                            .AllowBlank(false).ForceSelection(true)
+                            .ID("SearchOption")
+                            .Width(150)
+                            .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                            .EmptyText("Choose Search Option")
+                            .AutoSelect(false)
+                            ,
+                            X.Component().Width(5),
+                            X.TextField().Width(250).ID("SearchValue").Name("SearchValue")
+                            .BlankText("Type Search Value")
+                            .AllowBlank(false)
+                            .DirectEvents(de =>
+                            {
+                                de.Change.Action = "loadGrid";
+                            })
+                                ,
+                            X.Button()
+                                .ID("btnPrint")
+                                .Text(Resources.UIPrintGeneric)
+                                .Icon(Icon.Printer)
+                                .DirectEvents(de =>
+                                {
+                                    de.Click.Url = Url.Action("PrintGenericInventory");
+                                    de.Click.EventMask.ShowMask = true;
+                                    de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                                })
+                        )
+                        /////
+                            ,
+                            X.FieldContainer().FieldLabel(Resources.LenscategoryBeforePrint)
+                        .Layout(LayoutType.HBox)
+                        .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                        .ID("LenscategoryBeforePrint")
+                        .MsgTarget(MessageTarget.Side)
+                        .Items(
+                            X.ComboBox().Name("CategoryCode")
+                            .Items(LoadComponent.GetAllLensCategories())
+                            .AllowBlank(false).ForceSelection(true)
+                            .ID("CategoryCode")
+                            .Width(230)
+                            .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                            .EmptyText(Resources.chooseCategories)
+                            .AutoSelect(false)
+                                ,
+                            X.Button()
+                                .ID("btnPrintLens")
+                                .Text(Resources.UIPrintLens)
+                                .Icon(Icon.Printer)
+                                .DirectEvents(de =>
+                                {
+                                    de.Click.Url = Url.Action("PrintLensInventory");
+                                    de.Click.EventMask.ShowMask = true;
+                                    de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                                    de.Click.ExtraParams.Add(new Parameter("CategoryCode", "App.CategoryCode.getValue()", ParameterMode.Raw));
+                                })
+                             ,
+                                X.Button()
+                                    .ID("btnPrintLensStock")
+                                    .Text(Resources.UIPrintLensStock)
+                                    .Icon(Icon.Printer)
+                                    .DirectEvents(de =>
+                                    {
+                                        de.Click.Url = Url.Action("PrintLensInventoryStock");
+                                        de.Click.EventMask.ShowMask = true;
+                                        de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                                        de.Click.ExtraParams.Add(new Parameter("CategoryCode", "App.CategoryCode.getValue()", ParameterMode.Raw));
+                                    })
+                        )
+                                    ////
+                        ,
+ Html.X().GridPanel()
+            .Title(Resources.PurchasesList)
+            .ID("InventoryList")
+            .Layout(LayoutType.Fit)
+            .MarginSpec("10 10 10 10")
+            .Margin(5)
+            .Frame(true)
+            .Collapsible(false)
+            .Store(X.Store()
+                .ID("Store")
+                .RemotePaging(true)
+                .AutoLoad(true)
+                .PageSize(25)
+                .GroupField("LocalizationLabel")
+                .DataSource(Model)
+                .Model(
+                    X.Model()
+                        //.IDProperty("InventoryListModel")
+                        .Fields(
+                            new ModelField("ProductLocalizationID", ModelFieldType.Int),
+                            new ModelField("LocalizationLabel", ModelFieldType.String),
+                            new ModelField("ProductCode", ModelFieldType.String),
+                            new ModelField("ProductLocalizationStockQuantity", ModelFieldType.Float),
+                            new ModelField("ProductLocalizationStockSellingPrice", ModelFieldType.Float),
+                            new ModelField("ProductLocalizationSafetyStockQuantity", ModelFieldType.Float),
+                            new ModelField("Amount", ModelFieldType.Auto),
+                            new ModelField("BranchName", ModelFieldType.String),
+                            new ModelField("Category", ModelFieldType.String),
+                            new ModelField("AveragePurchasePrice",ModelFieldType.Float)
+                        )
+                )
+                .ServerProxy(
+                    X.AjaxProxy()
+                    .Url(Url.Action("GetAllProductLocalizations"))
+                    .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                    .Reader(X.JsonReader().RootProperty("data"))
+                )
+                        .Parameters(ps =>
+                            {
+                                ps.Add(new StoreParameter("SearchOption", "App.SearchOption.getValue()", ParameterMode.Raw));
+                                ps.Add(new StoreParameter("SearchValue", "App.SearchValue.getValue()", ParameterMode.Raw));
+                            }
+                            )
+                .Sorters(
+                        X.DataSorter()
+                            .Property("ProductCode")
+                        .Direction(Ext.Net.SortDirection.ASC)
+                )
+            )
+
+            .ColumnModel(
+                    Html.X().Column().Text("ID").DataIndex("ProductLocalizationID").Width(35),
+                    Html.X().Column()
+                    .Text(Resources.Branches)
+                    .DataIndex("BranchName")
+                    .Flex(1)
+                    ,
+
+                    Html.X().Column()
+                    .Text(Resources.Localization)
+                    .DataIndex("LocalizationLabel")
+                    .Flex(1)
+                    ,
+                    Html.X().Column()
+                    .Text(Resources.Product)
+                        .DataIndex("ProductCode")
+                    .Flex(1),
+                Html.X().Column()
+                    .Text(Resources.StockSecure)
+                    .DataIndex("ProductLocalizationSafetyStockQuantity")
+                    .Flex(1),
+
+                Html.X().Column()
+                        .Text(Resources.Quantity)
+                        .DataIndex("ProductLocalizationStockQuantity")
+                        .Flex(1)
+                        .Editor(Html.X().NumberField().ID("StockQTY").Disabled(LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, profile, CodeValue.Supply.Inventory_SM.CODE, db)))
+                        ,
+                Html.X().Column()
+                    .Text(Resources.Category)
+                    .DataIndex("Category")
+                    .Flex(1),
+                //Html.X().Column()
+                //    .Text(Resources.SaleEstimatePrice)
+                //    .DataIndex("Amount")
+                //    .Flex(1),
+                   //Html.X().Column()
+                   //     .Text(Resources.IssafetyStockReach)
+                   //     .DataIndex("IsSafQuantStockReached")
+                   //     .Renderer("IsSafQuantStockReached")
+                   //     .Flex(1),
+                Html.X().ImageCommandColumn()
+                        .Width(30)
+                        .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, profile, CodeValue.Supply.Inventory_SM.CODE,db))
+                        .Commands(
+                        Html.X().ImageCommand()
+                                .CommandName("Edit")
+                                .IconCls("icon-edit")
+                                .ToolTip(tt => tt.Text = Resources.msgUpdate)
+                        )
+
+                        .DirectEvents(de =>
+                        {
+                            de.Command.Action = "UpdatePurchase";
+                            de.Command.Method = HttpMethod.POST;
+                            de.Command.ExtraParams.Add(new Parameter("PurchaseID", "record.data.ProductLocalizationID", ParameterMode.Raw));
+                            de.Command.EventMask.ShowMask = true;
+                            de.Command.EventMask.Msg = Resources.EventMaskUpdate;
+                        })
+                )
+                .SelectionModel(Html.X().CellSelectionModel())
+        .Features(
+    Html.X().GroupingSummary()
+    .ID("GroupingSummary1")
+
+    )
+    .Plugins(
+            X.FilterHeader(),
+            Html.X().CellEditing().Listeners(ls => ls.Edit.Fn = "edit")
+        )
+        .BottomBar(
+                        X.PagingToolbar()
+                )
+
+    )
+    )
+
+    @****************Inventory report conatiner**************************************************@
+@*@(
+ X.Container()
+        //Panel for print
+    .Items(X.Panel()
+        .ID("RptInventory")
+        .Title(Resources.PanelPreview)
+        .Hidden(true)
+        .Layout(LayoutType.HBox)
+        .Flex(1)
+        .Collapsible(true)
+        .Padding(1)
+        .AutoScroll(false)
+        .Hidden(true)
+        .MinHeight(500)
+        .MinWidth(500)
+        .Loader(
+            X.ComponentLoader()
+            .AutoLoad(false)
+            .Mode(LoadMode.Frame)
+            .LoadMask(lm =>
+                {
+                    lm.ShowMask = true;
+                    lm.Msg = Resources.MsgGenerateState;
+                    lm.UseMsg = true;
+
+                })
+            )
+        )
+
+)*@
+
+    @(
+ X.Panel()
+    .Layout(LayoutType.HBox)
+    .Flex(1)
+    .MarginSpec("0 0 -100 0")
+    .Title(Resources.InventoryReport)
+    .ID("RptInventory")
+    .Collapsible(true)
+    .Padding(20)
+    .AutoScroll(false)
+    .Hidden(true)
+    .MinHeight(500)
+    .Loader(
+       X.ComponentLoader()
+        .AutoLoad(false)
+        .Mode(LoadMode.Frame)
+        .LoadMask(lm =>
+            {
+                lm.ShowMask = true;
+                lm.Msg = Resources.MsgGenerateState;
+                lm.UseMsg = true;
+
+            })
+        )
+    )
+
+}
+

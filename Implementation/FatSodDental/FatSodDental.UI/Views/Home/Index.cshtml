@@ -1,0 +1,43 @@
+﻿<!DOCTYPE html>
+
+@{
+    var X = Html.X();
+}
+<style>
+    .Body {
+        font-family: 'Century Gothic';
+    }
+
+    .style_1 {
+        font-family: 'Century Gothic';
+        font-size: 30px;
+        color: #a533ee;
+    }
+
+    .style_2 {
+        font-family: 'Century Gothic';
+        font-size: 15px;
+        color: black;
+    }
+
+    .style_3 {
+        font-family: 'Century Gothic';
+        font-size: 10px;
+        color: black;
+    }
+</style>
+<html>
+
+<head>
+    <title>FSInventory Manager 1.0.0</title>
+</head>
+
+<body style="font-family: 'Century Gothic'; ">
+
+   @Html.X().ResourceManager().Theme(Theme.Default).ShowWarningOnAjaxFailure(false)
+
+    @RenderPage("~/Views/Home/_ViewPort.cshtml")
+
+</body>
+
+</html>

@@ -1,0 +1,309 @@
+﻿@using Mvc_Ext_.App_Class;
+@{
+    var X = Html.X();
+    Connexion con = (Connexion)Session["Connexion"];
+}
+
+@(
+    X.Panel()
+        .ID("Pan_North")
+        .Region(Region.North)
+        .BodyStyle("background-color:transparent;")
+        .Border(false)
+        .Header(false)
+        .Layout(LayoutType.Fit)
+        .PaddingSpec("0 5px 0 5px")
+        .Split(true)
+        .Collapsible(true)
+        .Items(
+            X.Panel()
+                .BodyStyle("background-color:transparent;")
+                .Border(false)
+                .Layout(LayoutType.Column)
+                .PaddingSpec("5px 0 0 0")
+                .Items(
+                    X.Panel()
+                        .ColumnWidth(1)
+                        .Layout(LayoutType.Column)
+                        .Border(false)
+                        //.Frame(true)
+                        .Height(75)
+                        .BodyStyle("background-color:transparent;")
+                        .Layout(LayoutType.HBox)
+                        .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Middle })
+                        .Items(
+                            X.Label("").Width(10),
+                    
+                            // ---------------------------------------------------------------------------------- //
+                            // --------------------- FieldSet du module d'acces aux licences --------------------- //
+                            // ---------------------------------------------------------------------------------- //
+                            X.FieldSet().Hidden(Model.Menu_link.Level9_E_b)
+                                .Title(@"<b>" + Mvc_Ext_.App_Language.Resource.Licence_key + "</b>")
+                                .Layout(LayoutType.VBox)
+                                .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center, Pack = BoxPack.Center })
+                                .PaddingSpec("0 0 5px 5px")
+                                .Items(
+                                    X.Button().Hidden(Model.Menu_link.Level9_E_b)
+                                        .Flat(true)
+                                        .ToolTip(Mvc_Ext_.App_Language.Resource.Licence_key)
+                                        .IconCls("x-licence_key")
+                                        .IconAlign(IconAlign.Top)
+                                        .ArrowAlign(ArrowAlign.Bottom)
+                                        .Scale(ButtonScale.Large)
+                                        .Handler("loadPage_link(App.tabPanel, 'Level9_E_b', 'Level9_E_b/Index', '" + Mvc_Ext_.App_Language.Resource.Licence_key + "', '" +
+                                                        Mvc_Ext_.App_Language.Resource.Loading + "');")
+                                ),
+                            
+                            // ---------------------------------------------------------------------------------- //
+                            // -------------------------- FieldSet des menus Du HR ------------------------------- //
+                            // ---------------------------------------------------------------------------------- //
+                            X.FieldSet().Hidden(!Model.Menu_link.HR)
+                                .Title(@"<b>H.R.</b>")
+                                .Layout(LayoutType.Column)
+                                .PaddingSpec("0 5px 5px 5px")
+                                .Items(
+                                    X.Button().Hidden(!Model.Menu_link.Level1_A_a)
+                                        .Flat(true)
+                                        
+                                        .ToolTip(Mvc_Ext_.App_Language.Resource.Employee + "s / " + Mvc_Ext_.App_Language.Resource.Level1_A_a)
+                                        .IconCls("x-mr_suit")
+                                        .IconAlign(IconAlign.Top)
+                                        .ArrowAlign(ArrowAlign.Bottom)
+                                        .Scale(ButtonScale.Large)
+                                        .Handler("loadPage_link(App.tabPanel, 'Level1_A_a', 'Level1_A_a/Index', '" + 
+                                                                Mvc_Ext_.App_Language.Resource.Level1_A_a + "', '" +
+                                                                Mvc_Ext_.App_Language.Resource.Loading + "');"),
+                                        
+                                    X.Label("").Width(5),
+                                    
+                                    X.Button().Hidden(!Model.Menu_link.Level1_A_e)
+                                        .Flat(true)
+                                        .ToolTip(Mvc_Ext_.App_Language.Resource.Level3_A)
+                                        .IconCls("x-mr_suit_infos")
+                                        
+                                        .IconAlign(IconAlign.Top)
+                                        .ArrowAlign(ArrowAlign.Bottom)
+                                        .Scale(ButtonScale.Large)
+                                        .Handler("loadPage_link(App.tabPanel, 'Level1_A_e', 'Level1_A_e/Index', '" + 
+                                                                  Mvc_Ext_.App_Language.Resource.Employee + "s / " + Mvc_Ext_.App_Language.Resource.Level3_A + "', '" + 
+                                                                  Mvc_Ext_.App_Language.Resource.Loading + "');"),
+                                        
+                                    X.Label("").Width(5),
+                                    
+                                    X.Button().Hidden(!Model.Menu_link.Level1_A_f)
+                                        .Flat(true)
+                                        .ToolTip(Mvc_Ext_.App_Language.Resource.Level1_A_f)
+                                        .IconCls("x-mr_suit_print")
+                                        
+                                        .IconAlign(IconAlign.Top)
+                                        .ArrowAlign(ArrowAlign.Bottom)
+                                        .Scale(ButtonScale.Large)
+                                        .Handler("loadPage_link(App.tabPanel, 'Level1_A_f', 'Level1_A_f/Index', '" + 
+                                                                  Mvc_Ext_.App_Language.Resource.Level1_A_f + "', '" + 
+                                                                  Mvc_Ext_.App_Language.Resource.Loading + "');")
+                                ),
+                        
+                            X.Label("").Width(5),
+                    
+                            // ---------------------------------------------------------------------------------- //
+                            // -------------------------- FieldSet des menus Du PayRoll--------------------------- //
+                            // ---------------------------------------------------------------------------------- //
+                            X.FieldSet().Hidden(!Model.Menu_link.PayRoll)
+                                .Title(@"<b>Payroll</b>")
+                                .Layout(LayoutType.Column)
+                                .PaddingSpec("0 5px 5px 5px")
+                                .Items(
+                                    X.Button().Hidden(!Model.Menu_link.Level3_D)
+                                        .Flat(true)
+                                        .ToolTip(Mvc_Ext_.App_Language.Resource.PayRoll_historic)
+                                        .IconCls("x-payroll_historique_32")
+                                        .IconAlign(IconAlign.Top)
+                                        
+                                        .ArrowAlign(ArrowAlign.Bottom)
+                                        .Scale(ButtonScale.Large)
+                                        .Handler("loadPage_link(App.tabPanel, 'Level3_D', 'Level3_D/Index', '" + 
+                                                            Mvc_Ext_.App_Language.Resource.PayRoll_historic + "', '" + 
+                                                            Mvc_Ext_.App_Language.Resource.Loading + "');"),
+                                        
+                                    X.Label("").Width(5),
+                                    
+                                    X.Button().Hidden(!Model.Menu_link.Level3_E)
+                                        .Flat(true)
+                                        .ToolTip(Mvc_Ext_.App_Language.Resource.Monthly_horary_count)
+                                        .IconCls("x-payroll_heure_32")
+                                        .IconAlign(IconAlign.Top)
+                                        .ArrowAlign(ArrowAlign.Bottom)
+                                        .Scale(ButtonScale.Large)
+                                        .Handler("loadPage_link(App.tabPanel, 'Level3_E', 'Level3_E/Index', '" + 
+                                                            Mvc_Ext_.App_Language.Resource.Monthly_horary_count + "', '" + 
+                                                            Mvc_Ext_.App_Language.Resource.Loading + "');"),
+                                        
+                                    X.Label("").Width(5),
+                                    
+                                    X.Button().Hidden(!Model.Menu_link.Level3_B)
+                                        .Flat(true)
+                                        .ToolTip(Mvc_Ext_.App_Language.Resource.PayRoll_Variables)
+                                        .IconCls("x-payroll_variable_32")
+                                        .IconAlign(IconAlign.Top)
+                                        
+                                        .ArrowAlign(ArrowAlign.Bottom)
+                                        .Scale(ButtonScale.Large)
+                                        .Handler("loadPage_link(App.tabPanel, 'Level3_B', 'Level3_B/Index', '" + 
+                                                            Mvc_Ext_.App_Language.Resource.PayRoll_Variables + "', '" + 
+                                                            Mvc_Ext_.App_Language.Resource.Loading + "');"),
+                                        
+                                    X.Label("").Width(5),
+                                    
+                                    X.Button().Hidden(!Model.Menu_link.Level3_C_a)
+                                        .Flat(true)
+                                        .ToolTip(Mvc_Ext_.App_Language.Resource.Level3_D)
+                                        .IconCls("x-p_p")
+                                        .IconAlign(IconAlign.Top)
+                                        .ArrowAlign(ArrowAlign.Bottom)
+                                        .Scale(ButtonScale.Large)
+                                        .Handler("loadPage_link(App.tabPanel, 'Level3_C_a', 'Level3_C_a/Index', '" + 
+                                                            Mvc_Ext_.App_Language.Resource.Level3_D + "', '" + 
+                                                            Mvc_Ext_.App_Language.Resource.Loading + "');"),
+                                        
+                                    X.Label("").Width(5),
+                                    
+                                    X.Button().Hidden(!Model.Menu_link.Level3_F)
+                                        .Flat(true)
+                                        .ToolTip("Payroll " + Mvc_Ext_.App_Language.Resource.Print)
+                                        .IconCls("x-payroll_print")
+                                        .IconAlign(IconAlign.Top)
+                                        .ArrowAlign(ArrowAlign.Bottom)
+                                        .Scale(ButtonScale.Large)
+                                        .Handler("loadPage_link(App.tabPanel, 'Level3_F', 'Level3_F/Index', '" + Mvc_Ext_.App_Language.Resource.Print +  " Payroll', '" + 
+                                                            Mvc_Ext_.App_Language.Resource.Loading + "');")
+                                ),
+                        
+                            X.Label("").Width(5),
+                    
+                            // ---------------------------------------------------------------------------------- //
+                            // ------------------------ FieldSet des menus Horaire ------------------------------- //
+                            // ---------------------------------------------------------------------------------- //
+                            X.FieldSet().Hidden(!Model.Menu_link.Heure)
+                                .Title(@"<b>" + Mvc_Ext_.App_Language.Resource.Hour + "</b>")
+                                .Layout(LayoutType.Column)
+                                .PaddingSpec("0 5px 5px 5px")
+                                .Items(
+                                    X.Button().Hidden(!Model.Menu_link.Level2_B)
+                                        .Flat(true)
+                                        .ToolTip("Absences")
+                                        .IconCls("x-heure_absences")
+                                        .IconAlign(IconAlign.Top)
+                                        
+                                        .ArrowAlign(ArrowAlign.Bottom)
+                                        .Scale(ButtonScale.Large)
+                                        .Handler("loadPage_link(App.tabPanel, 'Level2_B', 'Level2_B/Index', 'absence');"),
+                                        
+                                    X.Label("").Width(5),
+                                    
+                                    X.Button().Hidden(!Model.Menu_link.Level14_A)
+                                        .Flat(true)
+                                        .ToolTip(Mvc_Ext_.App_Language.Resource.Supplementary_Hours)
+                                        .IconCls("x-heure_sup_2")
+                                        .IconAlign(IconAlign.Top)
+                                        
+                                        .ArrowAlign(ArrowAlign.Bottom)
+                                        .Scale(ButtonScale.Large)
+                                        .Handler("loadPage_link(App.tabPanel, 'Level14_A', 'Level14_A/Index', '" + 
+                                                            Mvc_Ext_.App_Language.Resource.Manage + " " + 
+                                                            Mvc_Ext_.App_Language.Resource.Hour + "', '" + 
+                                                            Mvc_Ext_.App_Language.Resource.Loading + "');")
+                                ),
+                        
+                            X.Label("").Width(5),
+                    
+                            // ---------------------------------------------------------------------------------- //
+                            // ----------------------- FieldSet des menus Paramètre ------------------------------ //
+                            // ---------------------------------------------------------------------------------- //
+                            X.FieldSet().Hidden(!Model.Menu_link.Param)
+                                .Title(@"<b>" + Mvc_Ext_.App_Language.Resource.Parameters + "</b>")
+                                .Layout(LayoutType.Column)
+                                .PaddingSpec("0 5px 5px 5px")
+                                .Items(
+                                    X.Button().Hidden(!Model.Menu_link.Level9_A_a)
+                                        .Flat(true)
+                                        .ToolTip(Mvc_Ext_.App_Language.Resource.Parameters +  " " + Mvc_Ext_.App_Language.Resource.User)
+                                        .IconCls("x-param_user")
+                                        .IconAlign(IconAlign.Top)
+                                        .ArrowAlign(ArrowAlign.Bottom)
+                                        .Scale(ButtonScale.Large)
+                                        .Handler("loadPage_link(App.tabPanel, 'Level9_A_a', 'Level9_A_a/Index', '" + Mvc_Ext_.App_Language.Resource.User_parameters + "', '" + 
+                                                            Mvc_Ext_.App_Language.Resource.Loading + "');"),
+                                        
+                                    X.Label("").Width(5),
+                                    
+                                    X.Button().Hidden(!Model.Menu_link.Level9_K_e)
+                                        .Flat(true)
+                                        .ToolTip(Mvc_Ext_.App_Language.Resource.Parameters + " " + Mvc_Ext_.App_Language.Resource.Level9_K_e.ToLower())
+                                        .IconCls("x-payroll_param_item")
+                                        .IconAlign(IconAlign.Top)
+                                        .ArrowAlign(ArrowAlign.Bottom)
+                                        .Scale(ButtonScale.Large)
+                                        .Handler("loadPage_link(App.tabPanel, 'Level9_K_e', 'Level9_K_e/Index', '" + 
+                                                        Mvc_Ext_.App_Language.Resource.Payroll_parameter_elements + "', '" +
+                                                        Mvc_Ext_.App_Language.Resource.Loading + "');"),
+                                        
+                                    X.Label("").Width(5),
+                                    
+                                    X.Button().Hidden(!Model.Menu_link.Level9_K_a)
+                                        .Flat(true)
+                                        .ToolTip(Mvc_Ext_.App_Language.Resource.Parameters + " PayRoll")
+                                        .IconCls("x-param_payroll")
+                                        .IconAlign(IconAlign.Top)
+                                        .ArrowAlign(ArrowAlign.Bottom)
+                                        .Scale(ButtonScale.Large)
+                                        .Handler("loadPage_link(App.tabPanel, 'Level9_K_a', 'Level9_K_a/Index', '" + 
+                                                        Mvc_Ext_.App_Language.Resource.Parameters + " PayRoll', '" +
+                                                        Mvc_Ext_.App_Language.Resource.Loading + "');")
+                                )
+                    ),
+                    
+                    // -- Panel de separation -- //
+                    X.Label("").Width(10),
+                    // --------------------------//
+                    
+                    // -- Panel de gauche -- // 
+                    X.Panel()
+                        .BodyStyle("background-color:transparent;")
+                        //.BodyStyle("background-color:transparent; background-image:url(../Resources/images/menu/Cadre.png); background-size:contain;")
+                        .PaddingSpec("0 5px 0 0")
+                        .Layout(LayoutType.VBox)
+                        .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Left })
+                        .Border(false)
+                        //.Height(60)
+                        //.Width(300)
+                        //.ColumnWidth(0.5)
+                        .Items(
+                            X.Label(Model.Nom_societe)
+                                .Cls("Style_Nom_societe")
+                                .Height(60)
+                                .Plugins(
+                                    X.MouseDistanceSensor()
+                                        .MinOpacity(
+                                            (decimal)0.2
+                                        )
+                                        //.DirectEvents(l => {
+                                        //    l.Near.Action = "Rafraichir_liste";
+                                        //})
+                                )
+                        ),
+                    
+                    // -- Panel de gauche -- // 
+                    X.Panel()
+                        .BodyStyle("background-color:transparent;")
+                        //.BodyStyle("background-color:transparent; background-image:url(../Resources/images/menu/Cadre.png); background-size:contain;")
+                        .PaddingSpec("0 10px 0 5px")
+                        .Layout(LayoutType.VBox)
+                        .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Left })
+                        .Border(false)
+                        //.ColumnWidth(0.5)
+                        .Items(
+                            X.Image(Model.Logo_societe)
+                        )
+                )
+        )
+)

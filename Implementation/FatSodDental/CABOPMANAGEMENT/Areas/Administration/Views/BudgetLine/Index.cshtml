@@ -1,0 +1,347 @@
+﻿@using FatSod.Ressources;
+
+@model IEnumerable<FatSod.Budget.Entities.BudgetLine>
+@{
+    ViewBag.Title = "Budget Line";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<header>
+    <h4>Defines your Budget Line here</h4>
+</header>
+
+<div class="box box-primary box-body">
+
+    <div class="row">
+        <fieldset class="col-md-10">
+            <legend>Identification</legend>
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <div class="row ipt">
+                        <input class="form-control input-sm" id="BudgetLineID" name="BudgetLineID" type="hidden">
+                        <input class="form-control" id="BudgetType" name="BudgetType" value="Expense" type="hidden">
+                        <div class="col-sm-4">Code</div>
+                        <div class="col-sm-8">
+                            <input class="form-control" id="BudgetCode" name="BudgetCode" type="text" maxlength="10">
+                        </div>
+                    </div>
+                    <div class="row ipt">
+                        <div class="col-sm-4">@Resources.Label</div>
+                        <div class="col-sm-8">
+                            <input class="form-control input-sm" id="BudgetLineLabel" name="BudgetLineLabel" type="text">
+                        </div>
+                    </div>
+                    <div class="row ipt">
+                        <div class="col-sm-4">@Resources.isBudgetControl</div>
+                        <div class="col-sm-8">
+                            <input type="radio" id="isBudgetControlNO" name="BudgetControl" value="0" checked="checked" /> @Resources.No
+                            <input type="radio" id="isBudgetControl" name="BudgetControl" value="1" /> @Resources.Yess
+                        </div>
+                    </div>
+                    
+                    <div class="row ipt">
+                        <div class="col-sm-4">@Resources.UIAccount</div>
+                        <div class="col-sm-8">
+                            <select class="form-control" id="AccountID" name="AccountID"></select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-2">
+                    <button id="btnCancel" class="btn btn-primary btn-danger">@Resources.ResetButton</button>
+                </div>
+                <div class="col-sm-2">
+                    <button id="btnSubmit" class="btn btn-primary btn-success">@Resources.SaveButton</button>
+                </div>
+            </div>
+        </fieldset>
+
+    </div><br />
+
+</div>
+
+<!-- Ajout de la table contenant les data deja enregistrees-->
+<h2>Budget Line List</h2>
+<div class="box box-body box-primary">
+    <table class="table" id="mainTable">
+        <thead>
+            <tr class="dataTableHead">
+                <th>
+                    ID
+                </th>
+                <th>
+                    @Resources.Label
+                </th>
+                <th>
+                    Type
+                </th>
+                <th>
+                    @Resources.UIAccount
+                </th>
+                <th>
+                    @Resources.Code
+                </th>
+                <th>
+                    @Resources.isBudgetControl
+                </th>
+                <th>
+
+                </th>
+            </tr>
+        </thead>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.BudgetLineID)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.BudgetLineLabel)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.BudgetType)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Account.AccountNumber)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.BudgetCode)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.BudgetControl)
+                </td>
+                
+
+                <td>
+                    <a href=# onclick="EditItem(this)"><span class="glyphicon glyphicon-edit"></span></a> |
+                    <a href=# onclick="DeleteItem(this)"><span class="glyphicon glyphicon-trash"></span></a>
+                </td>
+            </tr>
+        }
+
+    </table>
+</div>
+
+<!-- Css Begins Here -->
+
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 6px;
+    }
+
+    #img-upload {
+        width: 100%;
+    }
+
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin-left: 10%;
+        min-width: 0;
+        padding: 10px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 200px;
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+</style>
+
+<!--********** JavaScripts **********-->
+<script>
+
+    // Get the UserBranch List
+    function populateAccountOfClass() {
+        $.get('@Url.Action("AccountOfClass", "BudgetLine")', { classe :6}, function (data) {
+            $('#AccountID').empty();
+            $('#AccountID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#AccountID').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+
+    function clearForm() {
+        $('#BudgetCode').val('');
+        $('#BudgetLineLabel').val('');
+        $('#AccountID').val('');
+        $('#BudgetLineID').val('');
+    }
+
+
+    $(document).on('ready', function () {
+        populateAccountOfClass();
+        $('#btnCancel').on('click', function () {
+
+            clearForm();
+
+        });
+
+       $('#mainTable').DataTable();
+
+        $('#btnSubmit').on('click', function () {
+            var isAllValid = true;
+
+
+            if ($('#BudgetCode').val().trim() == '') {
+                isAllValid = false;
+                $("#BudgetCode").addClass("invalid-data");
+            }
+            else {
+                $("#BudgetCode").addClass("valid-data");
+            }
+
+            if ($('#BudgetLineLabel').val().trim() == '') {
+                isAllValid = false;
+                $("#BudgetLineLabel").addClass("invalid-data");
+            }
+            else {
+                $("#BudgetLineLabel").addClass("valid-data");
+            }
+
+            if ($('#AccountID').val().trim() == '') {
+                isAllValid = false;
+                $("#AccountID").addClass("invalid-data");
+            }
+            else {
+                $("#AccountID").addClass("valid-data");
+            }
+
+
+            if (isAllValid) {
+
+                var formData = new FormData();
+
+                formData.append("BudgetLineID", $('#BudgetLineID').val().trim());
+                formData.append("BudgetType", $('#BudgetType').val().trim());
+                formData.append("BudgetCode", $('#BudgetCode').val().trim());
+                formData.append("BudgetLineLabel", $('#BudgetLineLabel').val().trim());
+                formData.append("AccountID", $('#AccountID').val().trim());
+                formData.append("BudgetControl", $('input[name=BudgetControl]:checked').val().trim());
+
+                $(this).val('Please wait...');
+
+                //post data to server
+                $.ajax({
+                    url: '@Url.Action("AddBudgetLine", "BudgetLine")',
+                    type: "POST",
+                    data: formData,
+                    dataType: "JSON",
+                    //contentType: "application/json",
+                    contentType: false,
+                    processData: false,
+                    success: function (d) {
+                        //check is successfully save to database
+                        if (d.status == true) {
+                            //will send status from server side
+                            alert(d.Message);
+                            location.reload(true);
+                           // tableGrid.fnDraw();
+                            //clear form
+                            clearForm();
+                        }
+                        else {
+                            alert(d.Message);
+                        }
+                        $('#btnSubmit').val('@Resources.SaveButton');
+                    },
+                    error: function (response) {
+                        alert('Error. Please try again.');
+                        $('#btnSubmit').val('@Resources.SaveButton');
+                    }
+                });
+            }
+        });
+    });
+
+    function EditItem(obj)
+    {
+
+        var globalID=$(obj).parent().siblings(":first").text();
+
+        $.get('@Url.Action("InitializeFieldsBudgetLine", "BudgetLine")', { ID : parseInt(globalID) },  function (data) {
+            $.each(data, function (key, value) {
+                $('#BudgetLineID').val(value.BudgetLineID);
+                $('#BudgetCode').val(value.BudgetCode);
+                $('#BudgetLineLabel').val(value.BudgetLineLabel);
+                $('#AccountID').val(value.AccountID);
+                $('input[name=BudgetControl][value="' + value.BudgetControl + '"]').prop('checked', true);
+            });
+        }, 'json');
+
+    }
+    function DeleteItem  (obj)
+    {
+        if (confirm("Do you want to Delete ?"))
+        {
+            var globalID=$(obj).parent().siblings(":first").text();
+            //post to the server
+            $(this).val('Please wait...');
+            var data = {
+                ID: parseInt(globalID)
+            }
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("DeleteBudgetLine", "BudgetLine")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        location.reload(true);
+                        //clear form
+                        clearForm();
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                }
+            });
+        }
+
+    }
+</script>

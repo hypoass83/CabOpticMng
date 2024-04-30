@@ -1,0 +1,87 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.24720.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FatSodDental.Domain", "FatSodDental.Domain", "{DF6B5585-EDBA-4D7A-B6ED-C271AD7BC6F1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FatSodDental.Web", "FatSodDental.Web", "{AA5A19CB-DDAC-493D-9FAA-84A19DDDEB9C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FatSodDental.DataContext", "FatSodDental.DataContext", "{C7070AE6-4967-4CA2-953D-81E1142BF009}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FatSod.Security", "FatSod.Security\FatSod.Security.csproj", "{4A71D085-19B7-4173-B869-98AAD7990CD6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FatSod.DataContext", "FatSod.DataContext\FatSod.DataContext.csproj", "{057D5AE6-25BD-4006-A5DF-D8667057B232}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{DE5608CC-99BD-4CD9-A904-874C488B6CEF}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\NuGet.Config = .nuget\NuGet.Config
+		.nuget\NuGet.exe = .nuget\NuGet.exe
+		.nuget\NuGet.targets = .nuget\NuGet.targets
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FatSod.Supply", "FatSod.Supply\FatSod.Supply.csproj", "{EDFB2571-DA14-476A-90F1-3C5640E633B4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FatSod.Ressources", "FatSod.Ressources\FatSod.Ressources.csproj", "{3BF084CE-D928-4A1F-A063-91DB89FAD009}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FatSod.Report", "FatSod.Report\FatSod.Report.csproj", "{B5B04C30-1036-4447-A5C0-DB36CC821959}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FastSod.Utilities", "FastSod.Utilities\FastSod.Utilities.csproj", "{22FECD3C-2F53-46ED-A09F-5F2CA311F7E2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FatSod.Budget", "FatSod.Budget\FatSod.Budget.csproj", "{EE3F7921-3F6A-40D4-89AD-E9D3450741BB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CABOPMANAGEMENT", "CABOPMANAGEMENT\CABOPMANAGEMENT.csproj", "{BAE3EA14-3C25-40F4-AAB2-44545CAE46DF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4A71D085-19B7-4173-B869-98AAD7990CD6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A71D085-19B7-4173-B869-98AAD7990CD6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A71D085-19B7-4173-B869-98AAD7990CD6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A71D085-19B7-4173-B869-98AAD7990CD6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{057D5AE6-25BD-4006-A5DF-D8667057B232}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{057D5AE6-25BD-4006-A5DF-D8667057B232}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{057D5AE6-25BD-4006-A5DF-D8667057B232}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{057D5AE6-25BD-4006-A5DF-D8667057B232}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EDFB2571-DA14-476A-90F1-3C5640E633B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EDFB2571-DA14-476A-90F1-3C5640E633B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EDFB2571-DA14-476A-90F1-3C5640E633B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EDFB2571-DA14-476A-90F1-3C5640E633B4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3BF084CE-D928-4A1F-A063-91DB89FAD009}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3BF084CE-D928-4A1F-A063-91DB89FAD009}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3BF084CE-D928-4A1F-A063-91DB89FAD009}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3BF084CE-D928-4A1F-A063-91DB89FAD009}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B5B04C30-1036-4447-A5C0-DB36CC821959}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B5B04C30-1036-4447-A5C0-DB36CC821959}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B5B04C30-1036-4447-A5C0-DB36CC821959}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B5B04C30-1036-4447-A5C0-DB36CC821959}.Release|Any CPU.Build.0 = Release|Any CPU
+		{22FECD3C-2F53-46ED-A09F-5F2CA311F7E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{22FECD3C-2F53-46ED-A09F-5F2CA311F7E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{22FECD3C-2F53-46ED-A09F-5F2CA311F7E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{22FECD3C-2F53-46ED-A09F-5F2CA311F7E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EE3F7921-3F6A-40D4-89AD-E9D3450741BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EE3F7921-3F6A-40D4-89AD-E9D3450741BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EE3F7921-3F6A-40D4-89AD-E9D3450741BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EE3F7921-3F6A-40D4-89AD-E9D3450741BB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BAE3EA14-3C25-40F4-AAB2-44545CAE46DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BAE3EA14-3C25-40F4-AAB2-44545CAE46DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BAE3EA14-3C25-40F4-AAB2-44545CAE46DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BAE3EA14-3C25-40F4-AAB2-44545CAE46DF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{4A71D085-19B7-4173-B869-98AAD7990CD6} = {DF6B5585-EDBA-4D7A-B6ED-C271AD7BC6F1}
+		{057D5AE6-25BD-4006-A5DF-D8667057B232} = {C7070AE6-4967-4CA2-953D-81E1142BF009}
+		{EDFB2571-DA14-476A-90F1-3C5640E633B4} = {DF6B5585-EDBA-4D7A-B6ED-C271AD7BC6F1}
+		{3BF084CE-D928-4A1F-A063-91DB89FAD009} = {AA5A19CB-DDAC-493D-9FAA-84A19DDDEB9C}
+		{B5B04C30-1036-4447-A5C0-DB36CC821959} = {DF6B5585-EDBA-4D7A-B6ED-C271AD7BC6F1}
+		{22FECD3C-2F53-46ED-A09F-5F2CA311F7E2} = {DF6B5585-EDBA-4D7A-B6ED-C271AD7BC6F1}
+		{EE3F7921-3F6A-40D4-89AD-E9D3450741BB} = {DF6B5585-EDBA-4D7A-B6ED-C271AD7BC6F1}
+		{BAE3EA14-3C25-40F4-AAB2-44545CAE46DF} = {AA5A19CB-DDAC-493D-9FAA-84A19DDDEB9C}
+	EndGlobalSection
+EndGlobal

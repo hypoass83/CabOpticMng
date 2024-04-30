@@ -1,0 +1,441 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSod.Ressources;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.DataContext.Initializer;
+
+@model System.Collections.IEnumerable
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+
+@section content
+{
+    @(
+ X.Container()
+.Layout(LayoutType.HBox)
+.MarginSpec("0 0 10")
+.Items(
+X.FieldSet()
+.Flex(1)
+.Layout(LayoutType.Anchor)
+.Border(false)
+.DefaultAnchor("100%")
+.Items(
+X.FormPanel()
+.ID("AccountingTask")
+.Items(
+X.PanelTitle()
+.ID("PanelTitle")
+.Border(true)
+.Padding(2)
+.Content(
+        @<header>
+            <h6>@Resources.RequireField <code>(*)</code></h6>
+        </header>
+                )
+                )
+                .Title(Resources.UIAccountingTaskTitle)
+                .Frame(true)
+                .MarginSpec("0 10 10")
+                .Width(350)
+                .BodyPadding(10)
+                .FieldDefaults(fd => { fd.LabelWidth = 150; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+                .Buttons(
+                X.Button()
+                .ID("btnSave")
+                .Text(Resources.SaveButton)
+                .Disabled(true)
+                .Icon(Icon.Disk)
+                .Margin(5)
+                .DirectEvents(de =>
+                {
+                    de.Click.Url = Url.Action("AddAccountingTask", "AccountingTask");
+                    de.Click.EventMask.ShowMask = true;
+                    de.Click.EventMask.Msg = FatSod.Ressources.Resources.EventMaskMsg;
+                }),
+
+                X.Button()
+                .Text(FatSod.Ressources.Resources.ResetButton)
+        //.Margin(10)
+                .MarginSpec("0 10 10 10")
+                .OnClientClick("this.up('form').reset();")
+                )
+                .Listeners(
+                ls =>
+                {
+                    ls.FieldChange.Handler = "if(App.AccountingTask.isValid()){App.btnSave.setDisabled(false);}else{App.btnSave.setDisabled(true);}";
+                }
+                )
+                .Items(
+                X.Container()
+                .Layout(LayoutType.HBox)
+                .MarginSpec("0 0 10")
+                .Items(
+                X.FieldSet()
+                .Flex(1)
+                .Title(Resources.PersonIdentificationForm)
+                .Layout(LayoutType.Anchor)
+                .Height(180)
+                .DefaultAnchor("100%")
+                .Items(
+                X.TextField().Name("AccountingTaskID").ID("AccountingTaskID").Hidden(true),
+        //operation
+                X.ComboBox().Name("OperationID")
+                .FieldLabel(Resources.UIOperationName)
+                .AutoSelect(false).ForceSelection(true)
+                .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                .Items(LoadComponent.Operation)
+                .BlankText(Resources.UIOperation + " " + Resources.RequiredField)
+                .ID("OperationID")
+                .EmptyText(Resources.Select)
+                .Listeners(ls =>
+                        ls.Select.Handler = "App.ApplyVat.getStore().load();App.DiscountAccountID.getStore().load();App.TransportAccountID.getStore().load();"
+                    )
+                .AllowBlank(false)
+                ,
+                X.TextField().FieldLabel(Resources.UIAccountingTaskDescription)
+                .Name("AccountingTaskDescription").ID("AccountingTaskDescription")
+                .BlankText(Resources.UIAccountingTaskDescription + " " + Resources.RequiredField)
+                .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                .AllowBlank(false),
+
+                X.ComboBox().Name("AccountingTaskSens").FieldLabel(Resources.UIAccountingTaskSens)
+                .Items(new ListItem(Resources.UIcredit, "CR"),
+                new ListItem(Resources.UIdebit, "DB"))
+                .AllowBlank(false).ForceSelection(true)
+                .BlankText(Resources.UIAccountingTaskSens + " " + Resources.RequiredField)
+                .ID("AccountingTaskSens")
+                .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                .EmptyText(Resources.Select)
+                ,
+        //accoutsection
+                X.ComboBox().Name("AccountingSectionID")
+                .FieldLabel(Resources.UIAccountingSectionID)
+                .AutoSelect(true).ForceSelection(true)
+                .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                .Listeners(ls =>
+                ls.Select.Handler = "App.cbAccountID.getStore().load();"
+                )
+                .Items(LoadComponent.AccountingSections)
+                .BlankText(Resources.UIAccountingSectionID + " " + Resources.RequiredField)
+                .ID("AccountingSectionID")
+                .EmptyText(Resources.Select)
+                .AllowBlank(false)
+                .DirectEvents(de =>
+                {
+                    //Activation des comptes en fonction de l'account section
+                    de.Select.Url = Url.Action("DesableAccount", "AccountingTask");
+                    de.Select.ExtraParams.Add(new Parameter("AccountingSectionID", "this.getValue()", ParameterMode.Raw));
+                    //de.Select.Method = HttpMethod.POST;
+                })
+                ,
+        //account
+                X.ComboBox().FieldLabel(Resources.UIAccount).Name("AccountID")
+                .ID("cbAccountID")
+                .AutoSelect(true).ForceSelection(true)
+                .EmptyText(Resources.Select)
+                .AllowBlank(true)
+                .BlankText(Resources.UIAccount + " " + Resources.RequiredField)
+                .ValueField("AccountID")
+                .DisplayField("AccountNumber")
+                .Store(
+                    X.Store()
+                    .AutoLoad(false)
+                    .ID("storeAccountID")
+                    .Model(
+                        X.Model()
+                        .IDProperty("AccountID")
+                        .Fields(
+                        new ModelField("AccountID", ModelFieldType.Int) { Mapping = "AccountID" },
+                        new ModelField("AccountNumber", ModelFieldType.String) { Mapping = "AccountNumber" }
+                        )
+                    )
+                    .Proxy(
+                    X.AjaxProxy()
+                    .Url(Url.Action("GetAccountNumber"))
+                    .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                    .Reader(X.JsonReader().RootProperty("data"))
+                    )
+                    .Parameters(ps =>
+                    ps.Add(new StoreParameter("AccountingSectionID", "App.AccountingSectionID.getValue()", ParameterMode.Raw))
+                    )
+                )
+                ),//fin fielset identification,
+                X.Component().Width(10),
+
+                X.FieldSet()
+                .Flex(1)
+                .Title(Resources.PersonIdentificationForm)
+                .Layout(LayoutType.Anchor)
+                .Height(190)
+                .DefaultAnchor("100%")
+                .Items(
+                X.ComboBox().Name("ApplyVat").FieldLabel(Resources.UIApplyVat).ForceSelection(true)
+        /*.Items(
+            new ListItem(Resources.UINONE, "NONE"),
+            new ListItem(Resources.UIDeductVat, CodeValue.Accounting.DefaultCodeAccountingSection.CODETVADEDUC),
+            new ListItem(Resources.UICollectVat, CodeValue.Accounting.DefaultCodeAccountingSection.CODETVACOLECT))*/
+                    .AllowBlank(false)
+                    .BlankText(Resources.UIAccountingTaskSens + " " + Resources.RequiredField)
+                    .ID("ApplyVat")
+                    .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                    .EmptyText(Resources.Select)
+                    .ValueField("VatAcctSectionCode")
+                    .DisplayField("VatAcctLabel")
+                    .Store(
+                        X.Store()
+                        .AutoLoad(false)
+                        .ID("ApplyvatID")
+                        .Model(
+                            X.Model()
+                            .IDProperty("ApplyvatID")
+                            .Fields(
+                            new ModelField("VatAcctSectionCode", ModelFieldType.String),// { Mapping = "AccountID" },
+                            new ModelField("VatAcctLabel", ModelFieldType.String)// { Mapping = "AccountNumber" }
+                            )
+                        )
+                        .Proxy(
+                        X.AjaxProxy()
+                        .Url(Url.Action("GetVATProperty"))
+                        .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                        .Reader(X.JsonReader().RootProperty("data"))
+                        )
+                        .Parameters(ps =>
+                        ps.Add(new StoreParameter("OperationID", "App.OperationID.getValue()", ParameterMode.Raw))
+                        )
+                    )
+                    .Listeners(ls =>
+                        ls.Select.Handler = "App.VatAccountID.getStore().load();"
+                    )
+                    .DirectEvents(de =>
+                    {
+                        de.Select.Url = Url.Action("DesableValue", "AccountingTask");
+                        de.Select.ExtraParams.Add(new Parameter("ApplyVat", "this.getValue()", ParameterMode.Raw));
+                    })
+                ,
+                    X.ComboBox().FieldLabel(Resources.UIVATAccount).Name("VatAccountID")
+                    .ID("VatAccountID")
+                    .AutoSelect(true)
+                    .EmptyText(Resources.Select)
+                    .AllowBlank(true).ForceSelection(true)
+                    .BlankText(Resources.UIVATAccount + " " + Resources.RequiredField)
+                    .ValueField("AccountID")
+                    .DisplayField("AccountNumber")
+                        .Store(
+                        X.Store()
+                        .AutoLoad(false)
+                        .ID("storeVATAccountID")
+                        .Model(
+                            X.Model()
+                            .IDProperty("VATAccountID")
+                            .Fields(
+                                new ModelField("AccountID", ModelFieldType.Int) { Mapping = "AccountID" },
+                                new ModelField("AccountNumber", ModelFieldType.String) { Mapping = "AccountNumber" }
+                            )
+                        )
+                        .Proxy(
+                        X.AjaxProxy()
+                        .Url(Url.Action("GetVATAccountNumber"))
+                        .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                        .Reader(X.JsonReader().RootProperty("data"))
+                        )
+                        .Parameters(ps => ps.Add(new StoreParameter("ApplyVat", "App.ApplyVat.getValue()", ParameterMode.Raw))
+                        )
+                    ),
+        //discount account
+                    X.ComboBox().Name("DiscountAccountID").FieldLabel(Resources.UIDiscountAccountID).ForceSelection(true)
+                    .ID("DiscountAccountID")
+                    .AutoSelect(true).ForceSelection(true)
+                    .EmptyText(Resources.Select)
+                    .AllowBlank(true)
+                    .ValueField("AccountID")
+                    .DisplayField("AccountNumber")
+                    .Store(
+                        X.Store()
+                        .AutoLoad(false)
+                        .ID("DiscAccountID")
+                        .Model(
+                            X.Model()
+                            .IDProperty("DiscAccountID")
+                            .Fields(
+                                new ModelField("AccountID", ModelFieldType.Int) { Mapping = "AccountID" },
+                                new ModelField("AccountNumber", ModelFieldType.String) { Mapping = "AccountNumber" }
+                            )
+                        )
+                        .Proxy(
+                        X.AjaxProxy()
+                        .Url(Url.Action("GetDiscountAccount"))
+                        .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                        .Reader(X.JsonReader().RootProperty("data"))
+                        )
+                        .Parameters(ps =>
+                            ps.Add(new StoreParameter("OperationID", "App.OperationID.getValue()", ParameterMode.Raw))
+                        )
+                    ),
+                    X.ComboBox().Name("TransportAccountID").FieldLabel(Resources.UITransportAccountID).ForceSelection(true)
+                        .ID("TransportAccountID")
+                        .AutoSelect(true).ForceSelection(true)
+                        .EmptyText(Resources.Select)
+                        .AllowBlank(true)
+                        .ValueField("AccountID")
+                        .DisplayField("AccountNumber")
+                        .Store(
+                            X.Store()
+                            .AutoLoad(false)
+                            .ID("TransAccountID")
+                            .Model(
+                                X.Model()
+                                .IDProperty("TransAccountID")
+                                .Fields(
+                                    new ModelField("AccountID", ModelFieldType.Int) { Mapping = "AccountID" },
+                                    new ModelField("AccountNumber", ModelFieldType.String) { Mapping = "AccountNumber" }
+                                )
+                            )
+                            .Proxy(
+                            X.AjaxProxy()
+                            .Url(Url.Action("GetTransPortAccount"))
+                            .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                            .Reader(X.JsonReader().RootProperty("data"))
+                            )
+                            .Parameters(ps =>
+                                ps.Add(new StoreParameter("OperationID", "App.OperationID.getValue()", ParameterMode.Raw))
+                            )
+                            )
+                ) //fin item tva
+                )
+                )
+
+                ,
+        ////
+                X.FieldSet()
+                .Flex(1)
+                .Layout(LayoutType.Anchor)
+                .Border(false)
+                .DefaultAnchor("100%")
+                .Items(
+                X.GridPanel()
+                .Title(Resources.UIAccountingTaskList)
+                .Border(true)
+                .Frame(true)
+                .AutoScroll(true)
+                .BodyStyle("background-color:#f3f3f3;")
+                .Store(
+                X.Store()
+                .ID("Store")
+                .RemotePaging(true)
+                .AutoLoad(true)
+                .PageSize(10)
+                .GroupField("UIOperationCode")
+                .DataSource(Model)
+                .Model(
+                X.Model()
+                    .Fields(
+                    new ModelField() { Name = "UIOperationCode", Type = ModelFieldType.String },
+                    new ModelField() { Name = "UIAccountingSectionNumber", Type = ModelFieldType.String },
+                    new ModelField() { Name = "UIAccountNumber", Type = ModelFieldType.String },
+                    new ModelField() { Name = "AccountingTaskID", Type = ModelFieldType.Int },
+                    new ModelField() { Name = "AccountingTaskSens", Type = ModelFieldType.String },
+                    new ModelField() { Name = "AccountingTaskDescription", Type = ModelFieldType.String },
+                    new ModelField("OperationID", ModelFieldType.Int),
+                    new ModelField("AccountID", ModelFieldType.Int),
+                    new ModelField("ApplyVat", ModelFieldType.String),
+                    new ModelField("VatAccountID", ModelFieldType.Int),
+                    new ModelField("AccountingSectionID", ModelFieldType.Int),
+                    new ModelField() { Name = "UIVatAccountNumber", Type = ModelFieldType.String },
+                    new ModelField("DiscountAccountID", ModelFieldType.Int),
+                    new ModelField() { Name = "UIDiscountAccountNumber", Type = ModelFieldType.String },
+                    new ModelField("TransportAccountID", ModelFieldType.Int),
+                    new ModelField() { Name = "UITransportAccountNumber", Type = ModelFieldType.String }
+                    )
+                )
+                .Sorters(
+                X.DataSorter()
+                .Property("UIOperationCode")
+                .Direction(Ext.Net.SortDirection.ASC)
+                )
+                .ServerProxy(
+                X.AjaxProxy()
+                .Url(Url.Action("GetList"))
+                .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                .Reader(X.JsonReader().RootProperty("data"))
+                )
+                )
+                    .ColumnModel(
+                        X.RowNumbererColumn(),
+
+                        X.Column().Align(Alignment.Left).Text(Resources.UIOperationName).DataIndex("UIOperationCode"),
+                        X.Column().Align(Alignment.Center).Text(Resources.UIAccountingTaskDescription).DataIndex("AccountingTaskDescription").Flex(1).Filterable(true),
+                        X.Column().Align(Alignment.Center).Text(Resources.UIAccountingTaskSens).DataIndex("AccountingTaskSens").Flex(1).Filterable(false),
+                        X.Column().Align(Alignment.Center).Text(Resources.UIAccountingSectionID).DataIndex("UIAccountingSectionNumber").Flex(1).Filterable(false),
+                        X.Column().Align(Alignment.Center).Text(Resources.UIAccount).DataIndex("UIAccountNumber").Flex(1).Filterable(false),
+                        X.Column().Align(Alignment.Center).Text(Resources.UIApplyVat).DataIndex("ApplyVat").Flex(1).Filterable(false),
+                        X.Column().Align(Alignment.Center).Text(Resources.UIVATAccount).DataIndex("UIVatAccountNumber").Flex(1).Filterable(false),
+                        X.Column().Align(Alignment.Center).Text(Resources.UIDiscountAccountID).DataIndex("UIDiscountAccountNumber").Flex(1).Filterable(false),
+                        X.Column().Align(Alignment.Center).Text(Resources.UITransportAccountID).DataIndex("UITransportAccountNumber").Flex(1).Filterable(false),
+                        Html.X().ImageCommandColumn()
+                        .Width(30)
+                        .Hidden(LoadAction.IsMenuActionAble(MenuAction.DELETE, profile, CodeValue.Accounting.AccountingTask.CODE,db))
+                        .Commands(
+                        Html.X().ImageCommand()
+                        .CommandName("Delete")
+                        .IconCls("icon-delete")
+                        .ToolTip(tt =>
+                        {
+                            tt.Text = Resources.ConfirmDeleteMessage;
+                            tt.Title = "Supression";
+                        }
+                        )
+                        )
+                        .DirectEvents(de =>
+                        {
+                            de.Command.Action = "Delete";
+                            de.Command.Method = HttpMethod.POST;
+                            de.Command.Confirmation.ConfirmRequest = true;
+                            de.Command.Confirmation.Message = Resources.ConfirmDeleteMessage;
+                            de.Command.Confirmation.Title = Resources.ConfirmDeleteTitle;
+                            de.Command.ExtraParams.Add(new Parameter("ID", "record.data.AccountingTaskID", ParameterMode.Raw));
+                            de.Command.EventMask.ShowMask = true;
+                            de.Command.EventMask.Msg = Resources.EventMaskMsg;
+                        }),
+                        Html.X().ImageCommandColumn()
+                        .Width(30)
+                        .Hidden(LoadAction.IsMenuActionAble(MenuAction.UPDATE, profile, CodeValue.Accounting.AccountingTask.CODE,db))
+                        .Commands(
+                        Html.X().ImageCommand()
+                        .CommandName("Edit")
+                        .IconCls("icon-edit")
+                        .ToolTip(tt => tt.Text = "Modifier ?")
+                        )
+
+                        .DirectEvents(de =>
+                        {
+                            de.Command.Action = "InitializeFields";
+                            de.Command.Method = HttpMethod.POST;
+                            de.Command.ExtraParams.Add(new Parameter("ID", "record.data.AccountingTaskID", ParameterMode.Raw));
+                            de.Command.EventMask.ShowMask = true;
+                            de.Command.EventMask.Msg = Resources.EventMaskUpdate;
+                        })
+                    )
+                .Features(
+                Html.X().GroupingSummary()
+                .ID("GroupingSummary1")
+
+                )
+                .Plugins(
+                X.FilterHeader()
+                )
+                .BottomBar(
+                    X.PagingToolbar()
+            )
+                )
+                )
+                )
+    )
+}

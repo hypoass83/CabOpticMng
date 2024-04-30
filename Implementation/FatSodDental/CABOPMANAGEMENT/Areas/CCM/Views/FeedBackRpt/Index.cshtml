@@ -1,0 +1,391 @@
+﻿@using FatSod.Ressources;
+@using FatSod.Supply.Entities;
+@using FatSod.DataContext.Initializer;
+@using CABOPMANAGEMENT.Tools;
+
+@{
+    ViewBag.Title = @Resources.CCM_RPT_FB;
+
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+
+}
+<div class="box box-primary box-body">
+    <div class="row">
+        <div class="col-md-12">
+            <fieldset>
+                <div class="panel panel-default">
+                    <div class="panel-body2">
+                        <div id="searchForm" class="row ipt">
+                            <div class="col-sm-2">@Resources.UIBeginDate</div>
+                            <div class="col-sm-3">
+                                <input class="form-control datepicker checkDateNoGraterThanToday" id="startDate" type="text" placeholder="choose sale date" value="@ViewBag.OperationDate">
+                            </div>
+
+                            <div class="col-sm-2">@Resources.UIEndDate</div>
+                            <div class="col-sm-3">
+                                <input class="form-control datepicker checkDateNoGraterThanToday" id="endDate" type="text" placeholder="choose sale date" value="@ViewBag.OperationDate">
+                            </div>
+
+                            <div class="col-sm-2">
+                                <button id="btnSearch" class="btn btn-primary btn-success">@Resources.Search</button>
+                            </div>
+
+                        </div>
+                        <table class="table" id="mainTable">
+                            <thead>
+                                <tr class="dataTableHead">
+                                    <th>@Resources.UIDateOperation</th>
+                                    <th>@Resources.Customer</th>
+                                    <th>@Resources.PhoneNumber</th>
+                                    <th>@Resources.Complaint</th>
+                                    <th>@Resources.TechnicianComment</th>
+                                    <th>@Resources.Comment</th>
+                                    <th>@Resources.Satisfied ?</th>
+                                    <th>@Resources.Value</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+    <div class="row">
+    </div>
+    <div id="FeedBackForm">
+        <div class="row">
+            <div class="col-md-12">
+                <fieldset>
+                    <legend>@Resources.Justification</legend>
+                    <div class="panel" style="background-color: #99bce8;">
+                        <div class="panel-body">
+                            <input type="hidden" id="CustomerComplaintId" />
+                            <div class="row">
+
+                                <div class="col-sm-6">
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            @Resources.Comment
+                                        </div>
+                                        <div class="col-sm-12">
+                                            <textarea class="form-control" id="Comment"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-3">
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            @Resources.ContactChannel
+                                        </div>
+                                        <div class="col-sm-12">
+                                            <input type="text" class="form-control" id="ContactChannel" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-3">
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            @Resources.Satisfied ?
+                                        </div>
+                                        <div class="col-sm-offset-1">
+                                            <input type="checkbox" id="IsSatisfied" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-2" style="margin-left:10%;margin-top:10px;">
+                <button id="btnCancel" class="btn btn-primary btn-danger">@Resources.ResetButton</button>
+            </div>
+            <div class="col-sm-2" style="margin-top:10px;">
+                <button id="btnSubmit" class="btn btn-primary btn-success">@Resources.ValidateButton</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Css Begins Here -->
+
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 6px;
+    }
+
+    #img-upload {
+        width: 100%;
+    }
+
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        /*border: 1px solid #ddd !important;*/
+        margin-left: 10px;
+        min-width: 0;
+        padding: 0px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 70px;
+    }
+
+    .panel-body1 {
+        height: 100px;
+        margin-top: 5px;
+        /*margin-left: 15%;*/
+    }
+
+    .panel-body2 {
+        height: 225px;
+        /*margin-top: 10px;*/
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+
+    .panel-body3 {
+        height: 75px;
+        margin-top: 5px;
+        /*margin-left: 15%;*/
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        /* width: 100%; */
+        /*border: 1px solid #ddd;*/
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #99bce8;
+        /* margin-top: 10px;*/
+    }
+
+    #searchForm {
+        padding-bottom: 30px;
+        background-color: #99bce8;
+        padding-top: 20px;
+    }
+
+    #FeedBackForm {
+        margin-top: 20px;
+    }
+</style>
+
+<script>
+
+    function getComplaintFeedBacks(test) {
+
+        var startDate = $("#startDate").val();
+        var endDate = $("#endDate").val();
+
+        $('#FeedBackForm').hide();
+        if (test) {
+            $('#mainTable').dataTable().fnDestroy();
+        }
+        var oTable = $('#mainTable');
+        oTable = $('#mainTable').dataTable({
+            fixedColumns: true,
+            "paging": true,
+            "pageLength": 4,
+            "lengthMenu": [[4, 8, 12, -1], [4, 8, 12, "All"]],
+            "searching": true,
+            "ordering": true,
+            "pagingType": "full_numbers",
+            // Ajax call
+            "ajax": {
+                "url": "@Url.Action("GetComplaintFeedBacks", "FeedBackRpt")",
+                //"type": "GET",
+                "datatype": "json",
+                "data": { startDate: startDate, endDate: endDate }
+            },
+
+            "columns": [
+                { "data": "DisplayDate", "width": "5%" },
+                { "data": "Customer", "width": "10%" },
+                { "data": "PhoneNumber", "width": "10%" },
+                { "data": "Complaint", "width": "25%" },
+                { "data": "ResolverComment", "width": "20%" },
+                { "data": "Comment", "width": "25%" },
+                { "data": "IsSatisfiedDisplay", "width": "5%" },
+                { "data": "CustomerValue", "width": "5%" }
+                
+            ],
+            "fnRowCallback": function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                if (aData.CustomerValue == 'VIP') {
+                    $(nRow).addClass('vip');
+                }
+
+                if (aData.Occurrences >= 2) {
+                    $(nRow).addClass('urgent-sale');
+                }
+            },
+            dom: 'Bfrtip',
+            buttons: [
+                'copy', 'csv', 'excel'
+            ]
+        });
+
+    }
+
+    function GetDetails(CustomerComplaintId) {
+        var complaintFeedBack = getEmptyCustomerComplaint();
+        complaintFeedBack.CustomerComplaintId = CustomerComplaintId;
+        $('#FeedBackForm').show();
+        initFeedBackForm(complaintFeedBack);
+    }
+
+    function validateFeedBackForm() {
+        var isAllValid = true;
+        if ($('#CustomerComplaintId').val() == 0 || $('#CustomerComplaintId').val().trim() == '0') {
+            isAllValid = false;
+            $("#CustomerComplaintId").addClass("invalid-data");
+        }
+        else {
+            $("#CustomerComplaintId").addClass("valid-data");
+        }
+
+        if ($('#ContactChannel').val() == 0 || $('#ContactChannel').val().trim() == '0') {
+            isAllValid = false;
+            $("#ContactChannel").addClass("invalid-data");
+        }
+        else {
+            $("#ContactChannel").addClass("valid-data");
+        }
+
+        if ($('#Comment').val() == 0 || $('#Comment').val().trim() == '0') {
+            isAllValid = false;
+            $("#Comment").addClass("invalid-data");
+        }
+        else {
+            $("#Comment").addClass("valid-data");
+        }
+
+        return isAllValid;
+    }
+
+
+    function AddComplaintFeedBack() {
+        console.log('Data To Persist ');
+        var isAllValid = validateFeedBackForm();;
+
+        if (isAllValid) {
+            var data = getFeedBackFormData();
+            console.log('Data To Persist ', data);
+            $(this).val('Please wait...');
+
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("AddComplaintFeedBack", "FeedBackRpt")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        //reinitialisation des champs
+                        getComplaintFeedBacks(true);
+                        // initFeedBackForm(getEmptyCustomerComplaint());
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                },
+                error: function (response) {
+                    console.log(response);
+                    alert('Error. Please try again.', response);
+                }
+            });
+        }
+    }
+
+    function initFeedBackForm(complaintFeedBack) {
+        $('#CustomerComplaintId').val(complaintFeedBack.CustomerComplaintId);
+        $('#Comment').val(complaintFeedBack.Comment);
+        $('#ContactChannel').val(complaintFeedBack.ContactChannel);
+        $('#IsSatisfied').prop('checked', complaintFeedBack.IsSatisfied);
+    }
+
+    function getEmptyCustomerComplaint() {
+        var complaintFeedBack = {
+            CustomerComplaintId: 0,
+            Comment: "",
+            ContactChannel: "",
+            IsSatisfied: false,
+        };
+        return complaintFeedBack;
+    }
+
+
+    function getFeedBackFormData() {
+        var complaintFeedBack = {
+            CustomerComplaintId: $('#CustomerComplaintId').val(),
+            Comment: $('#Comment').val(),
+            ContactChannel: $('#ContactChannel').val(),
+            IsSatisfied: $('#IsSatisfied').prop('checked'),
+        };
+        return complaintFeedBack;
+    }
+    $(document).on('ready', function () {
+
+        $(function () {
+            $(".datepicker").datepicker({
+                format: 'yyyy-mm-dd'
+            });
+        });
+
+        $('#FeedBackForm').hide();
+
+        $('#btnSearch').on('click', function () {
+            $('#FeedBackForm').hide();
+            getComplaintFeedBacks(true);
+        });
+
+        $('#btnSubmit').on('click', function () {
+            AddComplaintFeedBack();
+        });
+
+        $('#btnCancel').on('click', function () {
+            // location.reload(true);
+            initFeedBackForm(getEmptyComplaintFeedBack());
+        });
+
+        getComplaintFeedBacks(false);
+
+    });
+</script>

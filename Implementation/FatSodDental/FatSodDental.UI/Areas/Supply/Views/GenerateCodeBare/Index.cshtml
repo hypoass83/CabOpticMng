@@ -1,0 +1,265 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+
+@model System.Collections.IEnumerable
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+    string labelSeparator = "  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :";
+}
+
+@section content
+{
+    @***********************************************************@
+    @(
+ X.Container()
+    .Layout(LayoutType.HBox)
+    .MarginSpec("-30 0 0 0")
+    .ID("DefaultContainer")
+    .Layout(LayoutType.Fit)
+    .Items(
+
+    X.FieldSet()
+    .Flex(1)
+    .ID("DefaultFieldSet")
+    .Layout(LayoutType.Fit)
+    .Border(false)
+    .DefaultAnchor("100%")
+        .Items(
+        X.FormPanel()
+        .ID("RptGenerateCodeBare")
+        .Items(
+        X.PanelTitle()
+        .ID("PanelTitle")
+        .Border(true)
+        .Padding(2)
+        .Content(
+        @<header>
+            <h4>@Resources.RptBarCodeGenerator</h4>
+            <h6>@Resources.RequireField <code>(*)</code></h6>
+        </header>
+                                            )
+                                        )
+                                        .Frame(true)
+                                        .MarginSpec("0 0 0 0")
+                                        .Width(350)
+                                        .Padding(0)
+                                        .FieldDefaults(fd => { fd.LabelWidth = 120; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+                                        .Items(
+                                        X.FormPanel()
+                                        .Layout(LayoutType.Column)
+                                        .ID("FormrptIdentification")
+                                        .MarginSpec("0 0 0 0")
+                                        .Items(
+                                        X.FieldSet()
+                                        .Layout(LayoutType.Column)
+                                        .MarginSpec("0 0 0 0")
+                                        .Title(Resources.GeneralInfoIdentification)
+                                        .AnchorHorizontal("100")
+                                            .Items(
+                                            X.TextField().Name("BarCodeGeneratorID").ID("BarCodeGeneratorID").Hidden(true),
+                                            X.ComboBox().Name("BranchID")
+                                            .FieldLabel(Resources.UserBranch)
+                                            .EmptyText(Resources.Select).ForceSelection(true)
+                                            .LabelSeparator(labelSeparator)
+                                            .Items(LoadComponent.Branchs(user))
+                                            .ID("BranchID")
+                                            .AllowBlank(false)
+                                            .MarginSpec("0 0 10 0")
+                                            .BlankText(Resources.UserBranch + " " + Resources.RequiredField)
+                                            ,
+                                            X.ComboBox().Name("ProductID")
+                                            .FieldLabel(Resources.Product)
+                                            .EmptyText(Resources.Select).ForceSelection(true)
+                                            .LabelSeparator(labelSeparator)
+                                            .Items(LoadComponent.getAllFramesProducts())
+                                            .ID("ProductID")
+                                            .AllowBlank(false)
+                                            .MarginSpec("0 0 10 0")
+                                            .BlankText(Resources.Product + " " + Resources.RequiredField)
+                                            .Width(400)
+                                            ,
+                                            X.NumberField().FieldLabel("Qty Generate").MarginSpec("0 10 10 0").ID("QtyGenerate").Width(200)
+                                            )
+                                        )
+                                        .Buttons(
+
+                                                X.Button()
+                                                .Text(Resources.Generate)
+                                                .ID("IDDisplayEntries")
+                                                .OnClientClick("App.PanelReport.setHidden(true)")
+                                                .DirectEvents(de =>
+                                                {
+                                                    de.Click.Url = Url.Action("DisplayEntries", "GenerateCodeBare");
+                                                    de.Click.EventMask.ShowMask = true;
+                                                    de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                                                }),
+                                                X.Button()
+                                                    .Text(Resources.UIPrint)
+                                                    .ID("IDShowGeneric")
+                                                    .Icon(Icon.Printer)
+                                                    .OnClientClick("App.PanelReport.setHidden(false)")
+                                                    .DirectEvents(de =>
+                                                    {
+                                                        de.Click.Url = Url.Action("PrintReport", "GenerateCodeBare");
+                                                        de.Click.EventMask.ShowMask = true;
+                                                        de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                                                    }),
+
+                                                X.Button()
+                                                    .Text(Resources.ResetButton)
+                                                    .OnClientClick("this.up('form').reset();")
+                                                    .Icon(Icon.ArrowRefresh)
+                                            )
+                                            ,
+
+                                            X.Component().Width(10),
+                                            X.FieldSet()
+                                            .Flex(1)
+                                            .Layout(LayoutType.Fit)
+                                            .Border(false)
+                                            .Padding(0)
+                                            .DefaultAnchor("100%")
+                                            .Items(
+                                                    X.GridPanel()
+                                                    .Title(Resources.UIVoucherList)
+                                                    .ID("GridPanelAcctOp")
+                                                    .Layout(LayoutType.Fit)
+                                                    .MarginSpec("0 0 0 0")
+                                                    .Frame(true)
+                                                    .Collapsible(true)
+                                                    .Store(
+                                                    X.Store()
+                                                    .PageSize(10)
+                                                    .AutoLoad(true)
+                                                    .ID("Store")
+                                                        .Model(
+                                                        X.Model()
+                                                        .Fields(
+                                                                new ModelField() { Name = "BarCodeGeneratorID", Type = ModelFieldType.Float },
+                                                                new ModelField() { Name = "CodeBar", Type = ModelFieldType.String },
+                                                                new ModelField() { Name = "ProductCode", Type = ModelFieldType.String },
+                                                                new ModelField() { Name = "QtyGenerate", Type = ModelFieldType.Int },
+                                                                new ModelField() { Name = "GenerateDate", Type = ModelFieldType.Date }
+                                                            )
+                                                        ).DataSource(Model)
+                                                        .ServerProxy(
+                                                        X.AjaxProxy()
+                                                        .Url(Url.Action("GetList"))
+                                                        .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                                                        .Reader(X.JsonReader().RootProperty("data"))
+                                                        )
+                                                    )
+                                                    .ColumnModel(
+                                                    Html.X().Column()
+                                                    .Text(Resources.CodeBar)
+                                                    .DataIndex("CodeBar")
+                                                    .Flex(1),
+                                                    Html.X().Column()
+                                                    .Text(Resources.Product)
+                                                    .DataIndex("ProductCode")
+                                                    .Flex(1)
+                                                    ,
+                                                    Html.X().Column()
+                                                    .Text(Resources.Quantity)
+                                                    .DataIndex("QtyGenerate")
+                                                    .Flex(1),
+                                                    Html.X().DateColumn()
+                                                    .Text(Resources.UIDateOperation)
+                                                    .DataIndex("GenerateDate")
+                                                    .Flex(1).Format("dd/MM/yyyy")
+                                                    ,
+                                    X.ImageCommandColumn()
+                                            .Width(30)
+                                            .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, profile, CodeValue.Supply.GenerateCodeBare.CODE, db))
+                                            .Commands(
+                                            X.ImageCommand()
+                                                .CommandName("Edit")
+                                                .IconCls("icon-edit")
+                                                .ToolTip(tt => tt.Text = Resources.msgUpdate)
+                                            )
+
+                                            .DirectEvents(de =>
+                                            {
+                                                de.Command.Action = "UpdateLine";
+                                                de.Command.ExtraParams.Add(new Parameter("ID", "record.data.BarCodeGeneratorID", ParameterMode.Raw));
+                                                de.Command.EventMask.ShowMask = true;
+                                                de.Command.EventMask.Msg = Resources.EventMaskUpdate;
+                                            }),
+                                            X.ImageCommandColumn()
+                                                .Width(30)
+                                                .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, profile, CodeValue.Supply.GenerateCodeBare.CODE, db))
+                                                .Commands(
+                                                    X.ImageCommand()
+                                                    .CommandName("Delete")
+                                                    .IconCls("icon-delete")
+                                                    .ToolTip(tt =>
+                                                        {
+                                                            tt.Text = Resources.msgDelete;
+                                                            tt.Title = "Delete";
+                                                        }
+                                                    )
+                                                )
+                                                .DirectEvents(de =>
+                                                {
+                                                    de.Command.Action = "RemoveGenerateBarCode";
+                                                    de.Command.Confirmation.ConfirmRequest = true;
+                                                    de.Command.Confirmation.Message = Resources.ConfirmDeleteMessage;
+                                                    de.Command.Confirmation.Title = Resources.ConfirmDeleteTitle;
+                                                    de.Command.ExtraParams.Add(new Parameter("ID", "record.data.BarCodeGeneratorID", ParameterMode.Raw));
+                                                    de.Command.EventMask.ShowMask = true;
+                                                    de.Command.EventMask.Msg = Resources.EventMaskMsg;
+                                                })
+                                                    )
+                                                    .Plugins(
+                                                    X.FilterHeader()
+                                                )
+                                                    .BottomBar(
+                                    X.PagingToolbar()
+                            )
+                                                )
+                                            )
+                                        )//ici
+                                        )
+    )
+    @(
+ X.Container()
+        //Panel for print
+    .Items(X.Panel()
+        .ID("PanelReport")
+        .MarginSpec("0 0 -100 0")
+        .Title(Resources.PanelPreview)
+        .Hidden(true)
+        .Layout(LayoutType.HBox)
+        .Flex(1)
+        .Collapsible(true)
+        .Padding(1)
+        .AutoScroll(false)
+        .Hidden(true)
+        .MinHeight(500)
+        .MinWidth(500)
+        .Loader(
+            X.ComponentLoader()
+            .AutoLoad(false)
+            .Mode(LoadMode.Frame)
+            .LoadMask(lm =>
+                {
+                    lm.ShowMask = true;
+                    lm.Msg = Resources.MsgGenerateState;
+                    lm.UseMsg = true;
+
+                })
+            )
+        )
+
+    )
+
+}

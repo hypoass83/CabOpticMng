@@ -1,0 +1,149 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSod.Ressources;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.DataContext.Initializer;
+
+@Model System.Collections.IEnumerable
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+  } 
+
+@section content
+{
+    @(
+    
+        X.FormPanel()
+        .ID("TillAdjust")
+        .Width(500)
+        .BodyPadding(10)
+        //.MarginSpec("10 0 0 400")
+        .Items(
+            X.PanelTitle()
+            .ID("PanelTitle")
+            .Border(true)
+            .Padding(2)
+            .Content(
+                    @<header>
+                        <h6>@Resources.RequireField <code>(*)</code></h6>
+                    </header>
+                    )
+                )
+                .Title(Resources.TillAdjust)
+                .Frame(true)
+                .MarginSpec("-20 20 20 20")
+                .Width(500)
+                .BodyPadding(10)
+                .FieldDefaults(fd => { fd.LabelWidth = 150; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+                .Buttons(
+                X.Button()
+                .ID("btnSave")
+                .Text(Resources.SaveButton)
+                .Disabled(true)
+                .Icon(Icon.Disk)
+                .Margin(5)
+                .DirectEvents(de =>
+                {
+                    de.Click.Url = Url.Action("AddTillAdjust", "TillAdjust");
+                    de.Click.Before = @"if (!#{TillAdjust}.getForm().isValid()) { return false; }";
+                    de.Click.EventMask.ShowMask = true;
+                    de.Click.EventMask.Msg = FatSod.Ressources.Resources.EventMaskMsg;
+
+
+                }),
+                X.Button()
+                    .Text(FatSod.Ressources.Resources.ResetButton)
+                    .MarginSpec("0 20 10 10")
+                    .Icon(Icon.ArrowRefresh)
+                    .ID("btnReset")
+                    .OnClientClick("this.up('form').reset();")
+                    
+                )
+                .Listeners(
+                ls =>
+                {
+                    ls.FieldChange.Handler = "if(App.TillAdjust.isValid()){App.btnSave.setDisabled(false);}else{App.btnSave.setDisabled(true);}";
+                }
+                )
+                .Items(
+                    X.Container()
+                    .Layout(LayoutType.HBox)
+                    .MarginSpec("0 0 10")
+                    .Items(
+                        X.FieldSet()
+                        .Flex(1)
+                        .Title(FatSod.Ressources.Resources.TillAdjustFieldSetTitle)
+                        .Layout(LayoutType.Anchor)
+                        .Height(265)
+                        .DefaultAnchor("100%")
+                            .Items(
+                                X.TextField().Name("TillAdjustID").ID("TillAdjustID").Hidden(true),
+                                
+                                X.ComboBox().Name("TillID").FieldLabel(Resources.UITill)
+                                .Items(LoadComponent.UserTill)
+                                .ValueField("TillID")
+                                .AllowBlank(false).ForceSelection(true)
+                                .ID("TillID")
+                                .Width(200)
+                                .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                .EmptyText(Resources.chooseTeller)
+                                .AutoSelect(false)
+                                ,
+                                X.ComboBox().Name("DeviseID").FieldLabel(Resources.UIDevise)
+                                .Items(LoadComponent.GetDevise)
+                                .ValueField("DeviseID")
+                                .AllowBlank(false).ForceSelection(true)
+                                .ID("DeviseID")
+                                .Width(200)
+                                .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                .EmptyText(Resources.chooseCurrency)
+                                .AutoSelect(false)
+                                .DirectEvents(de =>
+                                {
+                                    de.Select.Action = "LoadTillAdjustInfo";
+                                    de.Select.ExtraParams.Add(new Parameter("DeviseID", "this.getValue()", ParameterMode.Raw));
+                                    de.Select.ExtraParams.Add(new Parameter("TillID", "App.TillID.getValue()", ParameterMode.Raw));
+                                }),            
+                                X.DateField().FieldLabel(Resources.UIDateOperation)
+                                .Name("TillAdjustDate")
+                                .ID("TillAdjustDate")
+                                .ReadOnly(true)
+                                .AllowBlank(false),
+                                X.NumberField().FieldLabel(Resources.ComputerPrice)
+                                .Name("ComputerPrice")
+                                .ID("ComputerPrice")
+                                .BlankText(Resources.ComputerPrice + " " + Resources.RequiredField)
+                                .AllowBlank(false)
+                                .ReadOnly(true),
+                                X.NumberField().FieldLabel(Resources.PhysicalPrice)
+                                .Name("PhysicalPrice")
+                                .ID("PhysicalPrice")
+                                .BlankText(Resources.PhysicalPrice + " " + Resources.RequiredField)
+                                .AllowBlank(false)
+                                .Listeners(ls =>
+                                {
+                                    ls.Change.Handler = @"
+                                    var Ecart =  App.PhysicalPrice.getValue() - App.ComputerPrice.getValue();
+                                    App.Ecart.setValue(Ecart);";
+                                }),
+                                X.NumberField().FieldLabel(Resources.Ecart)
+                                .Name("Ecart")
+                                .ID("Ecart")
+                                .AllowBlank(false)
+                                .ReadOnly(true)
+                                ,
+                                X.TextArea().FieldLabel(Resources.Justification)
+                                .Name("Justification")
+                                .ID("Justification")
+                                .BlankText(Resources.Justification + " " + Resources.RequiredField)
+                                .AllowBlank(false)
+                                )
+                            )
+                        ) //fin item conteneur
+                    
+
+    )
+}

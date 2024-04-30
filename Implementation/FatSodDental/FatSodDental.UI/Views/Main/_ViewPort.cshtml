@@ -1,0 +1,30 @@
+﻿
+@{
+    var X = Html.X();
+}
+
+@(
+    X.Viewport()
+        .Layout(LayoutType.Border)
+       
+        .ItemsFromPage(this, "~/Views/Main/_Script.cshtml")
+        
+        //.ItemsFromPage(this, "~/Views/Main/_Style.cshtml")
+        
+        
+        .ItemsFromPage(this, "~/Views/Main/_North_infos.cshtml")
+        
+        //.ItemsFromPage(this, "~/Views/Main/_North.cshtml")
+        
+        .ItemsFromPage(this, "~/Views/Main/_East.cshtml")
+        
+        .ItemsFromPage(this, "~/Views/Main/_West.cshtml")
+        
+        .ItemsFromPage(this, "~/Views/Main/_Center.cshtml")
+        
+        .ItemsFromPage(this, "~/Views/Main/_South.cshtml")
+        
+        //.ItemsFromPage(this, "~/Views/Main/_Bloquer.cshtml")
+        
+  
+)

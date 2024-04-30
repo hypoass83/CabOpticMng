@@ -1,0 +1,561 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+@model System.Collections.IEnumerable
+@{
+    ViewBag.Title = "ProductTransfert";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    string labelSeparator = "  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :";
+
+    String activateValidatePurchase = @"if(App.PurchaseForm.isValid())
+                                            {
+                                                /*App.btnSave.setDisabled(false);*/
+                                                App.FormAddPurchaseLine.setDisabled(false);
+                                                App.PurchaseLines.setDisabled(false);
+                                            }else{
+                                                /*App.btnSave.setDisabled(true);*/
+                                                App.FormAddPurchaseLine.setDisabled(true);
+                                                App.PurchaseLines.setDisabled(true);
+                                            }";
+
+    String activateValidatePurchase1 = @"if( (App.PurchaseForm.isValid()) && (App.IsCadyEmpty.getValue() == 1) )
+                                            {
+                                                App.btnSave.setDisabled(false);
+                                                /*alert(App.IsCadyEmpty.getValue());*/
+                                            }else{
+                                                App.btnSave.setDisabled(true);
+                                                /*alert(App.IsCadyEmpty.getValue());*/
+                                            }";
+
+    var com = new ComboBox();
+}
+
+@section header
+{
+    <script>
+        
+    </script>
+    }
+
+    @section content
+{
+    @***********************************************************@
+    @(
+
+        //formulaire général
+        //c'est ausi le container qui (contient) le fieldset des éléments de formulaire d'un achat, le formulaire du panier et le tableau représentant le contenu du panier
+ 
+X.Container()
+        .Layout(LayoutType.HBox)
+        .MarginSpec("-30 0 0 0")
+        .ID("DefaultContainer")
+        .Layout(LayoutType.Fit)
+        .Items(              
+        
+        X.FormPanel()
+                .ID("GeneralForm")
+                .Frame(true)
+                .MarginSpec("0 0 0 0")
+                .Padding(0)
+                .FieldDefaults(fd => { fd.LabelWidth = 120; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+                .Listeners(ls =>
+                        {
+                            ls.FieldChange.Handler = activateValidatePurchase1;
+                        })
+                
+                .Buttons(
+                    X.Button()
+                        .ID("btnSave")
+                        .Text("Effectuer l'Achat")
+                        .Disabled(true)
+                        .Icon(Icon.Disk)
+                        .DirectEvents(de =>
+                        {
+                            de.Click.Url = Url.Action("AddPurchase");
+                            de.Click.EventMask.ShowMask = true;
+                            de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                        }),
+
+                    X.Button()
+                        .ID("Cancel1")
+                        .Text("Annuler l'Achat")
+                        .MarginSpec("0 20 10 10")
+                        .DirectEvents(de =>
+                        {
+                            de.Click.Url = Url.Action("Reset");
+                            de.Click.Complete = "";
+                            de.Click.EventMask.ShowMask = true;
+                            de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                        })
+                )
+            .Items(
+        //Container des éléments de formulaire de la table Purchase
+                X.FormPanel()
+                    .ID("PurchaseForm")
+                    .Layout(LayoutType.Column)
+                    .MarginSpec("10 10 10 10")
+                    .Title("Purchase Informations")
+                    .Listeners(ls =>
+                        {
+                            ls.FieldChange.Handler = activateValidatePurchase;
+                        })
+                    .Items(
+                        X.TextField().Name("PurchaseID").ID("PurchaseID").Hidden(true),
+
+                        X.ComboBox()
+                            .ID("SupplierID")
+                            .Name("SupplierID")
+                            .FieldLabel(Resources.c_Supplier)
+                            .AllowBlank(false).ForceSelection(true)
+                            .BlankText(Resources.Customer + " " + Resources.RequiredField)
+                            .LabelSeparator(labelSeparator)
+                            .EmptyText(Resources.Select)
+                            .Items(LoadComponent.Suppliers),
+                        X.DateField().FieldLabel("Purchase Date")
+                            .AllowBlank(false)
+                            .Name("PurchaseDate")
+                            .ID("PurchaseDate")
+                            .InputType(Ext.Net.InputType.DateTime)
+                            .Value(DateTime.Now)
+                            .ReadOnly(true),
+                      X.NumberField().FieldLabel("Payment Delay")
+                            .ID("PaymentDelay")
+                            .Name("PaymentDelay")
+                            .MarginSpec("0 0 5 0")
+                            .AllowBlank(false)
+                            .EnforceMaxLength(true)
+                            .MaxLength(4)
+                            .MaxValue(90)
+                            .MinValue(0)
+                            .Listeners(ls =>
+                            {
+                                ls.Change.Handler = "if(this.getValue() == 0){ App.PaymentMethod.setDisabled(false);  App.PaymentMethod.allowBlank = false; }else{App.PaymentMethod.clearValue(); App.PaymentMethod.allowBlank = true; App.PaymentMethod.setDisabled(true);}";
+                            }),
+                      X.TextField()
+                        .ID("PurchaseReference")
+                        .Name("PurchaseReference")
+                        .FieldLabel("Purchase Reference")
+                        .MarginSpec("0 0 5 0")
+                        .AllowBlank(false)
+                        .EnforceMaxLength(true)
+                        .MaxLength(4),
+                    X.ComboBox()
+                        .ID("PaymentMethod")
+                        .Name("PaymentMethod")
+                        .FieldLabel("Payment Mode")
+                        .Items(LoadComponent.PaymentMethods)
+                        .AllowBlank(true).ForceSelection(true)
+                        .BlankText(Resources.PurchaseMode + " " + Resources.RequiredField)
+                        .LabelSeparator(labelSeparator)
+                        .EmptyText(Resources.Select)
+                        .Disabled(true)
+                        .Listeners(ls =>
+                            {
+                                ls.Enable.Handler = "App.PaymentMethodID.setDisabled(false);App.PaymentMethodID.allowBlank = false;";
+                                ls.Change.Handler = "App.PaymentMethodID.setDisabled(false);App.PaymentMethodID.allowBlank = false; App.PaymentMethodID.getStore().load();";
+                                ls.Disable.Handler = "App.PaymentMethodID.allowBlank = true; App.PaymentMethodID.setDisabled(true);App.PaymentMethodID.clearValue();";
+                                ls.Select.Handler = "App.PaymentMethodID.clearValue(); App.PaymentMethodID.getStore().load();";
+                            }
+                        )
+                        ,
+
+                    X.ComboBox()
+                        .Name("PaymentMethodID")
+                        .ID("PaymentMethodID")
+                        .FieldLabel("Choose a bank")
+                        .EmptyText(Resources.Select)
+                        .AutoSelect(false)
+                        .LabelSeparator(labelSeparator)
+                        .MarginSpec("0 0 10 0")
+                        .AllowBlank(true)
+                        .Disabled(true).ForceSelection(true)
+                        .BlankText(Resources.RequiredField)
+                        .DisplayField("Name")
+                        .ValueField("ID")
+                        .Store(
+                                X.Store()
+                                .AutoLoad(false)
+                                .Model(
+                                    X.Model()
+                                    .IDProperty("ID")
+                                        .Fields(
+                                            new ModelField("ID", ModelFieldType.String) { Mapping = "ID" },
+                                            new ModelField("Name", ModelFieldType.String) { Mapping = "Name" }
+                                        )
+                                )
+                                .Proxy(
+                                    X.AjaxProxy()
+                                        .Url(Url.Action("PaymentMethods"))
+                                        .Reader(X.JsonReader().RootProperty("data"))
+                                )
+                                .Parameters(ps =>
+                                    ps.Add(new StoreParameter("PaymentMethod", "App.PaymentMethod.getValue()", ParameterMode.Raw))
+                                )
+                            ),
+                    X.ComboBox()
+                        .ID("PurchaseBringerID")
+                        .Name("PurchaseBringerID")
+                        .FieldLabel("Purchase Bringer")
+                        .Items(LoadComponent.Users)
+                        .AllowBlank(false).ForceSelection(true)
+                        .BlankText(Resources.PurchaseMode + " " + Resources.RequiredField)
+                        .LabelSeparator(labelSeparator)
+                        .EmptyText(Resources.Select),
+                  X.ComboBox()
+                    .ID("PurchaseRegisterID")
+                    .Name("PurchaseRegisterID")
+                    .FieldLabel("Purchase Register")
+                    .Items(LoadComponent.Users)
+                    .Value(user)
+                    .AllowBlank(false).ForceSelection(true)
+                    .BlankText(Resources.PurchaseMode + " " + Resources.RequiredField)
+                    .LabelSeparator(labelSeparator)
+                    .EmptyText(Resources.Select)
+                    .ReadOnly(true)
+                  ),//fin du items du fieldset contenant les infos sur l'achat
+
+                  X.Container()
+                    .Layout(LayoutType.HBox)
+                    .MarginSpec("10 10 10 10")
+                    .Items(
+                        X.FormPanel()
+                            .ID("FormAddPurchaseLine")
+                            .Title("Add One Product To Cady")
+                            .Disabled(true)
+                            .Layout(LayoutType.Anchor)
+                            .Width(300)
+                            .DefaultAnchor("90%")
+                            .Listeners(ls =>
+                                {
+                                    ls.FieldChange.Handler = "if(App.FormAddPurchaseLine.isValid()){App.AddToCady.setDisabled(false);}else{App.AddToCady.setDisabled(true);}";
+                                }
+                                )
+                            .Buttons(
+                                X.Button()
+                                    .Text("Add To Cady")
+                                    .Disabled(true)
+                                    .ID("AddToCady")
+                                    .DirectEvents(de =>
+                                    {
+                                        de.Click.Url = Url.Action("AddPurchaseLine");
+                                        de.Click.EventMask.ShowMask = true;
+                                        de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                                    }),
+                                X.Button()
+                                    .ID("Cancel2")
+                                    .Text("Cancel")
+                                    .OnClientClick("this.up('form').reset();")
+                              )
+                            .Items(
+                                X.TextField().Name("IsCadyEmpty").ID("IsCadyEmpty").Hidden(true).Value(0),
+                                X.TextField().Name("LineID").ID("LineID").Hidden(true),
+                                    X.TextField().Name("TMPID").ID("TMPID").Hidden(true).Value(0),                                
+                                X.ComboBox()
+                                    .ID("ProductID")
+                                    .Name("ProductID")
+                                    .FieldLabel("Désignation")
+                                    .Items(LoadComponent.Products)
+                                    .Listeners(ls => ls.Select.Handler = @"App.LocalizationID.clearValue();
+                                                                           App.LineQuantity.clear();
+                                                                           App.LineUnitPrice.clear();    
+                                                                        "
+                                     )                                    
+                                    .AllowBlank(false).ForceSelection(true)
+                                    .BlankText(Resources.Product + " " + Resources.RequiredField)
+                                    .LabelSeparator(labelSeparator)
+                                    .EmptyText(Resources.Select),
+
+                                X.ComboBox().Name("LocalizationID").FieldLabel(Resources.Localization)
+                                    .Items(LoadComponent.Localizations)
+                                    .AllowBlank(false).ForceSelection(true)
+                                    .BlankText(Resources.Localization + " " + Resources.RequiredField)
+                                    .ID("LocalizationID")
+                                    .LabelSeparator(labelSeparator)
+                                    .EmptyText(Resources.Select),
+
+                                X.NumberField().FieldLabel("Quantity")
+                                    .Name("LineQuantity")
+                                    .InputType(Ext.Net.InputType.Number)
+                                    .MinValue(1)
+                                    .AllowDecimals(false)
+                                    .EnforceMaxLength(true)
+                                    .EnableKeyEvents(true)
+                                    .ID("LineQuantity")
+                                    .LabelSeparator(labelSeparator)
+                                    .BlankText("Vous devez renseigner une description")
+                                    .AllowBlank(false),
+
+                                X.NumberField().FieldLabel("Unit Price")
+                                    .Name("LineUnitPrice")
+                                    .InputType(Ext.Net.InputType.Number)
+                                    .ID("LineUnitPrice")
+                                    .LabelSeparator(labelSeparator)
+                                    .BlankText("Vous devez renseigner une description")
+                                    .AllowBlank(false)
+                            ),
+                             X.Component().Width(10),
+                             X.FieldSet()
+                                .Flex(1)
+                                .Layout(LayoutType.Fit)
+                                .Border(false)
+                                .Padding(0)
+                                .DefaultAnchor("100%")
+                                .Items(
+                                    X.GridPanel()
+                                        .Title("Cady Content")
+                                        .Disabled(true)
+                                        .ID("PurchaseLines")
+                                        .Layout(LayoutType.Fit)
+                                        .MarginSpec("0 0 0 0")
+                                        .Frame(true)
+                                        .Collapsible(true)
+                                        .Store(
+                                            X.Store()
+                                                .GroupField("Light")
+                                                .PageSize(6)
+                                                .AutoLoad(true)
+                                                .ID("PurchaseLinesStore")
+                                                .Model(
+                                                    X.Model()
+                                                        .Fields(
+                                                            new ModelField() { Name = "TMPID", Type = ModelFieldType.Int },
+                                                            new ModelField() { Name = "ProductLabel", Type = ModelFieldType.String },
+                                                            new ModelField() { Name = "LocalizationLabel", Type = ModelFieldType.String },
+                                                            new ModelField() { Name = "LineUnitPrice", Type = ModelFieldType.Int },
+                                                            new ModelField() { Name = "LineQuantity", Type = ModelFieldType.Int },
+                                                            new ModelField() { Name = "LineAmount", Type = ModelFieldType.Int }
+                                                        )
+                                                )
+                                                .ServerProxy(
+                                                        X.AjaxProxy()
+                                                        .Url(Url.Action("PurchaseLines"))
+                                                        .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                                                        .Reader(X.JsonReader().RootProperty("data"))
+                                                )
+                                        )
+
+                                        .ColumnModel(
+                                                Html.X().Column()
+                                                    .Text("Désignation")
+                                                    .DataIndex("ProductLabel")
+                                                    .Flex(1),
+                                                Html.X().Column()
+                                                    .Text("Localization")
+                                                    .DataIndex("LocalizationLabel")
+                                                    .Flex(1),
+                                                Html.X().Column()
+                                                    .Text("Unit Price")
+                                                    .DataIndex("LineUnitPrice")
+                                                    .Flex(1)
+                                                    ,
+                                                Html.X().Column()
+                                                    .Text("Quantity")
+                                                    .DataIndex("LineQuantity")
+                                                    .Flex(1),
+                                                Html.X().Column()
+                                                    .Text("Partial Total Amount")
+                                                    .DataIndex("LineAmount")
+                                                    .Flex(1),
+                                                Html.X().ImageCommandColumn()
+                                                    .Width(30)
+                                                    .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.DELETE, profile, CodeValue.Supply.ProductReception_SM.CODE))
+                                                    .Commands(
+                                                        Html.X().ImageCommand()
+                                                            .CommandName("Delete")
+                                                            .IconCls("icon-broom")
+                                                            .ToolTip(tt =>
+                                                                {
+                                                                    tt.Text = "Voulez-vous supprimer ?";
+                                                                    tt.Title = "Supression";
+                                                                }
+                                                                )
+                                                    )
+                                                    .DirectEvents(de =>
+                                                    {
+                                                        de.Command.Action = "RemovePurchaseLine";
+                                                        de.Command.Confirmation.ConfirmRequest = true;
+                                                        de.Command.Confirmation.Message = Resources.ConfirmDeleteMessage;
+                                                        de.Command.Confirmation.Title = Resources.ConfirmDeleteTitle;
+                                                        de.Command.ExtraParams.Add(new Parameter("TMPID", "record.data.TMPID", ParameterMode.Raw));
+                                                        de.Command.EventMask.ShowMask = true;
+                                                        de.Command.EventMask.Msg = Resources.EventMaskMsg;
+                                                    }),
+                                                Html.X().ImageCommandColumn()
+                                                        .Width(30)
+                                                        .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, profile, CodeValue.Supply.ProductReception_SM.CODE))
+                                                        .Commands(
+                                                        Html.X().ImageCommand()
+                                                                .CommandName("Edit")
+                                                                .IconCls("icon-edit")
+                                                                .ToolTip(tt => tt.Text = "Modifier ?")
+                                                        )
+
+                                                        .DirectEvents(de =>
+                                                        {
+                                                            de.Command.Action = "UpdatePurchaseLine";
+                                                            de.Command.ExtraParams.Add(new Parameter("TMPID", "record.data.TMPID", ParameterMode.Raw));
+                                                            de.Command.EventMask.ShowMask = true;
+                                                            de.Command.EventMask.Msg = Resources.EventMaskUpdate;
+                                                        })
+                                                )
+
+                                )//fin du tableau présentant le contenu du panier
+                            
+                        )//fin du items du formpanel du panier
+                                            
+             )//fin du items du formpanel
+
+                 
+        )//fin du items du container general
+             
+                         
+     )
+
+    @* Tableau contenant la liste des achats *@
+@(Html.X().GridPanel()
+        .Title("Purchases List")
+        .ID("PurchaseList")
+        .Layout(LayoutType.Fit)
+        .MarginSpec("10 10 10 10")
+        .Margin(5)
+        .Frame(true)
+        .Collapsible(false)
+        .Store(X.Store()
+            .GroupField("Light")
+            .ID("PurchaseListStore")
+            .RemotePaging(true)
+            .AutoLoad(true)
+            .PageSize(10)
+            .Model(
+                X.Model()
+                    .IDProperty("PurchaseListModel")
+                    .Fields(
+                        new ModelField("PurchaseID", ModelFieldType.Int),
+                        new ModelField("PurchaseReference", ModelFieldType.String),
+                        new ModelField("PurchaseDate", ModelFieldType.Date),
+                        new ModelField("SupplierFullName", ModelFieldType.String),
+                        new ModelField("SupplierEmail", ModelFieldType.String),
+                        new ModelField("SupplierPhoneNumber", ModelFieldType.String),
+                        new ModelField("PurchaseBringerFullName", ModelFieldType.String),
+
+                        new ModelField("PurchaseTotalAmount", ModelFieldType.Int),
+                        new ModelField("PersonName", ModelFieldType.String)
+
+                    )
+            )
+            //.DataSource(Model)
+            .Proxy(
+                X.AjaxProxy()
+                .Url(Url.Action("GetAllPurchases"))
+                .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                .Reader(X.JsonReader().RootProperty("data"))
+            )
+            .Sorters(
+                    X.DataSorter()
+                    .Property("SupplierFullName")
+                    .Direction(Ext.Net.SortDirection.ASC)
+            )
+        )
+
+        .ColumnModel(
+
+            Html.X().Column()
+                .Text("Purchase Reference")
+                .DataIndex("PurchaseReference")
+                .Flex(1)
+                ,
+            Html.X().DateColumn()
+                .Text("Purchase Date")
+                .DataIndex("PurchaseDate")
+                .Flex(1),
+            Html.X().Column()
+                    .Text("Supplier Full Name")
+                    .DataIndex("SupplierFullName")
+                    .Flex(1),
+            Html.X().Column()
+                .Text("Supplier Email")
+                .DataIndex("SupplierEmail")
+                .Flex(1),
+            Html.X().Column()
+                .Text("Supplier PhoneNumber")
+                .DataIndex("SupplierPhoneNumber")
+                .Flex(1),
+            Html.X().Column()
+                .Text("Purchase Bringer FullName")
+                .DataIndex("PurchaseBringerFullName")
+                .Flex(1),
+            Html.X().Column()
+                .Text("Purchase Total Amount")
+                .DataIndex("PurchaseTotalAmount")
+                .Flex(1),
+
+            Html.X().ImageCommandColumn()
+                        .Width(30)
+                        .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.DELETE, profile, CodeValue.Supply.ProductReception_SM.CODE))
+                        .Commands(
+                            Html.X().ImageCommand()
+                                .CommandName("Delete")
+                                .IconCls("icon-delete")
+                                .ToolTip(tt =>
+                                    {
+                                        tt.Text = "Voulez-vous supprimer ?";
+                                        tt.Title = "Supression";
+                                    }
+                                 )
+                        )
+                        .DirectEvents(de =>
+                        {
+                            de.Command.Action = "DeletePurchase";
+                            de.Command.Method = HttpMethod.POST;
+                            de.Command.Confirmation.ConfirmRequest = true;
+                            de.Command.Confirmation.Message = Resources.ConfirmDeleteMessage;
+                            de.Command.Confirmation.Title = Resources.ConfirmDeleteTitle;
+                            de.Command.ExtraParams.Add(new Parameter("PurchaseID", "record.data.PurchaseID", ParameterMode.Raw));
+                            de.Command.EventMask.ShowMask = true;
+                            de.Command.EventMask.Msg = Resources.EventMaskMsg;
+                        }),
+            Html.X().ImageCommandColumn()
+                    .Width(30)
+                    .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, profile, CodeValue.Supply.ProductReception_SM.CODE))
+                    .Commands(
+                    Html.X().ImageCommand()
+                            .CommandName("Edit")
+                            .IconCls("icon-edit")
+                            .ToolTip(tt => tt.Text = "Modifier ?")
+                    )
+
+                    .DirectEvents(de =>
+                    {
+                        de.Command.Action = "UpdatePurchase";
+                        de.Command.Method = HttpMethod.POST;
+                        de.Command.ExtraParams.Add(new Parameter("PurchaseID", "record.data.PurchaseID", ParameterMode.Raw));
+                        de.Command.EventMask.ShowMask = true;
+                        de.Command.EventMask.Msg = Resources.EventMaskUpdate;
+                    })
+            )
+            .Plugins(
+                X.FilterHeader()
+            )
+            .BottomBar(
+                X.PagingToolbar()
+                    .Plugins(
+                        X.ProgressBarPager()
+                    )
+                    .HideRefresh(true)
+            )
+)
+
+
+
+
+
+
+    }
+

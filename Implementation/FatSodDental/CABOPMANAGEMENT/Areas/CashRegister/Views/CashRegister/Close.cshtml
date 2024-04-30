@@ -1,0 +1,209 @@
+﻿@using FatSod.Ressources;
+@{
+    ViewBag.Title = @Resources.CloseCashRegisterTitle;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row" style="margin-top:5px;margin-left:25px">
+    @if (TempData["Message"] != null)
+    {
+        @Html.Raw(TempData["Message"])
+    }
+</div>
+<div class="box box-primary box-body" id="TillDayFormClose">
+    <header>
+        <code>@Resources.CloseCashRegisterSubTitle</code>
+    </header>
+    <div class="row">
+        <fieldset class="col-md-10">
+            <legend>@Resources.Closecashregist</legend>
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <div class="row ipt">
+                        <input id="DisplayFormClose" type="hidden" value="@ViewBag.DisplayForm">
+                        <input id="TillDayID" type="hidden" value="@ViewBag.tillDay.TillDayID">
+                        <input id="TillDayDate" name="TillDayDate" type="hidden" value="@ViewBag.tillDay.TillDayDate">
+                        <input id="YesterdayTillDayClosingPrice" type="hidden" value="@ViewBag.YesterdayTillDayClosingPrice">
+                        <input id="TillID" type="hidden" value="@ViewBag.tillDay.TillID">
+
+                        <div class="row ipt">
+                            <div class="col-sm-4">@Resources.OpenAmtDate</div>
+                            <div class="col-sm-4">
+                                <input class="form-control" id="TillDayOpenPrice" name="TillDayOpenPrice" type="text" value="@ViewBag.tillDay.TillDayOpenPrice">
+                            </div>
+                        </div>
+                        <div class="row" id="hiddenfiel">
+                            <div class="row">
+                                <div class="col-sm-4">@Resources.InputAmtDate</div>
+                                <div class="col-sm-4">
+                                    <input class="form-control" id="InputCash" name="InputCash" type="number" value="@ViewBag.TillSatut.Inputs">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4">@Resources.OutputAmtDate</div>
+                                <div class="col-sm-4">
+                                    <input class="form-control" id="OutputCash" name="OutputCash" type="number" value="@ViewBag.TillSatut.Ouputs">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4">@Resources.SoldeCaisse</div>
+                                <div class="col-sm-4">
+                                    <input class="form-control" id="Solde" name="Solde" type="number" value="@ViewBag.TillSatut.Ballance">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-4">@Resources.EnterPhyCashAmt</div>
+                            <div class="col-sm-4">
+                                <input class="form-control" id="TillDayClosingPrice" name="TillDayClosingPrice" type="number">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" style="margin-bottom:10px;margin-left: 20%;">
+                    <div class="col-sm-4">
+                        <button id="btnCancel" style="margin-left:20px;" class="btn btn-primary btn-danger">@Resources.ResetButton</button>
+                    </div>
+                    <div class="col-sm-4">
+                        <button id="btnSubmit" class="btn btn-primary">@Resources.CloseCashN</button>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+    </div>
+</div>
+<!-- Css Begins Here -->
+
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-top: 25px;
+        margin-bottom: 10px;
+    }
+
+    #img-upload {
+        width: 100%;
+    }
+
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin-left: 5%;
+        min-width: 0;
+        padding: 10px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 200px;
+        margin-left: 15%;
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+</style>
+<!--********** JavaScripts **********-->
+<script>
+    function clearForm() {
+        $('#TillDayClosingPrice').val('');
+    }
+    $(document).on('ready', function () {
+        if ($('#DisplayFormClose').val().trim() == 0) {
+            $("#TillDayFormClose").hide();
+        }
+        else {
+            $("#TillDayFormClose").show();
+        }
+        $("#hiddenfiel").hide();
+        $('#btnCancel').on('click', function () {
+            clearForm();
+        });
+        //$('#mainTable').DataTable();
+        $('#btnSubmit').on('click', function () {
+            var isAllValid = true;
+
+
+            if ($('#TillDayClosingPrice').val().trim() == '') {
+                isAllValid = false;
+                $("#TillDayClosingPrice").addClass("invalid-data");
+            }
+            else {
+                $("#TillDayClosingPrice").addClass("valid-data");
+            }
+
+            if (isAllValid) {
+
+                var formData = new FormData();
+
+                formData.append("TillDayDate", $('#TillDayDate').val().trim());
+                formData.append("TillDayOpenPrice", $('#TillDayOpenPrice').val().trim());
+                formData.append("TillDayID", $('#TillDayID').val().trim());
+                formData.append("YesterdayTillDayClosingPrice", $('#YesterdayTillDayClosingPrice').val().trim())
+                formData.append("TillID", $('#TillID').val().trim());
+                formData.append("InputCash", $('#InputCash').val().trim());
+                formData.append("OutputCash", $('#OutputCash').val().trim());
+                formData.append("TillDayClosingPrice", $('#TillDayClosingPrice').val().trim());
+
+                $(this).val('Please wait...');
+                $('#btnSubmit').prop('disabled', true);
+                //post data to server
+                $.ajax({
+                    url: '@Url.Action("CloseDay", "CashRegister")',
+                    type: "POST",
+                    data: formData,
+                    dataType: "JSON",
+                    //contentType: "application/json",
+                    contentType: false,
+                    processData: false,
+                    success: function (d) {
+                        //check is successfully save to database
+                        if (d.status == true) {
+                            alert(d.Message);
+                            window.location.href = d.redirectUrl;
+                        }
+                        else {
+                            alert(d.Message);
+                            clearForm();
+                        }
+                        $('#btnSubmit').prop('disabled', false);
+                        $('#btnSubmit').val('@Resources.CloseCashN');
+                    },
+                    error: function (response) {
+                        alert('Error. Please try again.');
+                        $('#btnSubmit').prop('disabled', false);
+                        $('#btnSubmit').val('@Resources.CloseCashN');
+                    }
+                });
+            }
+        });
+    });
+</script>

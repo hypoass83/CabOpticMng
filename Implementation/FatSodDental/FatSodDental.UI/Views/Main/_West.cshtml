@@ -1,0 +1,75 @@
+﻿@using FatSod.Ressources;
+@{
+    var X = Html.X();
+}
+
+@(
+    X.Panel()
+        .ID("Pan_West")
+        .Border(false)
+        .Header(false)
+        .Region(Region.West)
+        .BodyStyle("background-color:transparent;")
+        .Layout(LayoutType.Fit)
+        .BodyPadding(5)
+        .Split(true)
+        .Collapsible(true)
+        
+        .Items(
+            X.TreePanel()
+                .Border(false)
+                .Width(200)
+                .Frame(true)
+                .Listeners(l => {
+                    l.ItemClick.Handler = "if (record.data.href) { e.stopEvent(); loadPage(App.tabPanel, record, '" + Resources.Loading + "', record.data.icon);}";
+                })
+                .TopBarItem(
+                    X.ToolbarTextItem()
+                        .Text(@"<b>" + Resources.Filter + ":<b>"),
+                        
+                    X.ToolbarSpacer(),
+                    
+                    X.TextField()
+                        .EmptyText(Resources.Filter_menu + "...")
+                        .Flex(1)
+                        .EnableKeyEvents(true)
+                        .Triggers(
+                            X.FieldTrigger().Icon(TriggerIcon.Clear)
+                        )
+                        .Listeners(l => {
+                            l.KeyUp.Fn = "filterTree";
+                            l.KeyUp.Buffer = 250;
+                            l.TriggerClick.Fn = "clearFilter";
+                        }),
+                        
+                    X.ToolbarSeparator(),
+                    
+                    X.Button()
+                        .Icon(Icon.Cog)
+                        .Menu(
+                            X.Menu()
+                                .Items(
+                                    X.MenuItem()
+                                        .Text(Resources.Expand_All)
+                                        .IconCls("icon-expand-all")
+                                        .Handler("this.up('treepanel').expandAll();"),
+                                    X.MenuItem()
+                                        .Text(Resources.Collapse_All)
+                                        .IconCls("icon-collapse-all")
+                                        .Handler("this.up('treepanel').collapseAll();")
+                                )
+                        )
+                )
+                .Store(
+                    X.TreeStore()
+                    .DefaultRootId("_root")
+                    .Proxy(
+                        X.AjaxProxy()
+                            .Url(
+                                    Url.Action("GetUnderMenu")
+                            )
+                    )
+                )
+                .RootVisible(false)
+        )
+)

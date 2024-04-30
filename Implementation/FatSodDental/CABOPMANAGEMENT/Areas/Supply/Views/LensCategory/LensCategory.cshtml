@@ -1,0 +1,416 @@
+﻿@using FatSod.Ressources;
+@using CABOPMANAGEMENT.Tools;
+@using FatSod.DataContext.Initializer;
+
+@model IEnumerable<FatSod.Supply.Entities.LensCategory>
+
+@{
+    ViewBag.Title = @Resources.b_LensCategory;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var profile = (Session["UserProfile"] == null) ? 0 : (int)Session["UserProfile"];
+    var user = (Session["UserID"] == null) ? 0 : (int)Session["UserID"];
+
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+
+<div class="box box-primary box-body">
+    <!--<form id="FormAccountingSection">-->
+    @****************************@
+    @Html.AntiForgeryToken()
+
+    <h6>@Resources.RequireField<code>(*)</code>.</h6>
+    <hr>
+
+    <div class="box box-primary box-body">
+        <div class="row">
+            <!-- Left Side Begins Here -->
+            <div class="col-sm-6">
+                <div class="panel panel-default">
+                    <div class="panel-body1">
+                        <fieldset>
+                            <input type="hidden" id="CategoryID" />
+
+
+                            <div class="row ipt">
+                                <!-- CategoryCode -->
+                                <div class="col-sm-4">@Resources.Code<code>(*)</code></div>
+                                <div class="col-sm-8">
+                                    <input type="text" id="CategoryCode" class="input-sm form-control" />
+                                </div>
+                            </div>
+                            <div class="row ipt">
+                                <!-- CategoryLabel -->
+                                <div class="col-sm-4">@Resources.Label<code>(*)</code></div>
+                                <div class="col-sm-8">
+                                    <input type="text" id="CategoryLabel" class="input-sm form-control" />
+                                </div>
+                            </div>
+
+                            <div class="row ipt">
+                                <!-- CategoryDescription -->
+                                <div class="col-sm-4">@Resources.Description<code>(*)</code></div>
+                                <div class="col-sm-8">
+                                    <textarea id="CategoryDescription" class="input-sm form-control"></textarea>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+            </div>
+            <!-- Right Side Begins Here -->
+            <div class="col-sm-6">
+                <div class="panel panel-default">
+                    <div class="panel-body1">
+                        <fieldset style="border-left: 2px solid black">
+                            <div class="row ipt">
+                                <!-- SupplyingName -->
+                                <div class="col-sm-4">@Resources.SupplyingName</div>
+                                <div class="col-sm-8">
+                                    <input type="text" id="SupplyingName" class="input-sm form-control" />
+                                </div>
+                            </div>
+                            <div class="row ipt">
+                                <!-- Categories -->
+                                <div class="col-sm-4">Diameter</div>
+                                <div class="col-sm-8">
+                                    <input type="number" id="LensDiameter" value="60" class="input-sm form-control" />
+                                </div>
+                            </div>
+                            <div class="row ipt">
+                                <!-- Index -->
+                                <div class="col-sm-4">@Resources.Index</div>
+                                <div class="col-sm-8">
+                                    <input type="text" id="LensIndex" value="1.56" class="input-sm form-control" />
+                                </div>
+                            </div>
+
+                            <div class="row ipt">
+                                <div class="col-sm-4">@Resources.TypeLens<code>(*)</code></div>
+                                <div class="row ipt">
+                                    <div class="col-sm-8">
+                                        @*<input type="radio" name="IsSpecialCategory" id="SpecialOrder" value="1" checked="checked" /> @Resources.Yess
+                                        <input type="radio" name="IsSpecialCategory" id="NonSpecialOrder" value="0" /> @Resources.No*@
+                                        <select id="TypeLens" class="form-control">
+                                            <option value='0'>@Resources.Select</option>
+                                            <option value='BIFOCAL'>@Resources.Bifocal</option>
+                                            <option value='PROG'>@Resources.PROG</option>
+                                            <option value='SV'>@Resources.SV</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row ipt">
+            <div class="col-sm-4">
+                <button type="button" id="btnCancel" class="btn btn-primary">@Resources.ResetButton</button>
+            </div>
+            <div class="col-sm-8">
+                <button type="submit" class="btn btn-primary" id="btnSubmit">@Resources.SaveButton</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Ajout de la table contenant les data deja enregistrees-->
+<h2>@Resources.CategoriesList</h2>
+<div class="box box-body box-primary">
+
+    <table class="table" id="mainTable">
+        <thead>
+            <tr class="dataTableHead">
+                <th>
+                    ID
+                </th>
+                <th>
+                    @Resources.Code
+                </th>
+                <th>
+                    @Resources.Label
+                </th>
+                <th>
+                    @Resources.Description
+                </th>
+
+                <th>Action</th>
+            </tr>
+        </thead>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CategoryID)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CategoryCode)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CategoryLabel)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CategoryDescription)
+                </td>
+
+                <td>
+                    @if (!LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, @profile, CodeValue.Supply.CategoryMenu.CODE, db))
+                    {<a href=# onclick="UpdateItem(this)"><span class="glyphicon glyphicon-edit"></span></a> } |
+                    @if (!LoadAction.IsSubMenuActionAble(MenuAction.DELETE, @profile, CodeValue.Supply.CategoryMenu.CODE, db))
+                    {<a href=# onclick="DeleteItem(this)"><span class="glyphicon glyphicon-trash"></span></a> }
+                </td>
+            </tr>
+        }
+
+    </table>
+</div>
+
+
+<!--********** JavaScripts **********-->
+<script>
+
+    function UpdateItem(obj) {
+        var globalID = $(obj).parent().siblings(":first").text();
+        clearForm();
+        $.get('@Url.Action("InitializePurchaseFields", "LensCategory")', { ID: globalID }, function (data) {
+            $.each(data, function (key, value) {
+                $('#CategoryID').val(value.CategoryID);
+                $('#CategoryCode').val(value.CategoryCode);
+                $('#CategoryLabel').val(value.CategoryLabel);
+                $('#CategoryDescription').val(value.CategoryDescription);
+
+                $('#SupplyingName').val(value.SupplyingName);
+                $('#LensIndex').val(value.LensIndex);
+                $('#LensDiameter').val(value.LensDiameter);
+                $('#TypeLens').val(value.TypeLens);
+            });
+        }, 'json');
+    }
+
+    function clearForm() {
+
+        $('#CategoryID').val('');
+        $('#CategoryCode').val('');
+        $('#CategoryLabel').val('');
+        $('#CategoryDescription').val('');
+
+        $('#SupplyingName').val('');
+        $('#LensIndex').val('1.56');
+        $('#LensDiameter').val('60');
+        $('#TypeLens').val('');
+    }
+
+    function ValideProduct()
+    {
+        var isAllValid = true;
+
+
+        if ($('#CategoryID').val() == '0') {
+            isAllValid = false;
+            $("#CategoryID").addClass("invalid-data");
+        }
+        else {
+            $("#CategoryID").addClass("valid-data");
+        }
+
+
+        if ($('#CategoryCode').val() == '') {
+            isAllValid = false;
+            $("#CategoryCode").addClass("invalid-data");
+        }
+        else {
+            $("#CategoryCode").addClass("valid-data");
+        }
+
+
+
+        if ($('#CategoryLabel').val().trim() == '') {
+            isAllValid = false;
+            $("#CategoryLabel").addClass("invalid-data");
+        }
+        else {
+            $("#CategoryLabel").addClass("valid-data");
+        }
+
+        if ($('#CategoryDescription').val().trim() == '') {
+            isAllValid = false;
+            $("#CategoryDescription").addClass("invalid-data");
+        }
+        else {
+            $("#CategoryDescription").addClass("valid-data");
+        }
+
+        if ($('#TypeLens').val() == '0') {
+            isAllValid = false;
+            $("#TypeLens").addClass("invalid-data");
+        }
+        else {
+            $("#TypeLens").addClass("valid-data");
+        }
+
+        if (isAllValid) {
+
+
+            var data = {
+
+                CategoryID: $('#CategoryID').val(),
+                TypeLens: $('#TypeLens').val(),
+                //IsSpecialCategory: $('input[name=IsSpecialCategory]:checked').val(),
+                LensIndex: $('#LensIndex').val(),
+                CategoryCode: $('#CategoryCode').val().trim(),
+                LensDiameter: $('#LensDiameter').val().trim(),
+                CategoryLabel: $('#CategoryLabel').val(),
+                CategoryDescription: $('#CategoryDescription').val().trim(),
+                SupplyingName: $('#SupplyingName').val()
+            }
+            $(this).val('Please wait...');
+
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("AddManager", "LensCategory")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        location.reload(true);
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                }
+            });
+        }
+    }
+
+    $(document).on('ready', function () {
+
+        $('#btnCancel').on('click', function () {
+            clearForm();
+        });
+
+        $('#CategoryCode').on('change', function () {
+            var CategoryID = $('#CategoryID').val();
+            if (CategoryID == 0) {
+                $('#SupplyingName').val($('#CategoryCode').val());
+            }
+        });
+
+        $('#mainTable').DataTable();
+
+        $('#btnSubmit').on('click', function () {
+            ValideProduct();
+        });
+    });
+    //supression commande en attente
+    function DeleteItem(obj) {
+        if (confirm("Do you want to Delete ?")) {
+            var globalID = $(obj).parent().siblings(":first").text();
+            //post to the server
+            $(this).val('Please wait...');
+            var data = {
+                CategoryID: parseInt(globalID)
+            }
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("DeleteCategory", "LensCategory")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        location.reload(true);
+                        //ClearForm();
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                }
+            });
+        }
+
+    }
+</script>
+
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 3px;
+        margin-left: 1px;
+    }
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin: 0;
+        min-width: 0;
+        padding: 10px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 300px;
+    }
+
+    .panel-body1 {
+        height: 120px;
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+</style>

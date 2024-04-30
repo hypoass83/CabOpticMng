@@ -1,0 +1,40 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@model IEnumerable<FatSod.Security.Entities.UserBranch>
+@{
+    ViewBag.Title = "Utilisateur";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+}
+
+@section content
+{
+
+    @using (Html.BeginForm("Index","Dental"))
+    {
+        <div class="form-group">
+            <legend>A quel agence voulez-vous vous connecter ?</legend>
+        </div>
+
+        <div class="row">
+            <div class="form-group">
+                <label for="select" class="col-lg-2">Selectionnez l'agence: </label>
+                <div class="col-lg-10">
+                    <select id="select" class="form-control" name="Branch">
+                        @foreach (var userBranch in Model)
+                        {
+                            <option value="@userBranch.BranchID">@userBranch.Branch.BranchName</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <button class="pull-right btn btn-default">Se connecter</button>
+        </div>
+    }
+
+}

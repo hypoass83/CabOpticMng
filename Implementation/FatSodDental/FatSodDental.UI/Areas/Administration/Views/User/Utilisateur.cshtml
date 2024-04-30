@@ -1,0 +1,594 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Ressources;
+@using FatSod.Security.Entities;
+@model System.Collections.IEnumerable
+@{
+    var X = Html.X();
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+@section content
+{
+@(X.FormPanel()
+        .ID("Unknow")
+        //.Title(Resources.FormUserAddTitle)
+        .Items(
+             X.PanelTitle()
+              .ID("PanelTitl555e")
+              .Border(true)
+              .Padding(2)
+              .Content(
+            @<header>
+                <h4>@Resources.UserFormTitle</h4>
+                <h6>@Resources.RequireField <code>(*)</code>.</h6>
+            </header>
+                )
+            )
+            .Frame(true)
+            .MarginSpec("-20 10 10 10")
+            .BodyPadding(10)
+)
+    @(X.FormPanel()
+        .ID("User")
+        .Title(Resources.FormUserAddTitle)
+        .Frame(false)
+        .MarginSpec("-32 10 10 10")
+        .BodyPadding(10)
+        .FieldDefaults(fd => { fd.LabelWidth = 120; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+        .Buttons(
+            X.Button()
+                .ID("btnSave")
+                .Text(Resources.SaveButton)
+                .Disabled(true)
+                .Icon(Icon.Disk)
+                .Margin(10)
+                .DirectEvents(de =>
+                {
+                    de.Click.Url = Url.Action("Add", "User");
+                    de.Click.EventMask.ShowMask = true;
+                    de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                }),
+            X.Button()
+                .Text(Resources.ResetButton)
+                .MarginSpec("-30 20 10 10")
+                .OnClientClick(@"
+                                App.ImageID.setHidden(true);
+                                App.UserLogin.setHidden(true);App.UserLogin.setValue(11111111);
+                                App.UserPassword.setHidden(true);App.UserPassword.setValue(12345);
+                                App.UserPassword2.setHidden(true);App.UserPassword2.setValue(12345);
+                                App.Profile.setHidden(true);App.Profile.setValue(2);App.IsEmployee.setValue(1);this.up('form').reset();
+                ")
+        )
+        .Listeners(
+            ls =>
+            {
+                ls.FieldChange.Handler = "if(App.User.isValid()){App.btnSave.setDisabled(false);}else{App.btnSave.setDisabled(true);}";
+            }
+        )
+        .Items(
+            X.Container()
+                .Layout(LayoutType.HBox)
+                .MarginSpec("0 0 10")
+                .Border(true)
+                .Items(
+                    X.FieldSet()
+                        .Flex(1)
+                        .Title(Resources.PersonIdentificationForm)
+                        .Layout(LayoutType.Anchor)
+                        .Height(300)
+                        .MarginSpec("0 0 0 0")
+                        .DefaultAnchor("100%")
+                        .Items(
+                            X.TextField().ID("IsEmployee").Value(1).Hidden(true),
+                            X.TextField().Name("GlobalPersonID").ID("GlobalPersonID").Hidden(true),
+                            X.TextField().FieldLabel(Resources.PersonName)
+                                         .Name("Name")
+                                         .Listeners(ls =>
+                                         {
+                                             ls.Change.Handler = @"if(App.IsEmployee.getValue() == 1)
+                                                                  {
+                                                                    App.UserPassword.allowBlank = true; App.UserLogin.allowBlank = true;
+                                                                    App.UserPassword2.allowBlank = true; App.Profile.allowBlank = true;
+                                                                   }
+                                                                ";
+                                         })
+                                         .MsgTarget(MessageTarget.Side)
+                                         .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                         .ID("Name").BlankText(Resources.PersonName + " " + Resources.RequiredField)
+                                         .AllowBlank(false)
+                                         .MinLength(4)
+                                         .MinLengthText(Resources.Article + " " + Resources.PersonName + " " + Resources.MinLengthText)
+                            ,
+                            X.TextField().FieldLabel(Resources.PersonSurname)
+                             .Name("Description").ID("Description")
+                             .BlankText(Resources.PersonSurname + " " + Resources.RequiredField)
+                             .AllowBlank(false)                           
+                             ,                             
+                            X.TextField().FieldLabel("Matricule")
+                             .Name("Code").ID("Matricule")
+                             .BlankText(Resources.PersonSurname + " " + Resources.RequiredField)
+                             .AllowBlank(false)  
+                             ,                                                                     
+                            X.TextField().FieldLabel(Resources.PersonCNI)
+                                .Name("CNI")
+                                .ID("CNI")
+                                .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                .BlankText(Resources.PersonCNI + " " + Resources.RequiredField)
+                                .AllowBlank(false)
+                                ,
+                             X.Radio().BoxLabel(Resources.Male).Name("SexID").ID("Masculin").InputValue("1").FieldLabel(Resources.PersonSex).Checked(true),
+                             X.Radio().BoxLabel(Resources.Female).Name("SexID").ID("Feminin").InputValue("2")
+                                .InputType(Ext.Net.InputType.Radio)
+                                .LabelWidth(110).FieldLabel("    ").LabelSeparator("")
+                                ,
+                            X.ComboBox().Name("JobID")
+                                        .FieldLabel(Resources.PersonJob)
+                                        .AutoSelect(false)
+                                        .ForceSelection(true)
+                                        .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                        .Items(LoadComponent.Jobs)
+                                        .BlankText(Resources.PersonJob + " " + Resources.RequiredField)
+                                        .ID("Job")
+                                        .EmptyText(Resources.Select)
+                                        .AllowBlank(false)
+                                        ,
+                             X.Radio().BoxLabel(Resources.No).Name("IsConnected")
+                                      .ID("NoConnected").InputValue("0")
+                                      .InputType(Ext.Net.InputType.Radio)
+                                      .Listeners(ls =>
+                                        {
+                                            ls.Focus.Handler = @"
+                                                                {
+                                                                    App.UserLogin.setHidden(true); App.UserLogin.allowBlank = true;
+                                                                    App.UserPassword.setHidden(true); App.UserPassword.allowBlank = true;
+                                                                    App.UserPassword2.setHidden(true); App.UserPassword2.allowBlank = true;
+                                                                    App.Profile.setValue(1);
+                                                                    App.Profile.setHidden(true); App.Profile.allowBlank = true; App.IsEmployee.setValue(1);
+                                                                }
+                                                                ";
+                                        }
+                                       )
+                                      .LabelWidth(110).FieldLabel("      ").LabelSeparator("").Checked(true)
+                                      ,
+                             X.Radio().BoxLabel(Resources.Yess).Name("IsConnected")
+                                      .ID("IsConnected").InputValue("1")
+                                      .FieldLabel(Resources.PersonnIsConnected)
+                                      .Listeners(ls =>
+                                        {
+                                            ls.Focus.Handler = @"
+                                                                 {
+
+                                                                    App.UserLogin.setHidden(false);App.UserPassword.setHidden(false);
+                                                                    App.UserPassword2.setHidden(false);App.Profile.setHidden(false);
+                                                                    App.UserPassword2.setValue('');App.Profile.setValue('');
+                                                                    App.UserLogin.setValue('');App.UserPassword.setValue('');
+                                                                    App.UserLogin.allowBlank = false; App.Profile.allowBlank = false;
+                                                                    App.UserPassword2.allowBlank = false; App.UserPassword.allowBlank = false;
+                                                                    App.IsEmployee.setValue(0);
+                                                                 }
+                                                                ";
+                                        }
+                                       )
+
+                        ),
+
+                    //X.Component().Width(10),
+
+                    X.FieldSet()
+                        .Flex(1)
+                        .Title(Resources.PersonAdressForm)
+                        .Layout(LayoutType.Anchor)
+                        .DefaultAnchor("100%")
+                        .MarginSpec("0 0 0 0")
+                        .Height(300)
+                        .Items(
+                            X.TextField().Name("AdressID").ID("AdressID").Hidden(true),
+                            X.TextField().FieldLabel(Resources.PersonMobile).Name("AdressPhoneNumber").ID("AdressPhoneNumber"),
+                            X.TextField().FieldLabel("Email")
+                                         .InputType(Ext.Net.InputType.Email)
+                                         .Name("AdressEmail").ID("AdressEmail")
+                                         .AllowBlank(false)
+                                         .BlankText("Email " + Resources.RequiredField)
+                                         .ErrorMsgCls("has-error")
+                                         .MsgTarget(MessageTarget.Side)
+                                         .VtypeText(Resources.NotValide + " : \"inventory-support@fatsodgroup.com\"")
+                                         .Vtype("email")
+                                         ,
+                            X.TextField().FieldLabel(Resources.PersonBox).Name("AdressPOBox").ID("AdressPOBox"),
+                            X.TextField().FieldLabel("Fax").Name("AdressFax").ID("AdressFax"),
+                            X.ComboBox().Name("Country").FieldLabel(Resources.AdressCountry)
+                                        .Items(LoadComponent.Countries)
+                                        .AllowBlank(false)
+                                        .ForceSelection(true)
+                                        .BlankText(Resources.AdressCountry + " " + Resources.RequiredField)
+                                        .ID("Country")
+                                        .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                        .EmptyText(Resources.Select)
+                                        .Listeners(ls =>
+                                                ls.Select.Handler = "App.Region.setDisabled(false);App.Town.setDisabled(true);App.Quarter.setDisabled(true);App.Region.clearValue();App.Town.clearValue(); App.Quarter.clearValue(); App.Region.getStore().load()"
+                                        )
+                                        ,
+                            X.ComboBox().Name("Region").ID("Region")
+                                        .FieldLabel(Resources.AdressRegion)
+                                        .AutoSelect(false)
+                                        .EmptyText(Resources.Select)
+                                        .ForceSelection(true)
+                                        .AllowBlank(false)
+                                        .BlankText(Resources.AdressRegion + " " + Resources.RequiredField)
+                                        .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                        .Disabled(true)
+                                        .Listeners(ls =>
+                                        {
+                                            ls.Change.Handler = "App.Town.setDisabled(false);";
+                                            ls.Select.Handler = "App.Town.setDisabled(false);App.Town.clearValue(); App.Quarter.clearValue(); App.Town.getStore().load()";
+                                        }
+                                        )
+                                        .ValueField("RegionID").ValueNotFoundText("Aucune région trouvée")//.EmptyText("Chargement...")
+                                        .DisplayField("RegionLabel")
+                                        .Store(
+                                            X.Store()
+                                             .AutoLoad(false)
+                                             .Model(
+                                                X.Model()
+                                                 .IDProperty("RegionID")
+                                                 .Fields(
+                                                       new ModelField("RegionID", ModelFieldType.String) { Mapping = "RegionID" },
+                                                       new ModelField("RegionLabel", ModelFieldType.String) { Mapping = "RegionLabel" }
+                                                 )
+                                             )
+                                            .Proxy(
+                                                X.AjaxProxy()
+                                                 .Url(Url.Action("Regions"))
+                                                 .Reader(X.JsonReader().RootProperty("data"))
+                                             )
+                                            .Parameters(ps =>
+                                                 ps.Add(new StoreParameter("countryID", "App.Country.getValue()", ParameterMode.Raw))
+                                            )
+//                                            .Listeners(ls =>
+//                                                ls.Load.Handler = @"var combo = App.Region;
+//                                                            combo.setValue(records[0].get(combo.valueField));"
+//                                            )
+
+                                        )
+                                        ,
+                            X.ComboBox().Name("Town").FieldLabel(Resources.AdressTown)
+                                        .Listeners(ls =>
+                                        {
+                                            ls.Change.Handler = "App.Quarter.setDisabled(false);";
+                                            ls.Select.Handler = "App.Quarter.setDisabled(false);App.Quarter.clearValue(); App.Quarter.getStore().load()";
+                                        }
+                                         )
+                                        .ID("Town")
+                                        .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                        .Disabled(true)
+                                        .AutoSelect(false)
+                                        .ForceSelection(true)
+                                        .EmptyText(Resources.Select)
+                                        .AllowBlank(false)
+                                        .BlankText(Resources.AdressTown + " " + Resources.RequiredField)
+                                        .DisplayField("TownLabel")
+                                        .ValueField("TownID")
+                                        .ValueNotFoundText("Aucune ville trouvée")//.EmptyText("Chargement...")
+                                        .Store(
+                                                X.Store()
+                                                 .AutoLoad(false)
+                                                 .Model(
+                                                     X.Model()
+                                                      .IDProperty("TownID")
+                                                      .Fields(
+                                                           new ModelField("TownID", ModelFieldType.String) { Mapping = "TownID" },
+                                                           new ModelField("TownLabel", ModelFieldType.String) { Mapping = "TownLabel" }
+                                                      )
+                                                  )
+                                                  .Proxy(
+                                                      X.AjaxProxy()
+                                                       .Url(Url.Action("Towns"))
+                                                       .Reader(X.JsonReader().RootProperty("data"))
+                                                  )
+                                                  .Parameters(ps =>
+                                                       ps.Add(new StoreParameter("regionID", "App.Region.getValue()", ParameterMode.Raw))
+                                                  )
+//                                                  .Listeners(ls =>
+//                                                      ls.Load.Handler = @"var combo = App.Town;
+//                                                            combo.setValue(records[0].get(combo.valueField));"
+//                                                  )
+
+                                         )
+                                        ,
+                            X.ComboBox().Name("QuarterID")
+                                        .FieldLabel(Resources.AdressQuarter)
+                                        .Disabled(true)
+                                        .EmptyText(Resources.Select)
+                                        .AutoSelect(false)
+                                        .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                        .AllowBlank(false)
+                                        .ForceSelection(true)
+                                        .BlankText(Resources.AdressQuarter + " " + Resources.RequiredField)
+                                        .ID("Quarter")
+                                        .DisplayField("QuarterLabel")
+                                        .ValueField("QuarterID")
+                                        .ValueNotFoundText("Aucun quartier trouvé")//.EmptyText("Chargement...")
+                                        .Store(
+                                               X.Store()
+                                                .AutoLoad(false)
+                                                .Model(
+                                                   X.Model()
+                                                    .IDProperty("QuarterID")
+                                                     .Fields(
+                                                           new ModelField("QuarterID", ModelFieldType.String) { Mapping = "QuarterID" },
+                                                           new ModelField("QuarterLabel", ModelFieldType.String) { Mapping = "QuarterLabel" }
+                                                     )
+                                                )
+                                                .Proxy(
+                                                    X.AjaxProxy()
+                                                        .Url(Url.Action("Quarters"))
+                                                        .Reader(X.JsonReader().RootProperty("data"))
+                                                )
+                                                .Parameters(ps =>
+                                                    ps.Add(new StoreParameter("townID", "App.Town.getValue()", ParameterMode.Raw))
+                                                )
+//                                                .Listeners(ls =>
+//                                                    ls.Load.Handler = @"var combo = App.Quarter;
+//                                                            combo.setValue(records[0].get(combo.valueField));"
+//                                                )
+
+                                          )
+
+                        )
+                        ,// Pas d'erreurs jusqu'ici
+                   //X.Component().Width(10),
+
+                   X.FieldSet()
+                        .Flex(1)
+                        .Title(Resources.FormUserParameter)
+                        .Layout(LayoutType.Anchor)
+                        .Height(300)
+                        .MarginSpec("0 0 0 0")
+                        .DefaultAnchor("100%")
+                        .Items(
+                            X.TextField().Hidden(true).Name("UserID").ID("UserID"),
+                            X.TextField().FieldLabel(Resources.UserLogin)
+                                .Name("UserLogin")
+                                .Hidden(true)
+                                .ID("UserLogin")
+                                .MinLength(4)
+                                .MinLengthText(Resources.Article + " " + Resources.UserLogin + " " + Resources.MinLengthText)
+                                .AllowBlank(false)
+                                .BlankText(Resources.UserLogin + " " + Resources.RequiredField)
+                                .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                ,
+                            X.TextField().InputType(Ext.Net.InputType.Password)
+                                .FieldLabel(Resources.UserPassword).Name("UserPassword")
+                                .ID("UserPassword")
+                                .Hidden(true)
+                                .MinLength(4)
+                                .MinLengthText(Resources.Article + " " + Resources.UserPassword + " " + Resources.MinLengthText)
+                                .LabelSeparator("<span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                .AllowBlank(false)
+                                .BlankText(Resources.UserPassword + " " + Resources.RequiredField)
+                                ,
+                            X.TextField().InputType(Ext.Net.InputType.Password)
+                                .Hidden(true)
+                                .FieldLabel(Resources.UserPassword2).Name("UserPasswordVerif").ID("UserPassword2")
+                                .AllowBlank(false)
+                                .BlankText(Resources.UserPassword2 + " " + Resources.RequiredField)
+                                .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                .Validator(v => v.Handler = "return (value === this.previousSibling('[name=UserPassword]').getValue()) ? true : '" + Resources.ConfirmPasswordWrong + "';")
+                                ,
+                            X.ComboBox().Name("ProfileID")
+                                        .FieldLabel("Profile")
+                                        .AutoSelect(false)
+                                        .Hidden(true)
+                                        .ForceSelection(true)
+                                        .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                        .Items(LoadComponent.Profiles)
+                                        .ID("Profile")
+                                        .AllowBlank(false)
+                                        .BlankText("Profile " + Resources.RequiredField)
+                                        ,
+                            X.MultiCombo().Name("Branch")
+                                        .FieldLabel(Resources.UserBranch)
+                                        .AutoSelect(true)
+                                        .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                        .Items(LoadComponent.Branchs(user))
+                                        .ForceSelection(true)
+                                        .ID("Branch")
+                                        .AllowBlank(false)
+                                        .BlankText(Resources.UserBranch + " " + Resources.RequiredField)
+                                        ,
+                                X.Radio().BoxLabel(Resources.MostHighLevel).Name("UserAccessLevel").ID("Access4").InputValue("4").FieldLabel(Resources.UserAccessLevel),
+                                X.Radio().BoxLabel(Resources.HighLevel).Name("UserAccessLevel").ID("Access3")
+                                    .InputValue("3")
+                                    .LabelWidth(110)
+                                    .FieldLabel("  ").LabelSeparator("")
+                                    ,
+                                X.Radio().BoxLabel(Resources.LowLevel).Name("UserAccessLevel").ID("Access1")
+                                    .InputValue("1")
+                                    .Checked(true)
+                                    .LabelWidth(110)
+                                    .FieldLabel("    ").LabelSeparator("")
+                        )
+                   //     ,
+                   //X.Component().Width(20)
+                   ,
+                   X.FieldSet()
+                    .ID("ImageSection")
+                    .Title("Image representation")
+                    //.Flex(1)
+                    .Width(170)
+                    .Height(300)
+                    .Items(
+                        X.TextField().Name("FileID").ID("FileID").Hidden(true)
+                        ,
+                        X.FileUploadField().FieldLabel("Choose image")
+                            .Name("UploadImage").ID("UploadImage")
+                            .LabelAlign(LabelAlign.Top)
+                            .AllowBlank(true) 
+                        ,                        
+                        X.Image()
+                         .ID("ImageID")
+                         .Hidden(false)
+                         .ImageUrl("~/User/File?id=0")
+                         .MarginSpec("0 0 0 20")
+                         .Width(118)
+                         .Height(140)                                            
+                    )
+                    //.Width(30)
+                   ,
+                   X.Component().Width(20)
+                )
+        )
+    )
+
+    @(Html.X().GridPanel()
+        .Title(Resources.UserList)
+        .ID("UserList")
+        .Layout(LayoutType.Fit)
+        .MarginSpec("-20 10 10 10")
+        .Frame(true)
+        .BodyStyle("background-color:#f3f3f3;")
+        .Collapsible(true)
+        .Store(Html.X().Store()
+            .GroupField("Light")
+            .ID("UserListToLoad")
+            .RemotePaging(true)
+            .AutoLoad(true)
+            .PageSize(5)
+            
+            .GroupField("Name")
+            .ServerProxy(
+                X.AjaxProxy()
+                .Url(Url.Action("GetUsersList"))
+                .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                .Reader(X.JsonReader().RootProperty("data"))
+            )
+            .DataSource(Model)
+            .Sorters(
+               X.DataSorter()
+                .Property("Name")
+                .Direction(Ext.Net.SortDirection.ASC)
+            )
+            .Model(Html.X().Model()
+                .Fields(
+                    new ModelField("Name", ModelFieldType.String),
+                    new ModelField("Description", ModelFieldType.String),
+                    new ModelField("ProfileLabel", ModelFieldType.String), 
+                    new ModelField("JobLabel",ModelFieldType.String) ,
+                    new ModelField("CNI", ModelFieldType.String),
+                    new ModelField("SexLabel",ModelFieldType.String), 
+                    new ModelField("AdressPhoneNumber",ModelFieldType.String),
+                    new ModelField("AdressPOBox",ModelFieldType.String), 
+                    new ModelField("AdressEmail",ModelFieldType.String), 
+                    new ModelField("UserLogin", ModelFieldType.String),
+                    new ModelField("GlobalPersonID", ModelFieldType.Int)
+
+                )
+            )
+        )
+        .ColumnModel(
+            X.RowNumbererColumn(),
+            Html.X().Column()
+                    .Text(Resources.PersonCNI)
+                    .DataIndex("CNI")
+                    .Flex(1)
+                    ,
+            Html.X().Column()
+                .Text(Resources.PersonName)
+                .DataIndex("Name")
+                .Flex(1)
+                ,
+            Html.X().Column()
+                .Text(Resources.PersonSurname)
+                .DataIndex("Description")
+                .Flex(1),
+            Html.X().Column()
+                    .Text("Profile")
+                    .DataIndex("ProfileLabel")
+                    .Flex(1),
+            Html.X().Column()
+                    .Text(Resources.PersonJob)
+                    .DataIndex("JobLabel")
+                    .Flex(1),
+            Html.X().Column()
+                .Text(Resources.UserLogin)
+                .DataIndex("UserLogin")
+                .Flex(1),
+            Html.X().Column()
+                .Text("Sexe")
+                .DataIndex("SexLabel")
+                .Flex(1),
+            Html.X().Column()
+                .Text(Resources.PersonMobile)
+                .DataIndex("AdressPhoneNumber")
+                .Flex(1),
+            Html.X().Column()
+                .Text("Email")
+                .DataIndex("AdressEmail")
+                .Flex(1),
+            Html.X().Column()
+                .Text("ID")
+                .DataIndex("GlobalPersonID")
+                .Flex(1),                
+            Html.X().Column()
+                .Text(Resources.PersonBox)
+                .DataIndex("AdressPOBox")
+                .Flex(1),
+            Html.X().ImageCommandColumn()
+                        .Width(30)
+                        .Hidden(LoadAction.IsMenuActionAble(MenuAction.DELETE, profile, FatSod.DataContext.Initializer.CodeValue.Security.User.CODE,db))
+                        .Commands(
+                            Html.X().ImageCommand()
+                                .CommandName("Delete")
+                                .IconCls("icon-delete")
+                                .ToolTip(tt =>
+                                    {
+                                        tt.Text = "Voulez-vous supprimer ?";
+                                        tt.Title = "Supression";
+                                    }
+                                 )
+                        )
+                        .DirectEvents(de =>
+                        {
+                            de.Command.Action = "Delete";
+                            de.Command.Method = HttpMethod.POST;
+                            de.Command.Confirmation.ConfirmRequest = true;
+                            de.Command.Confirmation.Message = Resources.ConfirmDeleteMessage;
+                            de.Command.Confirmation.Title = Resources.ConfirmDeleteTitle;
+                            de.Command.ExtraParams.Add(new Parameter("ID", "record.data.GlobalPersonID", ParameterMode.Raw));
+                            de.Command.EventMask.ShowMask = true;
+                            de.Command.EventMask.Msg = Resources.EventMaskMsg;
+                        }),
+            Html.X().ImageCommandColumn()
+                    .Width(30)
+                    .Hidden(LoadAction.IsMenuActionAble(MenuAction.UPDATE, profile, FatSod.DataContext.Initializer.CodeValue.Security.User.CODE,db))
+                    .Commands(
+                    Html.X().ImageCommand()
+                            .CommandName("Edit")
+                            .IconCls("icon-edit")
+                            .ToolTip(tt => tt.Text = "Modifier ?")
+                    )
+
+                    .DirectEvents(de =>
+                    {
+                        de.Command.Action = "InitializeFields";
+                        de.Command.Method = HttpMethod.POST;
+                        de.Command.ExtraParams.Add(new Parameter("ID", "record.data.GlobalPersonID", ParameterMode.Raw));
+                        de.Command.EventMask.ShowMask = true;
+                        de.Command.EventMask.Msg = Resources.EventMaskUpdate;
+                    })
+
+
+            )
+            .Plugins(
+                X.FilterHeader()
+            )
+                    .BottomBar(
+                            X.PagingToolbar()
+                    )
+          )
+}

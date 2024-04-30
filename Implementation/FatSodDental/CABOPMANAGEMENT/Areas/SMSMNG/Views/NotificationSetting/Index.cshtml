@@ -1,0 +1,401 @@
+﻿@using FatSod.Ressources;
+@using CABOPMANAGEMENT.Tools;
+@using FatSod.DataContext.Initializer;
+
+@{
+    ViewBag.Title = @Resources.NotificationSetting;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+<div class="box box-primary box-body">
+    <div class="row" style="margin-top: 15px;">
+        <input type="hidden" id="NotificationSettingId" />
+        <div class="mt-5 col-sm-4">
+            <div class="panel panel-default">
+                <div class="panel-body1">
+                    <fieldset style="border-left: 2px solid black">
+                        <legend>
+                            <span style="margin-right: 0px; margin-left: 0px;" class="row">
+                                <span class="col-sm-offset-3 col-sm-6">
+                                    @Resources.NotificationType
+                                </span>
+                            </span>
+                        </legend>
+                        <div class="row ipt" style="/*word-spacing:10px;font-size:1.6em;*/padding:25px;">
+                            <select required class="form-control" id="NotificationType">
+                                <option value="">@Resources.Select</option>
+                                <option value="1">@Resources.PatientReminder</option>
+                                <option value="2">@Resources.DeliveryNotification</option>
+                                <option value="3">@Resources.InsuranceDeliveryNotification</option>
+                                <option value="4">@Resources.BirthdayNotification</option>
+                                <option value="5">@Resources.CommandGlassNotification</option>
+                                <option value="6">@Resources.PurchaseNotification</option>
+                            </select>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+        </div>
+        <!-- Right Side Begins Here -->
+        <div class="col-sm-8">
+            <div class="panel panel-default">
+                <div class="panel-body1">
+                    <fieldset style="border-left: 2px solid black">
+                        <legend>
+                            <span style="margin-right: 0px; margin-left: 0px;" class="row">
+                                <span class="col-sm-offset-4 col-sm-6">
+                                    @Resources.NotificationMessage
+                                </span>
+                            </span>
+                        </legend>
+                        <div style="margin-top: 10px" class="row">
+                            <div class="col-sm-6">
+                                <div class="row ipt">
+                                    <div class="col-sm-offset-3 col-sm-6">@Resources.EnglishVersion</div>
+                                    <div class="col-sm-12">
+                                        <textarea style="height:100px;width:800px;" type="text" id="EnglishMessage" class="input-sm form-control" maxlength="160"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="row ipt">
+                                    <div class="col-sm-offset-3 col-sm-6">@Resources.FrenchVersion</div>
+                                    <div class="col-sm-12">
+                                        <textarea style="height:100px;width:800px;" type="text" id="FrenchMessage" class="input-sm form-control" maxlength="160"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div style="margin-top: 5px;" class="row">
+        <div class="col-sm-12">
+            <div class="col-sm-4"></div>
+            <div class="col-sm-2">
+                <button id="btnCancel" class="btn btn-primary btn-danger">@Resources.ResetButton</button>
+            </div>
+
+            <div class="col-sm-2">
+                <button id="btnSubmit" class="btn btn-primary btn-success">@Resources.SaveButton</button>
+            </div>
+        </div>
+        <div class="col-md-12">
+            <fieldset>
+                <div class="panel panel-default">
+                    <div class="panel-body2">
+                        <table class="table" id="mainTable">
+                            <thead>
+                                <tr class="dataTableHead">
+                                    <th>ID</th>
+                                    <th>@Resources.EnglishVersion</th>
+                                    <th>@Resources.FrenchVersion</th>
+                                    <th>@Resources.NotificationType</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+
+</div>
+
+<!-- Css Begins Here -->
+
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 6px;
+    }
+
+    #img-upload {
+        width: 100%;
+    }
+
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin-left: 10px;
+        min-width: 0;
+        padding: 0px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 100px;
+        margin-top: -5px;
+    }
+
+    .panel-body1 {
+        height: 120px;
+        margin-top: -15px;
+        margin-bottom: 3%;
+    }
+
+    .panel-body2 {
+        height: 225px;
+        margin-top: 10px;
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+
+    .panel-body3 {
+        height: 75px;
+        margin-top: 5px;
+        /*margin-left: 15%;*/
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+</style>
+
+<script>
+
+    var defaultDeliveryEnglishMessage = "{civility} {name}, we thank you for visiting Valdoz Optic. Thank you for your loyalty.Chez Valdoz ça dose!!!";
+    var defaultDeliveryFrenchMessage = "{civility} {name}, thanks for choosing Valdoz optic sarl, we are working relentlessly to give you total satisfaction. Please don't hesitate to come back in case of any problem.";
+
+    var defaultInsuranceDeliveryEnglishMessage = "{civility} {name}, you can collect your purchases from you insurance. Thanks for your loyalty. Chez Valdoz ça dose!!!";
+    var defaultInsuranceDeliveryFrenchMessage = "{civility} {name}, vous pouvez passer recuperer vos produits chez votre assureur. Merci pour votre loyaute.Chez Valdoz ça dose!!!";
+
+    var defaultPatientReminderEnglishMessage = "{civility} {name}, just to remind you of your medical appointment on {date}.Thank you for your loyalty.Chez Valdoz ça dose!!!";
+    var defaultPatientReminderFrenchMessage = "{civility} {name}, juste pour vous rappeller votre rendez-vous medical le {date}.Nous vous remercions pour votre fidélité.Chez Valdoz ça dose!!!";
+
+    var defaultBirthDayEnglishMessage = "{civility} {name}, Valdoz Optic Sarl wishes you a happy birthday";
+    var defaultBirthDayFrenchMessage = "{civility} {name}, Valdoz Optic Sarl vous souhaite un joyeux anniversaire";
+
+    var defaultCommandGlassEnglishMessage = "{civility} {name}, Valdoz Optic Sarl wishes to informyou that your spectacles are ready. You can come and collect them.";
+    var defaultCommandGlassFrenchMessage = "{civility} {name}, Valdoz Optic Sarl souhaite vous informez que vos lunettes médicales sont prête.Vous pouvez passez les chercher.";
+    
+    var defaultPurchaseEnglishMessage = "{civility} {name}, Valdoz optic SARL wishes to invite you for her end of year grand tombola. Register now via http://valdozoptic.net/tombola/";
+    var defaultPurchaseFrenchMessage = "{civility} {name}, Valdoz Optic souhaite vous inviter a participer a la tombola 2020 en cliquant sur le lien dessous http://valdozoptic.net/tombola/";
+    $(document).on('ready', function () {
+
+        getNotificationSettings();
+
+        $('#btnSubmit').on('click', function () {
+            submit();
+        });
+
+        $('#btnCancel').on('click', function () {
+            clearForm();
+            getNotificationSettings();
+        });
+
+        $('#NotificationType').on('change', function () {
+            
+            var NotificationType = $('#NotificationType').val();
+            console.log("Id", $("#NotificationSettingId").val());
+            if ($("#NotificationSettingId").val() > 0) {
+                return;
+            } else {
+                $('#FrenchMessage').val("");
+                $('#EnglishMessage').val("");
+            }
+
+            if (NotificationType == 1) {
+                $('#FrenchMessage').val(defaultPatientReminderFrenchMessage);
+                $('#EnglishMessage').val(defaultPatientReminderEnglishMessage);
+            }
+
+            if (NotificationType == 2) {
+                $('#FrenchMessage').val(defaultDeliveryFrenchMessage);
+                $('#EnglishMessage').val(defaultDeliveryEnglishMessage);
+            }
+
+            if (NotificationType == 3) {
+                $('#FrenchMessage').val(defaultInsuranceDeliveryFrenchMessage);
+                $('#EnglishMessage').val(defaultInsuranceDeliveryEnglishMessage);
+            }
+
+            if (NotificationType == 4) {
+                $('#FrenchMessage').val(defaultBirthDayFrenchMessage);
+                $('#EnglishMessage').val(defaultBirthDayEnglishMessage);
+            }
+
+            if (NotificationType == 5) {
+                $('#FrenchMessage').val(defaultCommandGlassFrenchMessage);
+                $('#EnglishMessage').val(defaultCommandGlassEnglishMessage);
+            }
+
+            if (NotificationType == 6) {
+                $('#FrenchMessage').val(defaultPurchaseFrenchMessage);
+                $('#EnglishMessage').val(defaultPurchaseEnglishMessage);
+            }
+
+            $('#FrenchMessage').val(defaultMessage);
+            $('#EnglishMessage').val(defaultMessage);
+        });
+
+    });
+
+    function getNotificationSettings() {
+        selectedPatients = [];
+        var oTable = $('#mainTable');
+        console.log('Affichage des patients ', oTable, $('#mainTable').DataTable());
+
+        if (oTable != undefined && oTable != null) {
+            $('#mainTable').dataTable().fnDestroy();
+        }
+
+        oTable = $('#mainTable').dataTable({
+            fixedColumns: true,
+            "paging": true,
+            "pageLength": 4,
+            "lengthMenu": [[20, 40, 60, -1], [20, 40, 60, "All"]],
+            "searching": true,
+            "ordering": true,
+            "pagingType": "full_numbers",
+            "order": [[2, 'asc']],
+            // Ajax call
+            "ajax": {
+                "url": "@Url.Action("getNotificationSettings", "NotificationSetting")",
+                "type": "GET",
+                "datatype": "json",
+                "data": {},
+                "dataSrc": ""
+            },
+            "columns": [
+                { "data": "NotificationSettingId", "width": "1%" },
+                { "data": "EnglishMessage", "width": "20%", "className": "editable" },
+                { "data": "FrenchMessage", "width": "20%" },
+                { "data": "NotificationTypeUI", "width": "20%" },
+                {
+                    mRender: function (data, type, row) {
+                        console.log('Renderer ', row)
+                        var updateOption = '@LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, @profile, CodeValue.CRM.NotificationSetting, db)';
+                        var T_updateOption = (updateOption == 'False') ? '<a href="#" class="editor_remove" onclick="UpdateItem(' + row.NotificationSettingId + ')"><span class="glyphicon glyphicon-edit"></a>' : '';
+                        return T_updateOption;
+                    }
+                }
+            ],
+            dom: 'Bfrtip',
+            buttons: [
+                'copy', 'csv', 'excel'
+            ]
+
+        });
+
+    }
+
+    function clearForm() {
+        $('#NotificationSettingId').val(0);
+        $('#FrenchMessage').val("");
+        $('#EnglishMessage').val("");
+        $('#NotificationType').val("");
+    }
+
+    function submit() {
+
+        var isAllFieldsValid = validateForm();
+        if (isAllFieldsValid == false) {
+            return;
+        }
+
+        var data = {
+            FrenchMessage: $("#FrenchMessage").val(),
+            EnglishMessage: $("#EnglishMessage").val(),
+            NotificationType: $("#NotificationType").val(),
+            NotificationSettingId: $("#NotificationSettingId").val(),
+        };
+        console.log("Submit data ", JSON.stringify(data));
+        //post data to server
+        $.ajax({
+            url: '@Url.Action("AddNotificationSetting", "NotificationSetting")',
+            type: "POST",
+            data: JSON.stringify(data),
+            dataType: "JSON",
+            contentType: "application/json; charset=utf-8",
+            success: function (d) {
+                //check is successfully save to database
+                if (d.status == true) {
+                    alert(d.Message);
+                    clearForm();
+                    getNotificationSettings(false);
+                }
+                else {
+                    alert(d.Message);
+                }
+            },
+            error: function (response) {
+                alert('Error. Please try again.');
+            }
+        });
+    }
+
+    function validateForm() {
+        var res = true;
+
+        if ($('#NotificationType').val().trim() == '') {
+            res = false;
+            $("#NotificationType").addClass("invalid-data");
+        }
+        else {
+            $("#NotificationType").addClass("valid-data");
+        }
+
+        if ($('#FrenchMessage').val().trim() == '') {
+            res = false;
+            $("#FrenchMessage").addClass("invalid-data");
+        }
+        else {
+            $("#FrenchMessage").addClass("valid-data");
+        }
+
+        if ($('#EnglishMessage').val().trim() == '') {
+            res = false;
+            $("#EnglishMessage").addClass("invalid-data");
+        }
+        else {
+            $("#EnglishMessage").addClass("valid-data");
+        }
+
+        return res;
+    }
+
+    function UpdateItem(notificationSettingId) {
+        $.get('@Url.Action("getNotificationSetting", "NotificationSetting")', { notificationSettingId: parseInt(notificationSettingId) }, function (data) {
+            console.log("Selected notif setting ", data);
+            $('#NotificationSettingId').val(data.NotificationSettingId);
+            $('#NotificationType').val(data.NotificationType);
+            $('#EnglishMessage').val(data.EnglishMessage);
+            $('#FrenchMessage').val(data.FrenchMessage);
+        });
+    }
+
+</script>

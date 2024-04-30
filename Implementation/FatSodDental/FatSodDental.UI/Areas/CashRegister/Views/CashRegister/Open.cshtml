@@ -1,0 +1,224 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.Ressources;
+@model System.Collections.IEnumerable
+@{
+    //ViewBag.Title = "Utilisateur";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+}
+
+   @section content
+{
+@(X.FormPanel()
+        .ID("Unknow")
+        //.Title(Resources.FormUserAddTitle)
+        .Items(
+             X.PanelTitle()
+              .ID("PanelTitl555e")
+              .Border(true)
+              .Padding(2)
+              .Content(
+            @<header>
+                <h4>@Resources.OpenCashRgisterTitle</h4>
+                <h6>@Resources.OpenCashRgisterSubTitle</h6>
+            </header>
+                                    )
+                                )
+                                .Frame(true)
+            .MarginSpec("-20 20 20 20")
+                                .BodyPadding(10)
+)
+@(
+ X.Container()
+             .Layout(LayoutType.HBox)
+             .MarginSpec("-40 10 10 10")
+             .Items(
+                X.FieldSet()
+                 .Flex(1)
+                 .Layout(LayoutType.Anchor)
+                 .Border(false)
+                 .DefaultAnchor("100%")
+                 .Items(
+                        X.FormPanel()
+                                .ID("TillDayForm")
+                                .Title(Resources.OpenCaisseFeat)
+                                .Frame(true)
+                                .Width(350)
+                                .BodyPadding(10)
+                                .FieldDefaults(fd => { fd.LabelWidth = 120; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+                                .Buttons(
+                                    X.Button()
+                                        .ID("btnSave")
+                                        .Text(Resources.OpenCash)
+                                        .Disabled(true)
+                                        .Icon(Icon.Eye)
+                                        .Margin(5)
+                                        .DirectEvents(de =>
+                                        {
+                                            de.Click.Url = Url.Action("OpenDay", "CashRegister");
+                                            de.Click.EventMask.ShowMask = true;
+                                            de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                                            //de.Click.Before = @"if (!#{CountryForm}.getForm().isValid()) { return false; }";
+                                        }),
+
+                                    X.Button()
+                                     .Text(Resources.ResetButton)
+                                         .ID("btnCancel")
+                                        .MarginSpec("0 20 10 10")
+                                        .OnClientClick("this.up('form').reset();")
+                                )
+                                .Listeners(
+                                    ls =>
+                                    {
+                                        ls.FieldChange.Handler = "if(App.TillDayForm.isValid()){App.btnSave.setDisabled(false);}else{App.btnSave.setDisabled(true);}";
+                                    }
+                                )
+                                .Items(
+                                    X.Container()
+                                        .Layout(LayoutType.HBox)
+                                        .Items(
+                                            X.FieldSet()
+                                                .Flex(1)
+                                                .Title("Identification")
+                                                .Layout(LayoutType.Anchor)
+                                                .Height(150)
+                                                .Width(120)
+                                                .DefaultAnchor("80%")
+                                                .Items(
+                                                    X.TextField().Name("TillDayID").ID("TillDayID").Hidden(true),
+                                                    X.DateField().FieldLabel(Resources.UIDateOperation)
+                                                                 .Name("TillDayDate")
+                                                                 .MsgTarget(MessageTarget.Side)
+                                                                 .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                                                 .ID("TillDayDate")
+                                                                 .ReadOnly(true)
+                                                                 .InputType(Ext.Net.InputType.DateTime)
+                                                                 .Value(ViewBag.BusnessDayDate)
+                                                    ,
+                                                    X.NumberField().Value(ViewBag.YesterdayClosingPrice).Hidden(true).Name("YesterdayClosingPrice"),
+                                                        X.NumberField().FieldLabel(Resources.MntFermCaisse)
+                                                        .Name("TillDayClosingPrice")
+                                                        .ID("TillDayClosingPrice")
+                                                        .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                                        .BlankText(Resources.MntFermCaisse)
+                                                        .MinValue(0)
+                                                        .Hidden(true)
+                                                        .Value(ViewBag.YesterdayClosingPrice)
+                                                        .ReadOnly(true)
+                                                        .AllowBlank(false)
+                                                    ,
+                                                    X.NumberField()
+                                                        .Name("CashInitialization")
+                                                        .ID("CashInitialization")
+                                                        .MinValue(0)
+                                                        .Hidden(true)
+                                                        .Value(ViewBag.CashInitialization)
+                                                        .ReadOnly(true)
+                                                        .AllowBlank(false)
+                                                    ,
+                                                        X.NumberField().FieldLabel(Resources.MntFermCaisseHier)
+                                                        .Name("TillDayOpenPrice")
+                                                        .ID("TillDayOpenPrice")
+                                                        .MinValue(0)
+        //.EnableKeyEvents(true)
+        //.DirectEvents(de =>
+        //{
+        //    de.KeyUp.Url = Url.Action("IsCorrectOpenDayPrice", "CashRegister");
+        //    de.KeyUp.ExtraParams.Add(new Parameter("OpenPriceOfDay", "this.getValue()", ParameterMode.Raw));
+        //    de.KeyUp.ExtraParams.Add(new Parameter("YesterdayClosingPrice", "App.TillDayClosingPrice.getValue()", ParameterMode.Raw));
+        //})
+                                                        .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                                            .BlankText(Resources.MntOuvCaisse +" " + Resources.RequiredField)
+                                                        .AllowBlank(false)
+                                                    ,
+                                                    X.Checkbox().FieldLabel(Resources.Caisse)
+                                                        .Name("TillID")
+                                                        .ID("TillID")
+                                                        .Hidden(true)
+                                                        .Checked(true)
+                                                        .InputValue(ViewBag.TillID + "")
+                                                        .Value(ViewBag.TillID)
+                                                ),
+
+                                           X.Component().Width(5)
+                                        )
+                                )
+                 )
+
+             ,
+        ////
+             X.FieldSet()
+              .Flex(1)
+              .Layout(LayoutType.Anchor)
+              .Border(false)
+              .DefaultAnchor("100%")
+              .Items(
+                    Html.X().GridPanel()
+                            .Title(Resources.OpClosecashReg)
+                            .ID("TillDayList")
+                            .Layout(LayoutType.Fit)
+                            .Frame(true)
+                            .Collapsible(true)
+                            .Store(Html.X().Store()
+                                .GroupField("Hystorique")
+                                .ID("TillDayStore")
+                                .Proxy(
+                                   X.AjaxProxy()
+                                    .Url(Url.Action("GetTillDayList"))
+                                    .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                                    .Reader(X.JsonReader().RootProperty("data"))
+                                )
+                                .AutoLoad(true)
+                                .Model(Html.X().Model()
+                                    .Fields(
+        //new ModelField() { Name = "TillDayID", Type = ModelFieldType.Int },
+                                        new ModelField() { Name = "TillDayOpenPrice", Type = ModelFieldType.Int },
+                                        new ModelField() { Name = "TillDayDate", Type = ModelFieldType.Date },
+                                        new ModelField() { Name = "TillName", Type = ModelFieldType.String },
+                                        new ModelField() { Name = "IsOpen", Type = ModelFieldType.String },
+                                        new ModelField() { Name = "TillDayClosingPrice", Type = ModelFieldType.Int }
+
+
+                                    )
+                                ).DataSource(Model)
+                            )
+
+                            .ColumnModel(
+        //Html.X().Column()
+        //        .Text("Identifiant")
+        //        .DataIndex("TillDayID")
+        //        .Flex(1)
+        //        ,
+                                Html.X().Column()
+                                    .Text(Resources.OpAmnt)
+                                    .DataIndex("TillDayOpenPrice")
+                                    .Flex(1)
+                                    ,
+                                Html.X().Column()
+                                    .Text(Resources.CloseAmnt)
+                                    .DataIndex("TillDayClosingPrice")
+                                    .Flex(1),
+                                    Html.X().DateColumn()
+                                    .Text(Resources.UIDateOperation)
+                                    .DataIndex("TillDayDate")
+                                    .Flex(1),
+                                Html.X().Column()
+                                    .Text(Resources.State)
+                                    .DataIndex("IsOpen")
+                                    .Flex(1),
+                                Html.X().Column()
+                                    .Text(Resources.TellerName)
+                                    .DataIndex("TillName")
+                                    .Flex(1)
+                                )
+                                .BottomBar(
+                                     Html.X().PagingToolbar()
+                                )
+                       )
+                 )
+)
+}

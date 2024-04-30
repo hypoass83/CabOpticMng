@@ -1,0 +1,38 @@
+﻿@{
+    var X = Html.X();
+}
+
+@(
+    X.Panel()
+        .ID("Pan_East")
+        .Border(false)
+        .Header(false)
+        .Region(Region.East)
+        .BodyStyle("background-color:transparent;")
+        .Layout(LayoutType.Fit)
+        .BodyPadding(5)
+        .Split(true)
+        .Collapsible(true)
+        .Collapsed(true)
+        .Items(
+            X.Panel()
+                .Title(@"Description")
+                .ID("Label_DESC")
+                .Width(175)
+                .Frame(true)
+                .Shadow(true)
+                .ShadowMode(ShadowMode.Frame)
+                .Layout(LayoutType.Fit)
+                .Icon(Icon.Information)
+                .AutoScroll(true)
+                .BodyStyle("background-color:transparent;")
+                .Html(""),
+            X.TextArea()
+                .ID("DESC")
+                .Hidden(true)
+                .DirectEvents(de => {
+                    de.Change.Url = Url.Action("Describe_Panel");
+                    de.Change.ExtraParams.Add(new Parameter("Value", "#{DESC}.getValue()", ParameterMode.Raw));
+                })
+        )
+)

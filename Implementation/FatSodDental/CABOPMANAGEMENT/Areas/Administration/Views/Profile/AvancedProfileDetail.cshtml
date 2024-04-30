@@ -1,0 +1,251 @@
+﻿@using FatSod.Ressources;
+@using FatSod.DataContext.Concrete;
+@using FatSod.Security.Entities;
+@using Microsoft.AspNet.Identity
+
+@model IEnumerable<FatSod.Security.Entities.Profile>
+@{
+    ViewBag.Title = "AvancedProfile";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    //int personID = Convert.ToInt32(User.Identity.GetUserName());
+    int personID = (Session["UserID"] == null) ? 0 : (int)Session["UserID"];
+    EFDbContext context = new EFDbContext();
+    User userConnect = context.Users.Where(u => u.GlobalPersonID == personID).First();
+
+    var profileID = Convert.ToInt32(Session["profilID"]);
+    var profilCode = (String)Session["profilCode"];
+
+    var culture = Resources.Culture;
+
+    var menuItem = "0";
+    var subMenuItem = "0";
+
+}
+
+
+    <!-- List of actions -->
+    <div class="box box-body box-primary">
+        <form action="@Url.Action("AllowActionToProfile", "Profile")" method="post" enctype="multipart/form-data" id="FormAdvProfDet">
+            @*@Html.AntiForgeryToken()*@
+            <div class="row">
+                <div class="col-md-10">
+                    <h1 class="blue" style="color:#2196F3;">@Request.Params["profilCode"]</h1>
+                </div>
+            </div>
+           
+            <div class="row">
+
+             @foreach (var actionMenu in context.ActionMenuProfiles.Where(am => am.ProfileID == profileID).ToList())
+             {
+                 if (context.SubMenus.Where(sm => sm.MenuID == actionMenu.MenuID).Count() == 0)
+                 {
+                     menuItem += "_" + actionMenu.ActionMenuProfileID;
+
+                     String add_cheked = "", update_cheked = "", delete_cheked = "";
+                     int valueadd = 0, valueupdate = 0, valuedelete = 0;
+                     if (actionMenu.Add)
+                     {
+                         add_cheked = "checked";
+                         valueadd = 1;
+                     }
+                     if (actionMenu.Update)
+                     {
+                         update_cheked = "checked";
+                         valueupdate = 1;
+                     }
+                     if (actionMenu.Delete)
+                     {
+                         delete_cheked = "checked";
+                         valuedelete = 1;
+                     }
+
+                    <div class="col-sm-2">
+                        <strong style="color: blue">@Resources.ResourceManager.GetString(actionMenu.Menu.MenuCode, culture)</strong><br />
+                        <span><input type="checkbox" name=@String.Concat("MenuAdd", actionMenu.ActionMenuProfileID) value =@valueadd @add_cheked onclick="CheckBoxClick('@String.Concat("MenuAdd",actionMenu.ActionMenuProfileID)')" /> @Resources.AddCode</span><br />
+                        <span><input type="checkbox" name=@String.Concat("MenuUpdate", actionMenu.ActionMenuProfileID) value=@valueupdate @update_cheked onclick="CheckBoxClick('@String.Concat("MenuUpdate",actionMenu.ActionMenuProfileID)')" /> @Resources.UpdateCode</span><br />
+                        <span><input type="checkbox" name=@String.Concat("MenuDelete", actionMenu.ActionMenuProfileID) value=@valuedelete @delete_cheked onclick="CheckBoxClick('@String.Concat("MenuDelete",actionMenu.ActionMenuProfileID)')" /> @Resources.DeleteCode</span>
+                    </div>
+                 }
+             }
+
+            @foreach (var actionSubMenu in context.ActionSubMenuProfiles.Where(aSm => aSm.ProfileID == profileID).ToList())
+            {
+                subMenuItem += "_" + actionSubMenu.ActionSubMenuProfileID;
+
+                String add_cheked = "", update_cheked = "", delete_cheked = "";
+                int valueadd = 0, valueupdate = 0, valuedelete = 0;
+                if (actionSubMenu.Add)
+                {
+                    add_cheked = "checked";
+                    valueadd = 1;
+                }
+                if (actionSubMenu.Update)
+                {
+                    update_cheked = "checked";
+                    valueupdate = 1;
+                }
+                if (actionSubMenu.Delete)
+                {
+                    delete_cheked = "checked";
+                    valuedelete = 1;
+                }
+
+                <div class="col-sm-2">
+                    <strong style="color: blue">@Resources.ResourceManager.GetString(actionSubMenu.SubMenu.SubMenuCode, culture)</strong><br />
+                    <span><input type="checkbox" name=@String.Concat("SubMenuAdd",actionSubMenu.ActionSubMenuProfileID) value=@valueadd @add_cheked onclick="CheckBoxClick('@String.Concat("SubMenuAdd",actionSubMenu.ActionSubMenuProfileID)')" /> @Resources.AddCode</span><br />
+                    <span><input type="checkbox" name=@String.Concat("SubMenuUpdate",actionSubMenu.ActionSubMenuProfileID) value=@valueupdate @update_cheked onclick="CheckBoxClick('@String.Concat("SubMenuUpdate",actionSubMenu.ActionSubMenuProfileID)')" /> @Resources.UpdateCode</span><br />
+                    <span><input type="checkbox" name=@String.Concat("SubMenuDelete",actionSubMenu.ActionSubMenuProfileID) value=@valuedelete @delete_cheked onclick="CheckBoxClick('@String.Concat("SubMenuDelete",actionSubMenu.ActionSubMenuProfileID)')" /> @Resources.DeleteCode</span>
+                </div>
+            }
+            </div>
+            <div class="row">
+                <input type="hidden" id="ActionMenu" name="ActionMenu" value="@menuItem" />
+                <input type="hidden" id="ActionSubMenu" name="ActionSubMenu" value="@subMenuItem"  />
+                <input type="hidden" id="Profile" name="Profile" value="@profileID" hidden="hidden" />
+            </div>
+            <div class="row">
+                <div class="col-sm-1"></div><hr />
+                <div class="col-sm-3">
+                    <button type="submit" id="btnSubmit" class="btn btn-primary btn-success">@Resources.SaveButton</button>
+                </div>
+                <div class="col-md-2">
+                    <span id="back_button" class="btn btn-info btn-sm">
+                        <span class="glyphicon glyphicon-arrow-left"></span>  @Html.ActionLink("Retour", "AvancedProfile", new { })
+                    </span>
+                </div>
+            </div>
+        </form>
+    </div>
+
+
+<style>
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin: 0;
+        min-width: 0;
+        padding: 10px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 35%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+</style>
+
+<script type="text/javascript">
+
+
+    @*$('#back_button').click(function () {
+        parent.history.back();
+        return false;
+    });
+    var arrayAddMenu = [];
+    var arrayAddSubMenu = [];
+    var arrayUpdMenu = [];
+    var arrayUpdSubMenu = [];
+    var arrayDelMenu = [];
+    var arrayDelSubMenu = [];
+
+    $('#btnSubmit').click(function () {
+        //Add
+        var checkboxesAddMenu = document.querySelectorAll('input[type=checkbox][name=MenuAdd]:checked')
+        for (var i = 0; i < checkboxesAddMenu.length; i++) {
+            arrayAddMenu.push(checkboxesAddMenu[i].value)
+        }
+        var checkboxesAddSubMenu = document.querySelectorAll('input[type=checkbox][name=SubMenuAdd]:checked')
+        for (var i = 0; i < checkboxesAddSubMenu.length; i++) {
+            arrayAddSubMenu.push(checkboxesAddSubMenu[i].value)
+        }
+        //update
+        var checkboxesUpdMenu = document.querySelectorAll('input[type=checkbox][name=MenuUpdate]:checked')
+        for (var i = 0; i < checkboxesUpdMenu.length; i++) {
+            arrayUpdMenu.push(checkboxesUpdMenu[i].value)
+        }
+        var checkboxesUpdSubMenu = document.querySelectorAll('input[type=checkbox][name=SubMenuUpdate]:checked')
+        for (var i = 0; i < checkboxesUpdSubMenu.length; i++) {
+            arrayUpdSubMenu.push(checkboxesUpdSubMenu[i].value)
+        }
+        //delete
+        var checkboxesDelMenu = document.querySelectorAll('input[type=checkbox][name=MenuDelete]:checked')
+        for (var i = 0; i < checkboxesDelMenu.length; i++) {
+            arrayDelMenu.push(checkboxesDelMenu[i].value)
+        }
+        var checkboxesDelSubMenu = document.querySelectorAll('input[type=checkbox][name=SubMenuDelete]:checked')
+        for (var i = 0; i < checkboxesDelSubMenu.length; i++) {
+            arrayDelSubMenu.push(checkboxesDelSubMenu[i].value)
+        }
+
+        var data = {
+            AddMenu: arrayAddMenu,
+            AddSubMenu: arrayAddSubMenu,
+            UpdateMenu: arrayUpdMenu,
+            UpdateSubMenu: arrayUpdSubMenu,
+            DeleteMenu: arrayDelMenu,
+            DeleteSubMenu: arrayDelSubMenu,
+            Profile: "@profileID",
+            ActionMenu:@menuItem,
+            ActionSubMenu:@subMenuItem,
+        };
+
+    //post data to server
+     $.ajax({
+            url: '@Url.Action("AllowActionToProfile", "Profile")',
+            type: "POST",
+            data: JSON.stringify(data),
+            dataType: "JSON",
+            contentType: "application/json",
+            success: function (d) {
+                alert("Success");
+                //check is successfully save to database
+                if (d.status == true) {
+                    //will send status from server side
+                    alert(d.Message);
+                    location.reload(true);
+                }
+                else {
+                    alert(d.Message);
+                }
+                $('#btnSubmit').val('@Resources.SaveButton');
+            },
+            error: function () {
+                alert('Error. Please try again.');
+                $('#btnSubmit').val('@Resources.SaveButton');
+            }
+        });
+    });*@
+
+    function CheckBoxClick(obj) {
+       
+        if ($('input[name="' + obj + '"]').prop('checked'))
+        {
+            $('input[name="' + obj + '"]').prop('value', 1);
+        }
+        else
+        {
+            $('input[name="' + obj + '"]').prop('value', 0);
+        }
+    };
+
+</script>

@@ -1,0 +1,335 @@
+﻿﻿﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+@model System.Collections.IEnumerable
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    string labelSeparator = "  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :";
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+
+@section content
+{
+    @************************************************ Authorize Budget Consumtion form informations ********************************@
+    @(
+ X.FormPanel()
+        .ID("Unknow")
+        .Items(
+             X.PanelTitle()
+              .ID("PanelTitl555e")
+              .Border(true)
+              .Padding(2)
+              .Content(
+            @<header>
+                <h4>@Resources.BudgetParameter</h4>
+                <h6>@Resources.RequireField <code>(*)</code>.</h6>
+            </header>
+                    )
+                )
+            .Frame(true)
+            .MarginSpec("-50 0 0 0")
+            .BodyPadding(10)
+    )
+    @***********************  Authorize Budget Consumtion form  ***************************@
+    @(
+ X.FormPanel()
+        .ID("GlobalAuthBudgetForm")
+        .MarginSpec("0 0 0 0")
+        .Padding(0)
+        .FieldDefaults(fd => { fd.LabelWidth = 120; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+        .Buttons(
+            X.Button()
+                .ID("btnSave")
+                .Text(Resources.SaveButton)
+                .Disabled(true)
+                .Icon(Icon.Disk)
+                .DirectEvents(de =>
+                {
+                    de.Click.Url = Url.Action("AddAuthBudgetConsumtion", "AuthBudgetConsumtion");
+                    de.Click.EventMask.ShowMask = true;
+                    de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                }),
+
+            X.Button()
+                .Text(Resources.ResetButton)
+                .MarginSpec("0 20 10 10")
+                .DirectEvents(
+                    de =>
+                    {
+                        de.Click.Url = Url.Action("Reset");
+                        de.Click.EventMask.ShowMask = true;
+                        de.Click.EventMask.Msg = FatSod.Ressources.Resources.EventMaskMsg;
+                    })
+        )
+        .Listeners(
+            ls =>
+            {
+                ls.FieldChange.Handler = "if(App.GlobalAuthBudgetForm.isValid() && App.VoucherAmount.getValue()>0){App.btnSave.setDisabled(false);}else{App.btnSave.setDisabled(true);}";
+            }
+        )
+        .Items(
+            X.FormPanel()
+                .ID("FormBudgetIdentification")
+                .MarginSpec("0 0 0 0")
+                .Title(Resources.BudgetParameter)
+
+                .Items(
+                     X.Container()
+                     .MarginSpec("0 0 0 0")
+                     //.Title(" ")
+                     .Layout(LayoutType.HBox)
+                     .Items(
+                       X.FieldSet()
+                          .Flex(6)
+                          .Layout(LayoutType.Column)
+                          .Title(Resources.BudgetParameter)
+                          .MinHeight(220)
+                          .Items(
+                                X.TextField().Name("BudgetConsumptionID").ID("BudgetConsumptionID").Hidden(true),
+                                X.ComboBox()
+                                    .ID("Branch")
+                                    .Name("BranchID")
+                                    .FieldLabel(Resources.Branches)
+                                    .AllowBlank(false)
+                                    .ForceSelection(true)
+                                    .MarginSpec("5 0 10 0")
+                                    .BlankText(Resources.Branches + " " + Resources.RequiredField)
+                                    .LabelSeparator(labelSeparator)
+                                    .EmptyText(Resources.Select)
+                                    .DisplayField("BranchName")
+                                    .ValueField("BranchID")
+        //.DirectEvents(de =>
+        //{
+        //    de.Select.Url = Url.Action("InitDate");
+        //    de.Select.ExtraParams.Add(new Parameter("BranchID", "this.getValue()", ParameterMode.Raw));
+        //})
+                                    .Store(
+                                        X.Store()
+                                        .AutoLoad(true)
+                                        .Model(
+                                            X.Model()
+                                                .IDProperty("BranchIDtore")
+                                                .Fields(
+                                                    new ModelField("BranchID", ModelFieldType.Int) { Mapping = "BranchID" },
+                                                    new ModelField("BranchName", ModelFieldType.String) { Mapping = "BranchName" }
+                                                )
+                                        )
+                                        .Proxy(
+                                            X.AjaxProxy()
+                                                .Url(Url.Action("GetBranchOpenedBusday"))
+                                                .Reader(X.JsonReader().RootProperty("data"))
+                                        )
+                                        .Listeners(ls =>
+                                            ls.Load.Handler = @"var combo = App.Branch;
+                                                    combo.setValue(records[0].get(combo.valueField));"
+                                        )
+                                    )
+                                 ,
+                                X.ComboBox().Name("BudgetAllocatedID").FieldLabel(Resources.BudgetLine)
+                                        .Items(LoadComponent.BudgetAllocateds)
+                                        .AllowBlank(false)
+                                        .ForceSelection(true)
+                                        .MarginSpec("5 0 10 0")
+                                        .BlankText(Resources.BudgetLine + " " + Resources.RequiredField)
+                                        .ID("BudgetAllocatedID")
+                                        .LabelSeparator(labelSeparator)
+                                        .EmptyText(Resources.Select)
+                                        .Width(400)
+                                        .DirectEvents(de =>
+                                        {
+                                            //chargement de la reference
+                                            de.Change.Url = Url.Action("InitTrnNumber");
+                                            de.Change.ExtraParams.Add(new Parameter("BranchID", "App.Branch.getValue()", ParameterMode.Raw));
+                                            de.Change.ExtraParams.Add(new Parameter("BudgetAllocatedID", "this.getValue()", ParameterMode.Raw));
+                                        })
+                                ,
+                                X.TextField().FieldLabel(Resources.Reference)
+                                    .MarginSpec("5 0 10 0")
+                                    .AllowBlank(false)
+                                    .ID("Reference")
+                                    .ReadOnly(true)
+                                ,
+                                X.DateField().FieldLabel(Resources.UIDateOperation).MarginSpec("0 0 5 0")
+                                    .AllowBlank(false).Name("DateOperation")
+                                    .ID("DateOperation")
+                                    .ReadOnly(true)
+                                    .Value(ViewBag.BusnessDayDate)
+                                    .MarginSpec("5 0 10 0")
+                                    .InputType(Ext.Net.InputType.DateTime)
+                                ,
+                                X.TextField().FieldLabel(Resources.BeneficiaryName)
+                                    .MarginSpec("5 0 10 0")
+                                    .AllowBlank(false)
+                                    .ID("BeneficiaryName")
+                                ,
+                                X.TextArea().FieldLabel(Resources.Justification)
+                                    .MarginSpec("5 0 10 0")
+                                    .AllowBlank(false)
+                                    .ID("Justification")
+                               
+                          )
+                         ,
+        //Other fieldset
+                         X.FieldSet()
+                          .Width(400)
+                          .Height(260)
+                          //.Disabled(true)
+                          .ID("OperationAmount")
+                          .MinHeight(220)
+                          .Title(Resources.budgetAmount)
+                          .Items
+                              (
+
+                                    X.NumberField().ID("AmountAllocated").FieldLabel(Resources.AmountAllocated).Width(280).ReadOnly(true).MinValue(0)
+                                //.MaskRe("/[0-9]/")
+                                //            .Listeners(ls => ls.Change.Handler = "this.setValue(Ext.util.Format.number(this.getValue(), '0.000'));")
+                                //.Listeners(ls =>
+                                //{
+                                //<Change Handler="var val = newValue.replace(/[\$,]/g, '');this.setRawValue(Ext.util.Format.number(val, '0,0'));" />
+                                //    ls.Change.Handler = "this.setValue(Ext.util.Format.number(newValue.replace(/[\\,\\.]/g, ''), '0.000'));";
+                                //})
+                                 ,
+                                    X.NumberField().ID("AmountSpend").FieldLabel(Resources.AmountSpend).Width(280).ReadOnly(true).MinValue(0),
+                                    X.NumberField().ID("AmountLeft").FieldLabel(Resources.AmountLeft).Width(280).ReadOnly(true).MinValue(0)
+                                    ,
+
+                                X.NumberField().FieldLabel(Resources.VoucherAmount)
+                                .MarginSpec("5 0 0 0").Width(280)
+                                .ID("VoucherAmount")
+                                .Name("VoucherAmount")
+
+                             )
+
+                          )
+                       )
+                     )
+
+                //)
+    )
+    @*************************************************** Auth Budget list *************************************************************@
+    @(X.GridPanel()
+        .ID("BudgetConsumptionList")
+        .Layout(LayoutType.Fit)
+        .MarginSpec("0 0 10 0")
+        .Margin(5)
+        .Frame(false)
+        .Collapsible(false)
+        .Store(X.Store()
+            .GroupField(Resources.AllCmd)
+            .ID("BudgetConsumptionListStore")
+            .RemotePaging(true)
+            .AutoLoad(true)
+            .PageSize(10)
+            .Model(
+                X.Model()
+                    .IDProperty("BudgetConsumptionIDPro")
+                    .Fields(
+                        new ModelField("UIBudgetAllocated", ModelFieldType.String),
+                        new ModelField("DateOperation", ModelFieldType.Date),
+                        new ModelField("BudgetConsumptionID", ModelFieldType.Int),
+                        new ModelField("VoucherAmount", ModelFieldType.Float),
+                        new ModelField("Reference", ModelFieldType.String),
+                        new ModelField("BeneficiaryName", ModelFieldType.String),
+                        new ModelField("Justification", ModelFieldType.String)//,
+                        //new ModelField("MethodePayment",ModelFieldType.String)
+                    )
+            )
+            .ServerProxy(
+                X.AjaxProxy()
+                .Url(Url.Action("GetAllAuthBudgetConsumtion", "AuthBudgetConsumtion"))
+                .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                .Reader(X.JsonReader().RootProperty("data"))
+            )
+            .DataSource(Model)
+            .Sorters(
+                X.DataSorter()
+                .Property("UIBudgetAllocated")
+                .Direction(Ext.Net.SortDirection.ASC)
+            )
+        )
+
+        .ColumnModel(
+            X.RowNumbererColumn()
+            ,
+            X.ImageCommandColumn()
+                .Width(30)
+                .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, profile, CodeValue.Accounting.BudgetConsume.CODEAUTHBUDCONSUME,db))
+                .Commands(
+                X.ImageCommand()
+                        .CommandName("Edit")
+                        .IconCls("icon-edit")
+                            .ToolTip(tt => tt.Text = Resources.msgUpdate)
+            )
+            .DirectEvents(de =>
+            {
+                de.Command.Action = "InitializeFieldsBudConsume";
+                de.Command.Method = HttpMethod.POST;
+                de.Command.ExtraParams.Add(new Parameter("ID", "record.data.BudgetConsumptionID", ParameterMode.Raw));
+                de.Command.EventMask.ShowMask = true;
+                de.Command.EventMask.Msg = Resources.EventMaskUpdate;
+            })
+            ,
+            X.ImageCommandColumn()
+                .Width(30)
+                .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.DELETE, profile, CodeValue.Accounting.BudgetConsume.CODEAUTHBUDCONSUME,db))
+                .Commands(
+                X.ImageCommand()
+                        .CommandName("Delete")
+                        .IconCls("icon-delete")
+                        .ToolTip(tt => tt.Text = Resources.msgDelete)
+            )
+            .DirectEvents(de =>
+            {
+                de.Command.Action = "DeleteBudConsume";
+                de.Command.Method = HttpMethod.POST;
+                de.Command.Confirmation.ConfirmRequest = true;
+                de.Command.Confirmation.Message = Resources.ConfirmDeleteMessage;
+                de.Command.Confirmation.Title = Resources.ConfirmDeleteTitle;
+                de.Command.ExtraParams.Add(new Parameter("ID", "record.data.BudgetConsumptionID", ParameterMode.Raw));
+                de.Command.EventMask.ShowMask = true;
+                de.Command.EventMask.Msg = Resources.EventMaskUpdate;
+            })
+            ,
+            X.Column()
+                .Text(Resources.UIBudgetAllocated)
+                .DataIndex("UIBudgetAllocated")
+                .Flex(1)
+                ,
+                    X.DateColumn()
+                .Text(Resources.UIDateOperation)
+                .DataIndex("DateOperation")
+                .Flex(1),
+            X.Column()
+                .Text(Resources.Reference)
+                .DataIndex("Reference")
+                .Flex(1),
+            X.Column()
+                .Text(Resources.VoucherAmount)
+                .DataIndex("VoucherAmount")
+                .Flex(1)//,
+            //X.Column()
+            //    .Text(Resources.PaymentMethod)
+            //    .DataIndex("MethodePayment")
+            //    .Flex(1)
+
+            )
+            /*.Features(
+                X.GroupingSummary()
+                    .ID("DateOperation1")
+                )*/
+            .Plugins(
+                X.FilterHeader()
+            )
+            .BottomBar(
+                    X.PagingToolbar()
+            )
+    )
+
+}

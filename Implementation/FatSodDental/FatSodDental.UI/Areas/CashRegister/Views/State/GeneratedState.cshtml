@@ -1,0 +1,35 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Ressources;
+
+@{
+    var X = Html.X();
+}
+
+@(
+   X.Panel()
+    .Layout(LayoutType.HBox)
+    .Flex(1)
+    .ID("MenusAndSubMenus")
+    .Collapsible(true)
+    .Padding(0)
+    .AutoScroll(true)
+    .MinHeight(500)
+    .Loader(
+       X.ComponentLoader()
+        .Url(Url.Action("RenderState", "State"))
+        .Mode(LoadMode.Frame)
+        .Params(new Parameter("To", "02/02/2014"))
+        .Params(new Parameter("At", "01/02/2015"))
+        .Params(new Parameter("Print", "Pdf")) 
+        .LoadMask(lm =>
+            {
+                lm.ShowMask = true;
+                lm.Msg = Resources.MsgGenerateState;
+                lm.UseMsg = true;
+
+            })
+        ) 
+)

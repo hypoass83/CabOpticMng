@@ -1,0 +1,338 @@
+﻿﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+@model System.Collections.IEnumerable
+@{
+    //ViewBag.Title = "Utilisateur";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    string labelSeparator = "  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :";
+    //string cashRegisterCode = CodeValue.Accounting.DefaultCodeAccountingSection.CODECAIS;
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+    
+}
+
+@section content
+{
+@************************************************ Sales form informations ********************************@
+@(
+X.FormPanel()
+        .ID("Unknow")
+        //.Title(Resources.FormUserAddTitle)
+        .Items(
+             X.PanelTitle()
+              .ID("PanelTitl555e")
+              .Border(true)
+              .Padding(2)
+              .Content(
+            @<header>
+                <h4>Update your allocated budget to branch here.</h4>
+                <h6>@Resources.RequireField <code>(*)</code>.</h6>
+            </header>
+                )
+            )
+            .Frame(true)
+            .MarginSpec("-50 0 0 0")
+            .BodyPadding(10)
+)
+ @***********************  Sale form  ***************************@
+@(
+    X.FormPanel()
+        .ID("GlobalForm")
+        .MarginSpec("0 0 0 0")
+        .Padding(0)
+        .FieldDefaults(fd => { fd.LabelWidth = 120; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; fd.InputWidth = 400; })
+        .Buttons(
+            X.Button()
+                .ID("btnSave")
+                .Text(Resources.SaveButton)
+                .Disabled(true)
+                .Icon(Icon.Disk)
+                .DirectEvents(de =>
+                {
+                    de.Click.Url = Url.Action("AddBudgetAllocatedUpdate");
+                    de.Click.EventMask.ShowMask = true;
+                    de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                }),
+
+            X.Button()
+                .Text(Resources.ResetButton)
+                .MarginSpec("0 20 10 10")
+                .OnClientClick("this.up('form').reset();")
+        )
+        .Listeners(
+            ls =>
+            {
+                ls.FieldChange.Handler = "if(App.GlobalForm.isValid()){App.btnSave.setDisabled(false);}else{App.btnSave.setDisabled(true);}";
+            }
+        )
+        .Items(
+            X.FormPanel()
+                //.Layout(LayoutType.HBox)
+                .ID("BudgetAllocatedUpdateForm")
+                .MarginSpec("0 0 0 0")
+                .Title("Form")
+                //.LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                .Listeners(ls =>
+                    {
+                    ls.FieldChange.Handler = @"if(this.isValid())
+                                            {
+                                                App.FormAllocateAmount.setDisabled(false);
+                                                App.BudgetLines.setDisabled(false);
+                                            }else{
+                                                App.FormAllocateAmount.setDisabled(true);
+                                                App.BudgetLines.setDisabled(true);
+                                            }";
+                     }
+                )
+                .Items(
+                //Top Fields, sale information
+                     X.Container()                                   
+                     .MarginSpec("0 0 0 0")
+                     //.Title(" ")
+                     .Layout(LayoutType.HBox)
+                     //.LayoutConfig(new ColumnLayoutConfig { DefaultValueMode = DefaultValueMode.RenderExplicit })
+                     .Items(
+                         //block pour infos générales sur la vente
+                         X.FieldSet() 
+                          .Flex(6)
+                          .Layout(LayoutType.Column)
+                          .Title("Generals Informations")
+                          .MinHeight(100)                        
+                          .Items(
+
+                            X.ComboBox()
+                                .ID("Branch")
+                                .Name("BranchID")
+                                .FieldLabel(Resources.Branches)
+                                .AllowBlank(false)
+                                .ForceSelection(true)
+                                .MarginSpec("5 0 10 0")
+                                .BlankText(Resources.Branches + " " + Resources.RequiredField)
+                                .LabelSeparator(labelSeparator)
+                                .EmptyText(Resources.Select)
+                                .DisplayField("BranchName")
+                                .ValueField("BranchID")
+                                .Width(400)
+                                //.DirectEvents(de =>
+                                //{
+                                //    de.Select.Url = Url.Action("InitDate");
+                                //    de.Select.ExtraParams.Add(new Parameter("BranchID", "this.getValue()", ParameterMode.Raw));
+                                //})
+                                .Store(
+                                    X.Store()
+                                    .AutoLoad(true)
+                                    .Model(
+                                        X.Model()
+                                            .IDProperty("BranchIDtore")
+                                            .Fields(
+                                                new ModelField("BranchID", ModelFieldType.Int) { Mapping = "BranchID" },
+                                                new ModelField("BranchName", ModelFieldType.String) { Mapping = "BranchName" }
+                                            )
+                                    )
+                                    .Proxy(
+                                        X.AjaxProxy()
+                                            .Url(Url.Action("GetBranchOpenedBusday","BudgetAllocated"))
+                                            .Reader(X.JsonReader().RootProperty("data"))
+                                    )
+//                                    .Listeners(ls =>
+//                                        ls.Load.Handler = @"var combo = App.Branch;var localization = App.Localization;
+//                                                combo.setValue(records[0].get(combo.valueField)); localization.getStore().load;"
+//                                    )                                
+                                )
+                               ,    
+                             X.ComboBox()
+                                .ID("BudgetAllocatedID")
+                                .Name("BudgetAllocatedID")
+                                .FieldLabel("Budget Allocated")
+                                .Items(LoadComponent.BudgetAllocateds)
+                                .AllowBlank(false)
+                                .ForceSelection(true)
+                                .MarginSpec("5 0 10 0")
+                                .BlankText(Resources.RequiredField)
+                                .LabelSeparator(labelSeparator)
+                                .EmptyText(Resources.Select)
+                                .Width(400)
+                                ,
+                            X.TextArea().FieldLabel("Justification")
+                             .Name("Justification")
+                             .MsgTarget(MessageTarget.Side)
+                             .AllowBlank(false)
+                             .MinLength(3)
+                             .ID("Justification")                                                                   
+                          ) 
+                                                                                                                                                                                                                               
+                       )
+                     )
+                     ,
+                     //SaleLine form and grid that present saleline of current sale
+                      X.Container()
+                        .Layout(LayoutType.HBox)
+                        .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                        .MarginSpec("0 0 0 0")
+                        .MinHeight(250)
+                        .Items(
+                            X.FormPanel()
+                                .Title("Budget Allocated Informations")
+                                .Disabled(true)
+                                .Layout(LayoutType.Anchor)
+                                .ID("FormAllocateAmount")
+                                .Width(500)
+                                .Listeners(ls =>
+                                    {
+                                        ls.FieldChange.Handler = "if(App.FormAllocateAmount.isValid()){App.AddToGrid.setDisabled(false);}else{App.AddToGrid.setDisabled(true);}";
+                                    }
+
+                                )
+                                .DefaultAnchor("100%")
+                                .Items(
+                                
+                                    X.NumberField().Hidden(true).Name("BudgetAllocatedUpdateID"),
+                                
+                                    X.ComboBox().Name("SensImputation").FieldLabel("Sens Imputation")
+                                        .ID("SensImputation")                                      
+                                        .MarginSpec("5 0 0 0")
+                                        .LabelSeparator(labelSeparator)
+                                        .EmptyText(Resources.Select)
+                                        .AllowBlank(false)
+                                        .BlankText(Resources.RequiredField)
+                                        .Items(new ListItem(Resources.UIcredit, "CR"),
+                                        new ListItem(Resources.UIdebit, "DB"))
+                                   ,                                
+                                    X.NumberField().FieldLabel("Amount")
+                                        .Name("Amount")
+                                        .MsgTarget(MessageTarget.Side)
+                                        .ID("Amount")
+                                        .MinValue(0)
+                                        .MarginSpec("5 0 0 0")
+                                        .AllowBlank(false)
+                                                                                                                                          
+                                )
+                                .Buttons(
+                                    X.Button()
+                                        .Text("Add Line")
+                                        .Disabled(true)
+                                        .ID("AddToGrid")
+                                        .DirectEvents(de =>
+                                        {
+                                            de.Click.Url = Url.Action("AddBudgetAllUpLine");
+                                            de.Click.EventMask.ShowMask = true;
+                                            de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                                            de.Click.ExtraParams.Add(new Parameter("BudgetAllocatedID", "App.BudgetAllocatedID.getValue()", ParameterMode.Raw));
+                                        }),
+                                    X.Button()
+                                        .Text("Reset")
+                                        .OnClientClick("this.up('form').reset();")
+                               ) 
+                          //Grid of sale lines
+                          ,
+                        X.GridPanel()
+                            .Title("Budget Allocated state")
+                            .Disabled(true)
+                            .MarginSpec("0 0 0 10")
+                            .ID("BudgetLines")
+                            .Flex(1)
+                            .MarginSpec("0 0 0 0")
+                            .Frame(true)
+                            .Collapsible(true)
+                            .Store(Html.X().Store()
+                                //.GroupField("BranchID")
+                                .ID("BudgetAllocatedUpdateList")
+                                .RemotePaging(true)
+                                .AutoLoad(false)
+                                .PageSize(5)
+                                .ServerProxy(
+                                    X.AjaxProxy()
+                                    .Url(Url.Action("GetBudgetAllocatedUpdateList"))
+                                    .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                                    .Reader(X.JsonReader().RootProperty("data"))
+                                )
+                                .AutoLoad(false)
+                                .Model(Html.X().Model()
+                                    .Fields(
+                                        new ModelField() { Name = "BudgetAllocatedUpdateID", Type = ModelFieldType.Int },
+                                        new ModelField() { Name = "SensImputation", Type = ModelFieldType.String },
+                                        //new ModelField() { Name = "BranchID", Type = ModelFieldType.Int },
+                                        //new ModelField() { Name = "FiscalYearID", Type = ModelFieldType.Int },
+                                        new ModelField() { Name = "BudgetAllocatedLabel", Type = ModelFieldType.String },
+                                        new ModelField() { Name = "Justification", Type = ModelFieldType.String },
+                                        new ModelField() { Name = "BudgetAllocatedUpdateLabel", Type = ModelFieldType.String },
+                                        new ModelField() { Name = "Amount", Type = ModelFieldType.Int }
+
+
+                                    )
+                                ).DataSource(Model)
+                            )
+
+                            .ColumnModel(
+                                Html.X().Column()
+                                    .Text("Label")
+                                    .DataIndex("BudgetAllocatedLabel")
+                                    .Flex(1)
+                                    ,
+                                Html.X().Column()
+                                    .Text("Amount")
+                                    .DataIndex("Amount")
+                                    .Flex(1),
+                                Html.X().Column()
+                                    .Text("Justification")
+                                    .DataIndex("Justification")
+                                    .Flex(1),
+                                Html.X().Column()
+                                    .Text("Sens Imputation")
+                                    .DataIndex("SensImputation")
+                                    .Flex(1)
+                                    ,
+                                Html.X().ImageCommandColumn()
+                                            .Width(30)
+                                            .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.DELETE, profile, CodeValue.Parameter.MoneyManagement.TillCODE,db))
+                                            .Commands(
+                                                Html.X().ImageCommand()
+                                                    .CommandName("Delete")
+                                                    .IconCls("icon-delete")
+                                            )
+                                            .DirectEvents(de =>
+                                            {
+                                                de.Command.Action = "DeleteBudgetAllocatedUpdate";
+                                                de.Command.Confirmation.ConfirmRequest = true;
+                                                de.Command.Confirmation.Message = "Voulez vous supprimer ?";
+                                                de.Command.Confirmation.Title = "Opération de suppression";
+                                                de.Command.ExtraParams.Add(new Parameter("ID", "record.data.BudgetAllocatedUpdateID", ParameterMode.Raw));
+                                                de.Command.EventMask.ShowMask = true;
+                                                de.Command.EventMask.Msg = "Opération en cours...";
+                                            }),
+                                Html.X().ImageCommandColumn()
+                                        .Width(30)
+                                        .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, profile, CodeValue.Parameter.MoneyManagement.TillCODE,db))
+                                        .Commands(
+                                        Html.X().ImageCommand()
+                                                .CommandName("Edit")
+                                                .IconCls("icon-edit")
+                                                .ToolTip(tt => tt.Text = "Modifier ?")
+                                        )
+
+                                        .DirectEvents(de =>
+                                        {
+                                            de.Command.Action = "InitializeFieldsBudgetAllocatedUpdate";
+                                            de.Command.ExtraParams.Add(new Parameter("ID", "record.data.BudgetAllocatedUpdateID", ParameterMode.Raw));
+                                            de.Command.EventMask.ShowMask = true;
+                                            de.Command.EventMask.Msg = "Chargement des paramètres de modification en cours...";
+                                        })
+                                )
+                                .BottomBar(
+                                        Html.X().PagingToolbar()
+                                )                            
+
+                        //End Grid of sale line                          
+                                                                                         
+                        )
+                )                            
+        )                        
+
+}

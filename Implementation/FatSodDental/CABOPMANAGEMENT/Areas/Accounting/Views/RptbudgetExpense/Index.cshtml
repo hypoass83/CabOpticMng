@@ -1,0 +1,304 @@
+﻿@using FatSod.Ressources;
+
+@{
+    ViewBag.Title = @Resources.RptbudgetExpense;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var profile = (Session["UserProfile"] == null) ? 0 : (int)Session["UserProfile"];
+    var user = (Session["UserID"] == null) ? 0 : (int)Session["UserID"];
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+<div class="box box-primary box-body">
+    <div class="row">
+        <fieldset class="col-md-12">
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="row ipt">
+                            <!-- Branche -->
+                            <div class="col-sm-3" style="margin-left:50px;">@Resources.Branches</div>
+                            <div class="col-sm-3" style="margin-left:-100px;">
+                                <input type="hidden" id="DefaultBranchID" value="@ViewBag.CurrentBranch" />
+                                <select id="BranchID" class="input-sm form-control"></select>
+                            </div>
+                            <!--devise-->
+                            <input type="hidden" id="DeviseID" value="@ViewBag.DefaultDeviseID" />
+                            <!-- Till -->
+                            <div class="col-sm-3">@Resources.BudgetAllocated</div>
+                            <div class="col-sm-3" style="margin-left:-100px;">
+                                <input type="text" id="BudgetAllocated" placeholder="@Resources.Select" class="form-control">
+                                <input type="hidden" id="BudgetAllocatedID" value="0" class="form-control">
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-3" style="margin-left:50px;">@Resources.UIBeginDate</div>
+                            <div class="col-sm-3" style="margin-left:-100px;">
+                                <input class="form-control datepicker" id="BeginDate" type="text" placeholder="choose Begin date" value="@ViewBag.BusnessDayDate">
+                            </div>
+                            <div class="col-sm-3">@Resources.UIEndDate</div>
+                            <div class="col-sm-3" style="margin-left:-100px;">
+                                <input class="form-control datepicker checkDateNoGraterThanToday" id="EndDate" type="text" placeholder="choose End date">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row ipt">
+                        <div class="col-sm-2" style="margin-left:-20px;margin-top:10px;">
+                            <button id="btnSave" class="btn btn-primary">@Resources.ViewState</button>
+                        </div>
+                        <div class="col-sm-2" style="margin-top:10px;margin-left:-50px;">
+                            <button id="btnPrint" class="btn btn-primary btn-success">@Resources.PrintState</button>
+                        </div>
+                        <div class="col-sm-2" style="margin-left:-20px;margin-top:20px;">@Resources.TotalExpense</div>
+                        <div class="col-sm-2" style="margin-left:-80px;margin-top:10px;">
+                            <input class="form-control input-sm" id="TotalDebit" type="text" readonly />
+                        </div>
+                        
+                        </div>
+                    </div>
+                </div>
+        </fieldset>
+    </div>
+    <div class="row">
+    </div>
+
+    <div class="row">
+        <div class="panel-body2">
+            <table class="table" id="mainTable">
+                <thead>
+                    <tr class="dataTableHead">
+                        <th>ID</th>
+                        <th>@Resources.UserBranch</th>
+                        @*<th>@Resources.UIDevise</th>*@
+                        <th>@Resources.UIBudgetAllocated</th>
+                        <th>@Resources.Reference</th>
+                        <th>@Resources.BeneficiaryName</th>
+                        <th>@Resources.Justification</th>
+                        <th>@Resources.VoucherAmount</th>
+                        <th>@Resources.UIDateOperation</th>
+                        <th>@Resources.PaymentDate</th>
+                        <th>@Resources.AutorizedBy</th>
+                        <th>@Resources.ValidateBy</th>
+                    </tr>
+                </thead>
+
+            </table>
+
+        </div>
+
+
+    </div>
+</div>
+
+<!-- Css Begins Here -->
+
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 6px;
+    }
+
+    #img-upload {
+        width: 100%;
+    }
+
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin-left: 10px;
+        min-width: 0;
+        padding: 0px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 85px;
+    }
+
+    .panel-body1 {
+        height: 100px;
+        margin-top: 5px;
+        /*margin-left: 15%;*/
+    }
+
+    .panel-body2 {
+        height: 215px;
+        margin-top: 10px;
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+
+    .panel-body3 {
+        height: 75px;
+        margin-top: 5px;
+        /*margin-left: 15%;*/
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+</style>
+
+<!--********** JavaScripts **********-->
+<script>
+// Get the Branch List
+    function populateBranch() {
+        $.get('@Url.Action("GetOpenedBranches", "RptbudgetExpense")', {}, function (data) {
+        $('#BranchID').empty();
+        $('#BranchID').append($("<option value='0'>@Resources.Select</option>"));
+        $.each(data, function (key, value) {
+        $('#BranchID').append($("<option></option>").val(value.BranchID).html(value.BranchName));
+        });
+        var _DefaultId = $('#DefaultBranchID').val();
+        $('#BranchID').val(_DefaultId);
+
+        }, 'json');
+    }
+    // Get the BudgetAllocated List
+    function populateBudgetAllocated() {
+        $("#BudgetAllocatedID").val('0');
+        $("#BudgetAllocated").autocomplete({
+            minLength: 1, // set minimum of 1 characters before search executes.
+            delay: 100, // wait 0.1 second after keystroke before search executes.
+            source: function (request, response) {
+                $.ajax({
+                    url: '@Url.Action("LoadBudgetAllocateds", "RptbudgetExpense")',
+                    type: "POST",
+                    dataType: "json",
+                    //cache: false,
+                    data: { filter: request.term },
+                    success: function (data) {
+                        response($.map(data, function (item) {
+                            return { label: item.Name, value: item.Name, id: item.ID };
+                        }))
+                    }
+                })
+            },
+            messages: {
+                noResults: "No results",
+                results: function (count) {
+                    return count + (count == 0 ? ' result' : ' results');
+                }
+            },
+            select: function (event, ui) {
+                $("#BudgetAllocatedID").val(ui.item.id);
+            }
+        });
+    }
+
+    function InitTotaux()
+    {
+        $('#TotalDebit').val('0');
+    }
+    //chargement des elemts de totaux apres le click sur afficher
+    function loadTotaux(BranchID, DeviseID, BudgetAllocatedID, BeginDate, EndDate) {
+        //chargement detail
+        $.get('@Url.Action("chargeSolde", "RptbudgetExpense")', { BranchID: BranchID, DeviseID: DeviseID, BudgetAllocatedID: BudgetAllocatedID, BeginDate: BeginDate, EndDate: EndDate }, function (data) {
+            $.each(data, function (key, value) {
+                $('#TotalDebit').val(value.TotalDebit);
+            });
+        }, 'json');
+    }
+    //chargement du tableau apres le click sur le bouton afficher
+    function LoadGrid(test, BranchID, DeviseID, BudgetAllocatedID, BeginDate, EndDate)
+    {
+        if (test) {
+            $('#mainTable').dataTable().fnDestroy();
+        }
+        var oTable = $('#mainTable');
+        oTable = $('#mainTable').dataTable({
+            fixedColumns: true,
+            "paging": true,
+            "pageLength": 20,
+            "lengthMenu": [[20, 40, 60, -1], [20, 40, 60, "All"]],
+            "searching": true,
+            "ordering": true,
+            "pagingType": "full_numbers",
+            "columnDefs": [
+                    { "visible": false, "targets": 0 }
+            ],
+            //"order": [[0, 'asc']],
+            // Ajax call
+            "ajax": {
+                "url": "@Url.Action("GetList", "RptbudgetExpense")",
+                "type": "GET",
+                "datatype": "json",
+                "data": { BranchID: BranchID, DeviseID: DeviseID, BudgetAllocatedID: BudgetAllocatedID, BeginDate: BeginDate, EndDate: EndDate }
+            },
+            "columns": [
+                { "data": "BudgetAllocatedID", "width": "1%" },
+                { "data": "UIBranchCode", "width": "12%" },
+                //{ "data": "UIDeviseCode", "width": "10%" },
+                { "data": "UIBudgetAllocated", "width": "15%" },
+                { "data": "Reference", "width": "10%" },
+                { "data": "BeneficiaryName", "width": "15%" },
+                { "data": "Justification", "width": "20%" },
+                { "data": "VoucherAmount", "width": "8%" },
+                { "data": "DateOperation", "width": "10%" },
+                { "data": "PaymentDate", "width": "10%" },
+                { "data": "AutorizeBy", "width": "8%" },
+                { "data": "ValidateBy", "width": "8%" }
+            ],
+            dom: 'Bfrtip',
+            buttons: [
+                'copy', 'csv', 'excel'
+            ]
+
+        });
+    }
+    $(document).on('ready', function ()
+    {
+        $(function () {
+            $(".datepicker").datepicker({
+                format: 'yyyy-mm-dd'
+            });
+        });
+        InitTotaux();
+        populateBranch();
+        populateBudgetAllocated();
+
+        var BranchID = '0';
+        var DeviseID = '0';
+        var BudgetAllocatedID = '0';
+        var BeginDate = '1900-01-01';
+        var EndDate = '1900-01-01';
+        LoadGrid(false, BranchID,DeviseID, BudgetAllocatedID, BeginDate, EndDate);
+        $("#btnSave").on('click', function () {
+            BranchID = $("#BranchID").val();
+            DeviseID = $("#DeviseID").val();
+            BudgetAllocatedID = $("#BudgetAllocatedID").val();
+            BeginDate = $("#BeginDate").val();
+            EndDate = $("#EndDate").val();
+            LoadGrid(true, BranchID,DeviseID, BudgetAllocatedID, BeginDate, EndDate);
+            loadTotaux(BranchID, DeviseID, BudgetAllocatedID, BeginDate, EndDate);
+        });
+    });
+</script>
+
+

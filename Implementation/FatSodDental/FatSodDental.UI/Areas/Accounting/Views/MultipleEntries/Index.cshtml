@@ -1,0 +1,356 @@
+﻿﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+@model System.Collections.IEnumerable
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    string labelSeparator = "  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :";
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+
+@section content
+{
+    @************************************************ Single entry form informations ********************************@
+    @(
+ X.FormPanel()
+        .ID("Unknow")
+        .Items(
+             X.PanelTitle()
+              .ID("PanelTitl555e")
+              .Border(true)
+              .Padding(2)
+              .Content(
+            @<header>
+                <h4>@Resources.UIMultipleEntriesTitle</h4>
+                <h6>@Resources.RequireField <code>(*)</code></h6>
+            </header>
+                )
+            )
+            .Frame(true)
+            .MarginSpec("-10 0 0 0")
+            .BodyPadding(10)
+    )
+    @***********************  Single form  ***************************@
+    @(
+ X.FormPanel()
+    .ID("MultipleEntriesForm")
+    .MarginSpec("10 0 0 0")
+    .Padding(0)
+    .FieldDefaults(fd => { fd.LabelWidth = 115; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+    .Buttons(
+       X.Button()
+        .ID("btnSave")
+        .Text(Resources.ValidateButton)
+        .Icon(Icon.Disk)
+        .Disable(true)
+        .DirectEvents(de =>
+        {
+            de.Click.Url = Url.Action("AddAccountOperation", "MultipleEntries");
+            de.Click.EventMask.ShowMask = true;
+            de.Click.EventMask.Msg = Resources.EventMaskMsg;
+        }),
+
+       X.Button()
+        .Text(Resources.ResetButton)
+        .MarginSpec("0 20 10 10")
+        //.OnClientClick("this.up('form').reset();")
+        .DirectEvents(de =>
+        {
+            de.Click.Url = Url.Action("ResetAll");
+        })
+    )
+    .Listeners(
+        ls =>
+        {
+            ls.FieldChange.Handler = "if(App.MultipleEntriesForm.isValid() && App.Solde.getValue()==0){App.btnSave.setDisabled(false);}else{App.btnSave.setDisabled(true);}";
+        }
+    )
+    .Items(
+        X.FormPanel()
+        .Layout(LayoutType.Column)
+        .ID("FormOpIdentification")
+        .MarginSpec("0 0 0 0")
+            .Items(
+                X.FieldSet()
+                .Layout(LayoutType.Column)
+                .MarginSpec("0 0 0 0")
+                .Title(Resources.GeneralInfoIdentification)
+                .AnchorHorizontal("100")
+                    .Items(
+                    X.TextField().Name("PieceID").ID("PieceID").Hidden(true),
+                    X.ComboBox().Name("BranchID")
+                    .FieldLabel(Resources.UserBranch)
+                    .EmptyText(Resources.Select)
+                    .LabelSeparator(labelSeparator)
+                    .Items(LoadComponent.Branchs(user))
+                    .ID("BranchID")
+                    .AllowBlank(false).ForceSelection(true)
+                    .MarginSpec("0 0 10 0")
+                    .BlankText(Resources.UserBranch + " " + Resources.RequiredField)
+                    .DirectEvents(de =>
+                        {
+                            de.Select.Action = "LoadServerdate";
+                            de.Select.ExtraParams.Add(new Parameter("BranchID", "this.getValue()", ParameterMode.Raw));
+                        }
+                    )
+                    ,
+                    X.ComboBox().Name("DeviseID")
+                    .FieldLabel(Resources.UIDevise)
+                    .EmptyText(Resources.Select)
+                    .LabelSeparator(labelSeparator)
+                    .Items(LoadComponent.GetDevise)
+                    .ID("DeviseID")
+                    .AllowBlank(false).ForceSelection(true)
+                    .MarginSpec("0 0 10 0")
+                    .BlankText(Resources.UIDevise + " " + Resources.RequiredField)
+                    ,
+                    X.TextField().Name("Journal")
+                    .FieldLabel(Resources.UIOperation)
+                    .Value(CodeValue.Accounting.InitOperationType.CODEMANUAL)
+                    .LabelSeparator(labelSeparator)
+                    .ID("JournalID")
+                    .AllowBlank(false)
+                    .MarginSpec("0 0 10 0")
+                    .ReadOnly(true)
+                    ,
+                    X.DateField().FieldLabel(Resources.UIDateOperation)
+                    .AllowBlank(false)
+                    .Name("DateOperation")
+                    .ID("DateOperation")
+                    .MarginSpec("0 0 10 0")
+                    .LabelSeparator(labelSeparator)
+                    .InputType(Ext.Net.InputType.DateTime)
+                    .ReadOnly(true)
+                    ,
+                    X.TextField().FieldLabel("Reference")
+                    .Name("Reference")
+                    .MarginSpec("0 0 10 0")
+                    .AllowBlank(false)
+                    .ID("Reference")
+                    .LabelSeparator(labelSeparator)
+                    .EnforceMaxLength(true)
+                    .MaxLength(30),
+                    X.TextField().FieldLabel("Description")
+                    .Name("Description")
+                    .MarginSpec("0 0 10 0")
+                    .AllowBlank(false)
+                    .ID("Description")
+                    .Width(400)
+                    .MinLength(5)
+                    .LabelSeparator(labelSeparator)
+                    ,
+                    X.TextField().FieldLabel("Total Debit").MarginSpec("0 10 10 0").ReadOnly(true).ID("TotalDebit").Hidden(false).Width(200)//.Value(ViewBag.TotalDebit)
+                    ,
+                    X.TextField().FieldLabel("Total Credit").MarginSpec("0 10 10 0").ReadOnly(true).ID("TotalCredit").Hidden(false).Width(200)//.Value(ViewBag.TotalCredit)
+                    ,
+                    X.TextField().FieldLabel("Solde").MarginSpec("0 10 10 0").ReadOnly(true).ID("Solde").Hidden(false)//.Value(ViewBag.Solde)
+                    .Width(200)
+                    ,
+                    X.TextField().Name("CodeTransaction").ID("CodeTransaction").Hidden(true)
+
+                )
+            )
+        ,
+        X.Container()
+        .Layout(LayoutType.HBox)
+        .MarginSpec("0 0 0 0")
+            .Items(
+               X.Panel()
+                .ID("FormChoixCpte")
+                .Title(Resources.UIAddVoucher)
+                .Layout(LayoutType.Anchor)
+                .Width(350)
+                .DefaultAnchor("100%")
+                .Items(
+                    X.ComboBox().Name("AccountID").FieldLabel(Resources.UIAccount)
+                        .Items(LoadComponent.GetManualPostingAccountNames)
+                        .AllowBlank(false).ForceSelection(true)
+                        .BlankText(Resources.UIDebitAccount + " " + Resources.RequiredField)
+                        .ID("AccountID")
+                        .LabelSeparator(labelSeparator)
+                        .EmptyText(Resources.Select)
+                        ,
+                    X.ComboBox().Name("AccountSens").FieldLabel(Resources.UIAccountingTaskSens)
+                        .Items(new ListItem(Resources.UIcredit, "CR"),
+                        new ListItem(Resources.UIdebit, "DB"))
+                        .AllowBlank(false).ForceSelection(true)
+                        .BlankText(Resources.UICreditAccount + " " + Resources.RequiredField)
+                        .ID("AccountSens")
+                        .LabelSeparator(labelSeparator)
+                        .EmptyText(Resources.Select)
+                        ,
+                    X.NumberField().FieldLabel(Resources.UIAmount)
+                        .Name("Amount")
+                        .InputType(Ext.Net.InputType.Number)
+                        .ID("Amount")
+                        .LabelSeparator(labelSeparator)
+                        .BlankText(Resources.UIAmount + " " + Resources.RequiredField)
+                        .AllowBlank(false)
+                )
+                .Buttons(
+                   X.Button()
+                    .Text(Resources.SaveButton)
+                    .ID("AddToGrid")
+                    .DirectEvents(de =>
+                    {
+                        de.Click.Url = Url.Action("AddVoucher", "MultipleEntries");
+                        de.Click.EventMask.ShowMask = true;
+                        de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                    }),
+                    X.Button()
+                    .Text(Resources.ResetButton)
+                    .DirectEvents(de =>
+                    {
+                        de.Click.Url = Url.Action("ResetAccount");
+                    })
+                    .Icon(Icon.ArrowRefresh)
+                ),
+
+                X.Component().Width(10),
+                X.FieldSet()
+                .Flex(1)
+                .Layout(LayoutType.Fit)
+                .Border(false)
+                .Padding(0)
+                .DefaultAnchor("100%")
+                    .Items(
+                       X.GridPanel()
+                        .Title(Resources.UIVoucherList)
+                        .ID("GridPanelVoucher")
+                        .Layout(LayoutType.Fit)
+                        .MarginSpec("0 0 0 0")
+                        .Frame(true)
+                        .Collapsible(true)
+                        .Store(
+                            X.Store()
+                            .PageSize(10)
+                            .AutoLoad(true)
+                            .ID("Store")
+                            .Model(
+                                X.Model()
+                                 .Fields(
+                                    new ModelField() { Name = "PieceID", Type = ModelFieldType.Float },
+                                    new ModelField() { Name = "UIBranchCode", Type = ModelFieldType.String },
+                                    new ModelField() { Name = "UIDeviseCode", Type = ModelFieldType.String },
+                                    new ModelField() { Name = "UIOperationCode", Type = ModelFieldType.String },
+                                    new ModelField() { Name = "UIAccountNumber", Type = ModelFieldType.String },
+                                    new ModelField() { Name = "DateOperation", Type = ModelFieldType.Date },
+                                    new ModelField() { Name = "Description", Type = ModelFieldType.String },
+                                    new ModelField() { Name = "Reference", Type = ModelFieldType.String },
+                                    new ModelField() { Name = "CodeTransaction", Type = ModelFieldType.String },
+                                    new ModelField() { Name = "Debit", Type = ModelFieldType.Float },
+                                    new ModelField() { Name = "Credit", Type = ModelFieldType.Float }
+                                    )
+                            ).DataSource(Model)
+                            .ServerProxy(
+                                X.AjaxProxy()
+                                .Url(Url.Action("GetList"))
+                                .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                                .Reader(X.JsonReader().RootProperty("data"))
+                            )
+                        )
+                        .ColumnModel(
+                        Html.X().Column()
+                            .Text(Resources.UserBranch)
+                            .DataIndex("UIBranchCode")
+                            .Flex(1),
+                        Html.X().Column()
+                            .Text(Resources.UIDevise)
+                            .DataIndex("UIDeviseCode")
+                            .Flex(1)
+                            ,
+                        Html.X().Column()
+                            .Text(Resources.UIOperation)
+                            .DataIndex("UIOperationCode")
+                            .Flex(1),
+                            Html.X().DateColumn()
+                            .Text(Resources.UIDateOperation)
+                            .DataIndex("DateOperation")
+                            .Flex(1),
+                        Html.X().Column()
+                            .Text("Reference")
+                            .DataIndex("Reference")
+                            .Flex(1),
+                        Html.X().Column()
+                            .Text("Description")
+                            .DataIndex("Description")
+                            .Flex(1),
+                        Html.X().Column()
+                            .Text("CodeTransaction")
+                            .DataIndex("CodeTransaction")
+                            .Flex(1)
+                        ,
+                        Html.X().Column()
+                            .Text(Resources.UIAccount)
+                            .DataIndex("UIAccountNumber")
+                            .Flex(1),
+                        Html.X().Column()
+                            .Text(Resources.UIdebit)
+                            .DataIndex("Debit")
+                            .Flex(1),
+                        Html.X().Column()
+                            .Text(Resources.UIcredit)
+                            .DataIndex("Credit")
+                            .Flex(1)
+                        ,
+                        Html.X().ImageCommandColumn()
+                        .Width(30)
+                        .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.DELETE, profile, CodeValue.Accounting.AccountOperation_multiEntries.CODE,db))
+                        .Commands(
+                            Html.X().ImageCommand()
+                            .CommandName("Delete")
+                            .IconCls("icon-delete")
+                            .ToolTip(tt =>
+                            {
+                                tt.Text = FatSod.Ressources.Resources.ConfirmDeleteMessage;
+                                tt.Title = "Supression";
+                            }
+                            )
+                        )
+                        .DirectEvents(de =>
+                        {
+                            de.Command.Action = "RemoveVoucher";
+                            de.Command.Confirmation.ConfirmRequest = true;
+                            de.Command.Confirmation.Message = Resources.ConfirmDeleteMessage;
+                            de.Command.Confirmation.Title = Resources.ConfirmDeleteTitle;
+
+                            de.Command.ExtraParams.Add(new Parameter("ID", "record.data.PieceID", ParameterMode.Raw));
+                            de.Command.EventMask.ShowMask = true;
+                            de.Command.EventMask.Msg = Resources.EventMaskMsg;
+                        }),
+                        Html.X().ImageCommandColumn()
+                        .Width(30)
+                        .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, profile, CodeValue.Accounting.AccountOperation_multiEntries.CODE,db))
+                        .Commands(
+                        Html.X().ImageCommand()
+                        .CommandName("Edit")
+                        .IconCls("icon-edit")
+                        .ToolTip(tt => tt.Text = "Modifier ?")
+                        )
+
+                        .DirectEvents(de =>
+                        {
+                            de.Command.Action = "InitializeFields";
+                            de.Command.ExtraParams.Add(new Parameter("ID", "record.data.PieceID", ParameterMode.Raw));
+                            de.Command.EventMask.ShowMask = true;
+                            de.Command.EventMask.Msg = Resources.EventMaskUpdate;
+                        })
+
+
+                        )
+                            .BottomBar(
+                        X.PagingToolbar()
+                )
+                        )
+                )
+        )//ici
+
+    )
+}

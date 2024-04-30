@@ -1,0 +1,26 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+    <title>FSInventory Manager 1.0.0</title>
+    @*@Styles.Render("~/bundles/Scriptcss")*@
+    
+    <link href="~/Content/Css/Dental.css" rel="stylesheet" type="text/css" />
+    <link href="~/Content/Css/bootstrap.css" rel="stylesheet" type="text/css" />
+
+    <link rel="shortcut icon" href="stocks-icone.ico" />
+</head>
+<body > 
+    @*@Scripts.Render("~/bundles/Scriptjs")*@
+
+    <script src="~/Content/js/Dental.js"></script>
+    <script src="~/Scripts/modernizr-2.6.2.js"></script>
+
+    @Html.X().ResourceManager().Theme(Theme.Default).ShowWarningOnAjaxFailure(false)
+    @*.ScriptMode(Ext.Net.ScriptMode.Release)*@
+    
+    @RenderPage("~/Views/Dental/_ViewPort.cshtml")
+
+
+</body>
+</html>

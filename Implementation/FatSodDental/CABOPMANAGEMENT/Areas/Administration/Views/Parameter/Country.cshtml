@@ -1,0 +1,240 @@
+﻿@using FatSod.Ressources;
+@model IEnumerable<FatSod.Security.Entities.Country>
+@{
+    ViewBag.Title = @Resources.Country;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="box box-primary box-body">
+    <!--<form id="FormAccountingSection">-->
+    @****************************@
+    @Html.AntiForgeryToken()
+
+    <h6>@Resources.RequireField<code>(*)</code>.</h6>
+    <hr>
+
+    <div class="row">
+        <div class="col-sm-1"></div>
+        <div class="col-sm-8">
+            <div class="row">
+                <input type="hidden" id="CountryID" name="CountryID" class="form-control" />
+                <div class="col-sm-4">@Resources.PersonName<code>(*)</code></div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <input type="text" id="CountryLabel" name="CountryLabel" class="form-control" /><span class="error">Champs Obligatoire !</span>
+                    </div>
+                </div>
+                <span class="error">Champs Obligatoire !</span>
+            </div>
+            <div class="row">
+                <div class="col-sm-4">Code<code>(*)</code></div>
+                <div class="col-sm-8">
+                    <input type="text" id="CountryCode" name="CountryCode" class="form-control" /><span class="error">Champs Obligatoire !</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-1">
+                </div>
+                <hr />
+                <div class="col-sm-4">
+                    <button type="button" id="btnCancel" class="btn btn-primary">@Resources.ResetButton</button>
+                </div>
+                <div class="col-sm-8">
+                    <button type="submit" class="btn btn-primary" id="btnSubmit">@Resources.SaveButton</button>
+                </div>
+            </div>
+            <!--</form>-->
+        </div>
+    </div>
+</div>
+
+<!-- Ajout de la table contenant les data deja enregistrees-->
+<h2>@Resources.CountryList</h2>
+<div class="box box-body box-primary">
+
+    <table class="table" id="mainTable">
+        <thead>
+            <tr class="dataTableHead">
+                <th>
+                    ID
+                </th>
+                <th>
+                    Code
+                </th>
+                <th>
+                    @Resources.PersonName
+                </th>
+                <th>
+                </th>
+            </tr>
+        </thead>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CountryID)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CountryCode)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CountryLabel)
+                </td>
+                <td>
+                    <a href=# onclick="EditItem(this)"><span class="glyphicon glyphicon-edit"></span></a> |
+                    <a href=# onclick="DeleteItem(this)"><span class="glyphicon glyphicon-trash"></span></a> 
+                </td>
+            </tr>
+        }
+
+    </table>
+</div>
+
+
+<!--********** JavaScripts **********-->
+<script>
+
+    function clearForm() {
+        $('#CountryLabel').val('');
+        $('#CountryCode').val('');
+        $('#CountryID').val('');
+    }
+
+
+    $(document).on('ready', function () {
+
+        $('#btnCancel').on('click', function () {
+            clearForm();
+        });
+
+        $('#mainTable').DataTable();
+
+        $('#btnSubmit').on('click', function () {
+            var isAllValid = true;
+
+            if ($('#CountryLabel').val().trim() == '') {
+                isAllValid = false;
+                $('#CountryLabel').siblings('span.error').css('visibility', 'visible');
+            }
+            else {
+                $('#CountryLabel').siblings('span.error').css('visibility', 'hidden');
+            }
+
+            if ($('#CountryCode').val() == '') {
+                isAllValid = false;
+                $('#CountryCode').siblings('span.error').css('visibility', 'visible');
+            }
+            else {
+                $('#CountryCode').siblings('span.error').css('visibility', 'hidden');
+            }
+
+            if (isAllValid) {
+                var data = {
+                    CountryID: $('#CountryID').val().trim(),
+                    CountryLabel: $('#CountryLabel').val().trim(),
+                    CountryCode: $('#CountryCode').val().trim()
+                }
+                $(this).val('Please wait...');
+
+
+                //post data to server
+                $.ajax({
+                    url: '@Url.Action("AddCountry", "Parameter")',
+                    type: "POST",
+                    data: JSON.stringify(data),
+                    dataType: "JSON",
+                    contentType: "application/json",
+                    success: function (d) {
+                        //check is successfully save to database
+                        if (d.status == true) {
+                            //will send status from server side
+                            alert(d.Message);
+                            location.reload(true);
+                            //$('#mainTable').DataTable().ajax.reload();
+                            //clear form
+                            clearForm();
+                        }
+                        else {
+                            alert(d.Message);
+                        }
+                        $('#submit').val('@Resources.SaveButton');
+                    },
+                    error: function () {
+                        alert('Error. Please try again.');
+                        $('#btnSubmit').val('@Resources.SaveButton');
+                    }
+                });
+            }
+        });
+    });
+
+
+    function EditItem(obj)
+    {
+
+        var globalID=$(obj).parent().siblings(":first").text();
+
+        $.get('@Url.Action("UpdateCountry", "Parameter")', { ID: parseInt(globalID) }, function (data) {
+            $.each(data, function (key, value) {
+                $('#CountryID').val(value.CountryID);
+                $('#CountryLabel').val(value.CountryLabel);
+                $('#CountryCode').val(value.CountryCode);
+            });
+        }, 'json');
+
+    }
+    function DeleteItem  (obj)
+    {
+        if (confirm("Do you want to Delete ?"))
+        {
+            var globalID=$(obj).parent().siblings(":first").text();
+            //post to the server
+            $(this).val('Please wait...');
+            var data = {
+                ID: parseInt(globalID)
+            }
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("DeleteCountry", "Parameter")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        location.reload(true);
+                        //$('#mainTable').DataTable().ajax.reload();
+                        //clear form
+                        clearForm();
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                }
+            });
+        }
+
+    }
+</script>
+
+<style>
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+</style>

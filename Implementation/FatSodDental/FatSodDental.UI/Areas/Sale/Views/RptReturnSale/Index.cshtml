@@ -1,0 +1,275 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+@model System.Collections.IEnumerable
+@{
+    //ViewBag.Title = Resources.RptReturnSale;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    string labelSeparator = "  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :";
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+
+@section content
+{
+
+   @***********************************************************@
+    @(
+ X.Container()
+    .Layout(LayoutType.HBox)
+    .MarginSpec("10 0 0 0")
+    .ID("DefaultContainer")
+    .Layout(LayoutType.Fit)
+    .Items(
+
+    X.FieldSet()
+    .Flex(1)
+    .ID("DefaultFieldSet")
+    .Layout(LayoutType.Fit)
+    .Border(false)
+    .DefaultAnchor("100%")
+        .Items(
+        X.FormPanel()
+        .ID("RptReturnSale")
+        .Items(
+        X.PanelTitle()
+        .ID("PanelTitle")
+        .Border(true)
+        .Padding(2)
+        .Content(
+        @<header>
+            <h4>@Resources.RptReturnSale</h4>
+            <h6>@Resources.RequireField <code>(*)</code></h6>
+        </header>
+                                                            )
+                                                        )
+                                                        .Frame(true)
+                                                        .MarginSpec("0 0 0 0")
+                                                        .Width(350)
+                                                        .Padding(0)
+                                                        .FieldDefaults(fd => { fd.LabelWidth = 120; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+                                                        .Items(
+                                                        X.FormPanel()
+                                                        .Layout(LayoutType.Column)
+                                                        .ID("FormrptIdentification")
+                                                        .MarginSpec("0 0 0 0")
+                                                        .Items(
+                                                        X.FieldSet()
+                                                        .Layout(LayoutType.Column)
+                                                        .MarginSpec("0 0 0 0")
+                                                        .Title(Resources.GeneralInfoIdentification)
+                                                        .AnchorHorizontal("100")
+                                                            .Items(
+                                                            X.TextField().Name("RptReturnSaleID").ID("RptReturnSaleID").Hidden(true),
+                                                            X.ComboBox().Name("BranchID")
+                                                            .FieldLabel(Resources.UserBranch)
+                                                            .EmptyText(Resources.Select).ForceSelection(true)
+                                                            .LabelSeparator(labelSeparator)
+                                                            .Items(LoadComponent.Branchs(user))
+                                                            .ID("BranchID")
+                                                            .AllowBlank(false)
+                                                            .MarginSpec("0 0 10 0")
+                                                            .BlankText(Resources.UserBranch + " " + Resources.RequiredField)
+                                                            ),
+                                                            X.Component().Width(10),
+                                                        X.FieldSet()
+                                                        .Layout(LayoutType.Column)
+                                                        .MarginSpec("0 0 0 0")
+                                                        .Title(Resources.UIDateInfo)
+                                                        .AnchorHorizontal("100")
+                                                            .Items(
+                                                            X.DateField().FieldLabel(Resources.UIBeginDate)
+                                                            .AllowBlank(false)
+                                                            .Name("BeginDate")
+                                                            .ID("BeginDate")
+                                                            .MarginSpec("0 0 10 0")
+                                                            .LabelSeparator(labelSeparator)
+                                                            .InputType(Ext.Net.InputType.DateTime)
+                                                            ,
+                                                            X.DateField().FieldLabel(Resources.UIEndDate)
+                                                            .AllowBlank(false)
+                                                            .Name("EndDate")
+                                                            .ID("EndDate")
+                                                            .MarginSpec("0 0 10 0")
+                                                            .LabelSeparator(labelSeparator)
+                                                            .InputType(Ext.Net.InputType.DateTime)
+
+                                                            )
+
+                                                            )
+                                                        .Buttons(
+
+                                                                X.Button()
+                                                                .Text(Resources.UIDisplayEntries)
+                                                                .ID("IDDisplayEntries")
+                                                                .OnClientClick("App.PanelReport.setHidden(true)")
+                                                                .DirectEvents(de =>
+                                                                {
+                                                                    de.Click.Url = Url.Action("DisplayEntries", "RptReturnSale");
+                                                                    de.Click.EventMask.ShowMask = true;
+                                                                    de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                                                                }),
+                                                                X.Button()
+                                                                    .Text(Resources.UIPrint)
+                                                                    .ID("IDShowGeneric")
+                                                                    .Icon(Icon.Printer)
+                                                                    .OnClientClick("App.PanelReport.setHidden(false)")
+                                                                    .DirectEvents(de =>
+                                                                    {
+                                                                        de.Click.Url = Url.Action("PrintReport", "RptReturnSale");
+                                                                        de.Click.EventMask.ShowMask = true;
+                                                                        de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                                                                    }),
+                                                                X.Button()
+                                                                    .Text(Resources.ResetButton)
+                                                                    .OnClientClick("this.up('form').reset();")
+                                                                    .Icon(Icon.ArrowRefresh)
+                                                            )
+                                                            ,
+
+                                                            X.Component().Width(10),
+                                                            X.FieldSet()
+                                                            .Flex(1)
+                                                            .Layout(LayoutType.Fit)
+                                                            .Border(false)
+                                                            .Padding(0)
+                                                            .DefaultAnchor("100%")
+                                                            .Items(
+                                                                    X.GridPanel()
+                                                                    .Title(Resources.UIVoucherList)
+                                                                    .ID("GridPanelAcctOp")
+                                                                    .Layout(LayoutType.Fit)
+                                                                    .MarginSpec("0 0 0 0")
+                                                                    .Frame(true)
+                                                                    .Collapsible(true)
+                                                                    .Store(
+                                                                    X.Store()
+                                                                    .PageSize(10)
+                                                                    .AutoLoad(true)
+                                                                    .ID("Store")
+                                                                        .Model(
+                                                                        X.Model()
+                                                                        .Fields(
+                                                                                new ModelField() { Name = "RptReturnSaleID", Type = ModelFieldType.Float },
+                                                                                new ModelField() { Name = "Agence", Type = ModelFieldType.Int },
+                                                                                new ModelField() { Name = "LibAgence", Type = ModelFieldType.String },
+                                                                                new ModelField() { Name = "Devise", Type = ModelFieldType.Int },
+                                                                                new ModelField() { Name = "LibDevise", Type = ModelFieldType.String },
+                                                                                new ModelField() { Name = "CodeClient", Type = ModelFieldType.String },
+                                                                                new ModelField() { Name = "NomClient", Type = ModelFieldType.String },
+                                                                                new ModelField() { Name = "CustomerReturnCauses", Type = ModelFieldType.String },
+                                                                                new ModelField() { Name = "LineQuantity", Type = ModelFieldType.Float },
+                                                                                new ModelField() { Name = "LineAmount", Type = ModelFieldType.Float },
+                                                                                new ModelField() { Name = "ReturnAmount", Type = ModelFieldType.Float },
+                                                                                new ModelField() { Name = "LocalizationCode", Type = ModelFieldType.String },
+                                                                                new ModelField() { Name = "ProductCode", Type = ModelFieldType.String },
+                                                                                new ModelField() { Name = "CustomerReturnDate", Type = ModelFieldType.Date },
+                                                                                new ModelField() { Name = "OeilDroiteGauche", Type = ModelFieldType.String }
+                                                                            )
+                                                                        ).DataSource(Model)
+                                                                        .ServerProxy(
+                                                                        X.AjaxProxy()
+                                                                        .Url(Url.Action("GetList"))
+                                                                        .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                                                                        .Reader(X.JsonReader().RootProperty("data"))
+                                                                        )
+                                                                        .Parameters(ps =>
+                                                                        {
+                                                                            ps.Add(new StoreParameter("Bdate", "App.BeginDate.getValue()", ParameterMode.Raw));
+                                                                            ps.Add(new StoreParameter("Edate", "App.EndDate.getValue()", ParameterMode.Raw));
+                                                                        }
+                                                                        )
+                                                                    )
+                                                                    .ColumnModel(
+                                                                    Html.X().Column()
+                                                                    .Text(Resources.Reference)
+                                                                    .DataIndex("LibDevise")
+                                                                    .Flex(1),
+                                                                    Html.X().DateColumn()
+                                                                    .Text(Resources.UIDateOperation)
+                                                                    .DataIndex("CustomerReturnDate")
+                                                                    .Flex(1).Format("dd/MM/yyyy"),
+                                                                    Html.X().Column()
+                                                                    .Text(Resources.CustomerNumber)
+                                                                    .DataIndex("CodeClient")
+                                                                    .Flex(1),
+                                                                    Html.X().Column()
+                                                                    .Text(Resources.Customer)
+                                                                    .DataIndex("NomClient")
+                                                                    .Flex(1),                                                                    
+                                                                    Html.X().Column()
+                                                                    .Text(Resources.Reason)
+                                                                    .DataIndex("CustomerReturnCauses")
+                                                                    .Flex(1),
+                                                                    Html.X().Column()
+                                                                    .Text(Resources.Quantity)
+                                                                    .DataIndex("LineQuantity")
+                                                                    .Flex(1),
+                                                                    Html.X().Column()
+                                                                    .Text(Resources.Amount)
+                                                                    .DataIndex("LineAmount")
+                                                                    .Flex(1),
+                                                                    Html.X().Column()
+                                                                    .Text("Return Amount")
+                                                                    .DataIndex("ReturnAmount")
+                                                                    .Flex(1),
+                                                                    Html.X().Column()
+                                                                    .Text(Resources.Localization)
+                                                                    .DataIndex("LocalizationCode")
+                                                                    .Flex(1),
+                                                                    Html.X().Column()
+                                                                    .Text(Resources.Product)
+                                                                    .DataIndex("ProductCode")
+                                                                    .Flex(1)
+                                                                    ,
+                                                                    Html.X().Column()
+                                                                    .Text(Resources.EyeSide)
+                                                                    .DataIndex("OeilDroiteGauche")
+                                                                    .Flex(1)
+                                                                    )
+                                                                                    .BottomBar(
+                                    X.PagingToolbar()
+                            )
+                                                                )
+                                                            )
+                                                        )//ici
+                                                        )
+    )
+    @(
+ X.Container()
+        //Panel for print
+    .Items(X.Panel()
+        .ID("PanelReport")
+        .MarginSpec("0 0 -100 0")
+        .Title(Resources.PanelPreview)
+        .Hidden(true)
+        .Layout(LayoutType.HBox)
+        .Flex(1)
+        .Collapsible(true)
+        .Padding(1)
+        .AutoScroll(false)
+        .Hidden(true)
+        .MinHeight(500)
+        .MinWidth(500)
+        .Loader(
+            X.ComponentLoader()
+            .AutoLoad(false)
+            .Mode(LoadMode.Frame)
+            .LoadMask(lm =>
+                {
+                    lm.ShowMask = true;
+                    lm.Msg = Resources.MsgGenerateState;
+                    lm.UseMsg = true;
+
+                })
+            )
+        )
+
+    )
+}

@@ -1,0 +1,109 @@
+﻿
+@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Ressources;
+
+@{
+    var X = Html.X();
+}
+<style>
+    /*.box-add-cls {
+        content: url(../../../../Content/Images/Icons/opt.png);
+    }
+    .box-update-cls {
+        content: url(../../../../Content/Images/Icons/pencil.png);
+    }
+    .box-delete-cls {
+        content: url(../../../../Content/Images/Icons/delete.png);
+    }*/
+    .icon-opt{
+        background: url(../../../../Content/Images/Icons/opt.png);
+    }
+    .body-cls{
+        color: #0094ff;
+        font-size: 1em;
+        font-weight: bold;
+    }
+    .box-base-body-cls{
+        position:relative;
+        left: 1em;
+    }
+    .group-body{
+        position:relative;
+        left: 5em;
+    }
+    .tooltip-cls{
+        color: #808080;
+        font-size: .8em;
+        font-weight: normal;
+        margin-left: 2em;
+    }
+</style>
+
+@(
+ X.FormPanel()
+            .ID("FormProfileAvanced")
+            .Title("Mise à jour du profile")
+            .Frame(true)
+            .Items(
+                X.PanelTitle()
+                    .ID("PanelTitl555e")
+                    .Border(true)
+                    .Padding(2)
+                    .Content(
+                @<header>
+                    <h6><code>Checked</code>/<code>Unchecked</code> checkbox to assign or unassign an action in one menu of updatable profile.</h6>
+                </header>
+                    )
+            )
+            .MarginSpec("-20 20 20 20")
+            .FieldDefaults(fd => { fd.LabelStyle = ""; fd.LabelAlign = LabelAlign.Right; fd.BaseBodyCls = "body-cls"; fd.LabelCls = "test-cls"; })
+            .Buttons(
+                X.Button()
+                    .ID("btnSave")
+                    .Margin(10)
+                    .Text("Appliquer")
+                    .Disabled(true)
+                    .Icon(Icon.Accept)
+                    .DirectEvents(de =>
+                    {
+                        de.Click.Url = Url.Action("AllowActionToProfile", "Profile");
+                        de.Click.EventMask.ShowMask = true;
+                        de.Click.EventMask.Msg = "Application des nouveaux paramètres encours...";
+                    }),
+
+                X.Button()
+                    .Text("Réinitialiser")
+                    .MarginSpec("0 20 10 10")
+                    .OnClientClick("this.up('form').reset();")
+            )
+            .Listeners(
+                 ls =>
+                 {
+                     ls.FieldChange.Handler = "if(App.FormProfileAvanced.isValid()){App.btnSave.setDisabled(false);}else{App.btnSave.setDisabled(true);}";
+                 }
+             )
+            .Items(
+                 X.Container()
+                    //.Title("Actions management advanced in menus")
+                    .Layout(LayoutType.Anchor)
+                    //.MarginSpec("0 18 0 0")
+                    .ID("MenusAndSubMenus")
+                    //.FieldDefaults(fd => { fd.LabelWidth = 120; fd.LabelStyle = " font-size: 5em;"; fd.LabelCls = "label-cls"; })
+                    //.Collapsible(true)
+                    //.DefaultAnchor("100%")
+                    .Items(
+                        X.CheckboxGroup()
+                            .ID("RadioGroup6")
+                            //.MsgTarget(MessageTarget.Side)
+                            .AllowBlank(false)
+                            .BaseCls("group-body")
+                            //.AutoFitErrors(false)
+                            .Layout(LayoutType.Column)
+                            //.AnchorHorizontal("0")
+                            .Items(LoadComponent.AllowActionToProfile(this.ViewBag.ProfileID))
+                    )
+                 )
+)

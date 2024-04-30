@@ -1,0 +1,248 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+@model System.Collections.IEnumerable
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+@section content
+{
+    @(X.FormPanel()
+        .ID("Unknow")
+            //.Title(Resources.FormUserAddTitle)
+        .Items(
+             X.PanelTitle()
+              .ID("PanelTitl555e")
+              .Border(true)
+              .Padding(2)
+              .Content(
+            @<header>
+                <h4>@Resources.Country</h4>
+                <h6>@Resources.RequireField <code>(*)</code>.</h6>
+            </header>
+                               )
+                            )
+                            .Frame(true)
+                            .MarginSpec("-20 20 20 20")
+                            .BodyPadding(10)
+    )
+    @(
+ X.Container()
+             .Layout(LayoutType.HBox)
+             .MarginSpec("-40 10 10 10")
+             .Items(
+                X.FieldSet()
+                 .Flex(1)
+                 .Layout(LayoutType.Anchor)
+                 .Border(false)
+                 .DefaultAnchor("100%")
+                 .Items(
+                        X.FormPanel()
+                                .ID("PaymentMethodForm")
+                                .Title(Resources.Country)
+                                .Frame(true)
+        //.MarginSpec("0 20 20 20")
+                                .Width(350)
+                                .BodyPadding(10)
+                                .FieldDefaults(fd => { fd.LabelWidth = 120; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+                                .Buttons(
+                                    X.Button()
+                                        .ID("btnSave")
+                                        .Text(Resources.SaveButton)
+                                        .Disabled(true)
+                                        .Icon(Icon.Add)
+                                        .Margin(5)
+                                        .DirectEvents(de => 
+                                        {
+                                            de.Click.Url = Url.Action("AddOtherPaymentMethod", "Parameter");
+                                            de.Click.EventMask.ShowMask = true;
+                                            de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                                            //de.Click.Before = @"if (!#{PaymentMethodForm}.getForm().isValid()) { return false; }";
+                                        }),
+
+                                    X.Button()
+                                     .Text(Resources.ResetButton)
+        //.Margin(10)
+                                        .MarginSpec("0 20 10 10")
+                                        .OnClientClick("this.up('form').reset();")
+                                )
+                                .Listeners(
+                                    ls =>
+                                    { 
+                                        ls.FieldChange.Handler = "if(App.PaymentMethodForm.isValid()){App.btnSave.setDisabled(false);}else{App.btnSave.setDisabled(true);}";
+                                    }
+                                )
+                                .Items(
+                                    X.Container()
+                                        .Layout(LayoutType.HBox)
+        //.MarginSpec("0 0 10")
+                                        .Items(
+                                            X.FieldSet()
+                                                .Flex(1)
+                                                .Title("Identification")
+                                                .Layout(LayoutType.Anchor)
+                                                .Height(230)
+                                                .Width(130)
+                                                .DefaultAnchor("80%") 
+                                                .Items(
+                                                    X.TextField().Name("ID").ID("ID").Hidden(true),
+                                                    X.TextField().FieldLabel(Resources.PersonName)
+                                                                 .Name("Name")
+                                                                 .MsgTarget(MessageTarget.Side)
+                                                                 .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                                                 .ID("Name")
+                                                                 .BlankText(Resources.PersonName + " " + Resources.RequiredField)
+                                                                 .AllowBlank(false).MinLength(4)
+                                                    ,
+                                                    X.TextField().FieldLabel("Code")
+                                                        .Name("Code")
+                                                        .ID("Code")
+                                                        .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                                        .BlankText("Code " + Resources.RequiredField)
+                                                        .AllowBlank(false),
+                                                    X.TextField().FieldLabel("Description")
+                                                        .Name("Description")
+                                                        .ID("Description")
+                                                        .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                                        .BlankText("Code " + Resources.RequiredField)
+                                                        .AllowBlank(false),
+                                                    X.ComboBox().Name("BranchID")
+                                                                .FieldLabel(Resources.UserBranch)
+                                                                .AutoSelect(true)
+                                                                .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                                                .Items(LoadComponent.Branchs(user))
+                                                                .ID("BranchID")
+                                                                .AllowBlank(false)
+                                                                .BlankText(Resources.UserBranch + " " + Resources.RequiredField)
+                                                                , 
+                                                    X.ComboBox().Name("AccountID")
+                                                                .FieldLabel("Compte collectif")
+                                                                .AutoSelect(false)
+                                                                .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                                                .Items(LoadComponent.Accounts(CodeValue.Accounting.DefaultCodeAccountingSection.CODEBANK))
+                                                                .ID("AccountID")
+                                                                .AllowBlank(false)
+                                                ), 
+
+                                           X.Component().Width(5) 
+                                        )
+                                )
+                 )
+
+             ,
+        ////
+             X.FieldSet()
+              .Flex(1)
+              .Layout(LayoutType.Anchor)
+              .Border(false)
+              .DefaultAnchor("100%")
+              .Items(              
+                    Html.X().GridPanel()
+                            .Title(Resources.CountryList)
+                            .ID("CountryList")
+                            .Layout(LayoutType.Fit)
+                            .Frame(true)
+                            .Collapsible(true)
+                            .Store(Html.X().Store()
+                                .GroupField("Light")
+                                .ID("PaymentMethodFormStore")
+                                .Proxy(
+                                   X.AjaxProxy()
+                                    .Url(Url.Action("GetOtherPaymentMethodsList"))
+                                    .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                                    .Reader(X.JsonReader().RootProperty("data"))
+                                )
+                                .AutoLoad(true)
+                                .Model(Html.X().Model()
+                                    .Fields(
+                                        new ModelField() { Name = "ID", Type = ModelFieldType.Int },
+                                        new ModelField() { Name = "Name", Type = ModelFieldType.String },
+                                        new ModelField() { Name = "Description", Type = ModelFieldType.String },
+                                        new ModelField() { Name = "Name", Type = ModelFieldType.String },
+                                        new ModelField() { Name = "AccountID", Type = ModelFieldType.String },
+                                        new ModelField() { Name = "BranchID", Type = ModelFieldType.String },
+                                        new ModelField() { Name = "Code", Type = ModelFieldType.String }
+
+                                    )
+                                ).DataSource(Model)
+                            ) 
+                            .ColumnModel(
+                                Html.X().Column()
+                                        .Text("Identifiant")
+                                        .DataIndex("ID")
+                                        .Flex(1)
+                                        ,
+                                Html.X().Column()
+                                    .Text("Name")
+                                    .DataIndex("Name")
+                                    .Flex(1)
+                                    ,
+                                Html.X().Column()
+                                    .Text("Code")
+                                    .DataIndex("Code")
+                                    .Flex(1),
+                                Html.X().Column()
+                                    .Text("Description")
+                                    .DataIndex("Description")
+                                    .Flex(1),
+                                Html.X().Column()
+                                    .Text("AccountID")
+                                    .DataIndex("AccountID")
+                                    .Flex(1),
+                                Html.X().Column()
+                                    .Text("BranchID")
+                                    .DataIndex("BranchID")
+                                    .Flex(1),
+
+                                Html.X().ImageCommandColumn()
+                                            .Width(30)
+											.Hidden(LoadAction.IsSubMenuActionAble(MenuAction.DELETE, profile, CodeValue.Parameter.MoneyManagement.OTCODE,db))
+                                            .Commands(
+                                                Html.X().ImageCommand()
+                                                    .CommandName("Delete")
+                                                    .IconCls("icon-delete")
+                                            )
+                                            .DirectEvents(de =>
+                                            {
+                                                de.Command.Action = "DeletePaymentMethod";
+                                                de.Command.Confirmation.ConfirmRequest = true;
+                                                de.Command.Confirmation.Message = "Voulez vous supprimer ?";
+                                                de.Command.Confirmation.Title = "Opération de suppression";
+                                                de.Command.ExtraParams.Add(new Parameter("ID", "record.data.ID", ParameterMode.Raw));
+                                                de.Command.EventMask.ShowMask = true;
+                                                de.Command.EventMask.Msg = "Opération en cours...";
+                                            }),
+                                Html.X().ImageCommandColumn()
+                                        .Width(30)
+										.Hidden(LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, profile,CodeValue.Parameter.MoneyManagement.OTCODE,db))
+                                        .Commands(
+                                        Html.X().ImageCommand()
+                                                .CommandName("Edit")
+                                                .IconCls("icon-edit")
+                                                .ToolTip(tt => tt.Text = "Modifier ?")
+                                        )
+
+                                        .DirectEvents(de =>
+                                        {
+                                            de.Command.Action = "InitializeFieldsPaymentMethod";
+                                            de.Command.ExtraParams.Add(new Parameter("ID", "record.data.ID", ParameterMode.Raw));
+                                            de.Command.EventMask.ShowMask = true;
+                                            de.Command.EventMask.Msg = "Chargement des paramètres de modification en cours...";
+                                        })
+                                )
+                                .BottomBar(
+                                     Html.X().PagingToolbar()
+                                )
+                       ) 
+                 ) 
+    )  
+
+}

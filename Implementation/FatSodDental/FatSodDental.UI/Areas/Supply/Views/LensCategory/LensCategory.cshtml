@@ -1,0 +1,273 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Supply.Entities;
+@using FatSod.DataContext.Initializer;
+
+@model System.Collections.IEnumerable
+
+@{
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    //ViewBag.Title = FatSod.Ressources.Resources.Category;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+    string CategoryCodeBlur = @"
+                                if(App.CategoryID.getValue() == 0){
+                                    App.SupplyingName.setValue(App.CategoryCode.getValue());
+                                }
+                                ";
+}
+    @section content
+{
+    @(
+
+            //Début du FormPanel
+            X.FormPanel()
+            //paramétrages du formpanel
+                .ID("CategoryForm")
+                .Collapsible(true)
+                .Layout(LayoutType.Column)
+                .Title("Add A New Lens Category")
+                .Frame(true)
+                .MarginSpec("0 20 20 20")
+                .BodyPadding(10)
+                .FieldDefaults(fd => { fd.LabelWidth = 120; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+                //buttons enregistrer et Réinitialiser
+                .Buttons(
+                    //buttons enregistrer
+                    X.Button()
+                        .ID("btnSave")
+                        .Text(FatSod.Ressources.Resources.SaveButton)
+                        .Disabled(true)
+                        .Icon(Icon.Disk)
+                        .Margin(10)
+                        //.DirectClickAction(addAction),
+                            .DirectEvents(
+                                de =>
+                                {
+                                    de.Click.Url = Url.Action("AddManager");
+                                    de.Click.EventMask.ShowMask = true;
+                                    de.Click.EventMask.Msg = FatSod.Ressources.Resources.EventMaskMsg;
+                                }
+                            ),
+                        //buttons Réinitialiser
+                        X.Button()
+                            .ID("btnReset")
+                            .Text(FatSod.Ressources.Resources.ResetButton)
+                            .Icon(Icon.ArrowRefresh)
+                            .MarginSpec("0 20 10 10")
+                            .DirectEvents(
+                                    de =>
+                                    {
+                                        de.Click.Url = Url.Action("Reset");
+                                        de.Click.EventMask.ShowMask = true;
+                                        de.Click.EventMask.Msg = FatSod.Ressources.Resources.EventMaskMsg;
+                                    }
+                            )
+                    )
+                    //listeners du formpanel
+                    .Listeners(
+                        ls =>
+                        {
+                            ls.FieldChange.Handler = "if(App.CategoryForm.isValid()){App.btnSave.setDisabled(false);}else{App.btnSave.setDisabled(true);}";
+                            ls.AfterRender.Handler = "if(App.CategoryForm.isValid()){App.btnSave.setDisabled(false);}else{App.btnSave.setDisabled(true);}";
+                        }
+                     )
+                    //les champs de saisie du formulaire                    
+                     .Items(
+                        X.Container() @*début du box contenant code et libellé*@
+                        .Layout(LayoutType.VBox)
+                        .Items(
+                        //identifiant
+                        X.TextField().Name("CategoryID").ID("CategoryID").Hidden(true),
+                        X.TextField().Name("LensMaterialID").ID("LensMaterialID").Hidden(true),
+                        X.TextField().Name("LensColourID").ID("LensColourID").Hidden(true),
+                        X.TextField().Name("LensCoatingID").ID("LensCoatingID").Hidden(true),
+                        X.TextField().Name("CollectifAccountID").ID("CollectifAccountID").Hidden(true),
+                        //code
+                        X.TextField()
+                            .ID("CategoryCode")
+                            .Name("CategoryCode")
+                            .MinWidth(400)
+                            .FieldLabel(FatSod.Ressources.Resources.Code)
+                            .MsgTarget(MessageTarget.Side)//le lieu d'affichage du message d'erreur lié à un défaut de validation
+                            .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                            .BlankText(FatSod.Ressources.Resources.InputBlankTextMessage)//message qui sera afficher si le champ reste vide
+                            .AllowBlank(false)//dit si oui ou non le champ peut etre vide
+                            //.MinLength(4)
+                            .Listeners(ls =>{ls.Change.Handler = CategoryCodeBlur;})
+                            ,
+                        //label
+                        X.TextField()
+                            .ID("CategoryLabel")
+                            .Name("CategoryLabel")
+                            .MinWidth(400)
+                            .FieldLabel(FatSod.Ressources.Resources.Label)
+                            .MsgTarget(MessageTarget.Side)//le lieu d'affichage du message d'erreur lié à un défaut de validation
+                            .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :") //séparateur entre le texte du label et la zone de saisie
+                            .BlankText(FatSod.Ressources.Resources.InputBlankTextMessage)//message qui sera afficher si le champ reste vide
+                            .AllowBlank(false)//dit si oui ou non le champ peut etre vide
+                            ), @*début du box contenant code et libellé*@
+                        //description
+                        X.TextArea()
+                            .ID("CategoryDescription")
+                            .Name("CategoryDescription")
+                            .FieldLabel(FatSod.Ressources.Resources.Description)
+                            .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"></span> :"),//séparateur entre le texte du label et la zone de saisie
+                        X.TextField()
+                            .ID("SupplyingName")
+                            .MinWidth(400)
+                            .Name("SupplyingName")
+                            .FieldLabel("Supplying Name")
+                            .MsgTarget(MessageTarget.Side)//le lieu d'affichage du message d'erreur lié à un défaut de validation
+                            .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :") //séparateur entre le texte du label et la zone de saisie
+                            .BlankText(FatSod.Ressources.Resources.InputBlankTextMessage)//message qui sera afficher si le champ reste vide
+                            .AllowBlank(true),//dit si oui ou non le champ peut etre vide
+                        X.NumberField().FieldLabel("Diameter")
+                            .Name("LensDiameter")
+                            .ID("LensDiameter")
+                            .Value(60)
+                            .MinValue(0)
+                            .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                            .AllowBlank(true)
+                            ,
+                        X.TextField()
+                            .ID("LensIndex")
+                            .MinWidth(400)
+                            .Name("LensIndex")
+                            .FieldLabel(FatSod.Ressources.Resources.Index)
+                            .MsgTarget(MessageTarget.Side)//le lieu d'affichage du message d'erreur lié à un défaut de validation
+                            .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :") //séparateur entre le texte du label et la zone de saisie
+                            .BlankText(FatSod.Ressources.Resources.InputBlankTextMessage)//message qui sera afficher si le champ reste vide
+                            .AllowBlank(true)
+                            .Value("1.56")
+                            ,
+                            X.ComboBox().Name("TypeLens") //category des produits
+                                .FieldLabel(FatSod.Ressources.Resources.LensType)
+                                .MarginSpec("0 0 0 0")
+                                .Items(LoadComponent.GetAllLensType())
+                                .AllowBlank(false)
+                                .ForceSelection(true)
+                                .ID("TypeLens")
+                                //.Width(400)
+                                .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                .EmptyText(FatSod.Ressources.Resources.chooseLensType)
+                                .AutoSelect(false)
+                            /*X.Container()
+                                .Layout(LayoutType.HBox)
+                                .ID("IsSpecialOrder")
+                                .Items(
+                                        X.Radio().BoxLabel(FatSod.Ressources.Resources.Yess).Name("IsSpecialCategory").ID("SpecialOrder").InputValue("1").Checked(true).FieldLabel(FatSod.Ressources.Resources.D_SpecialOrder),
+                                        X.Radio().BoxLabel(FatSod.Ressources.Resources.No).Name("IsSpecialCategory").ID("NonSpecialOrder").InputValue("0").LabelWidth(10).FieldLabel("    ").LabelSeparator("")//,
+                                        .LabelWidth(10).FieldLabel("    ").LabelSeparator("")
+                                )*/
+                        )
+                    @*Fin du FormPanel*@
+                 )
+    @*fin de la partie formulaire*@
+
+    @*Début du tableau*@
+        @(Html.X().GridPanel()
+        .Title(FatSod.Ressources.Resources.CategoriesList)
+        .ID("CategoryList")
+        .Layout(LayoutType.Fit)
+        .MarginSpec("0 20 20 20")
+        .Frame(true)
+        .Collapsible(true)
+        .Store(
+            Html.X().Store()
+                .ID("CategoryListStore")
+                .DataSource(Model)
+                .RemotePaging(true)
+                .AutoLoad(true)
+                .PageSize(10)
+                .GroupField("Light")
+                .Model(Html.X().Model()
+                    .Fields(
+                        new ModelField() { Name = "CategoryID", Type = ModelFieldType.Int },
+                        new ModelField() { Name = "CategoryCode", Type = ModelFieldType.String },
+                        new ModelField() { Name = "CategoryLabel", Type = ModelFieldType.String },
+                        new ModelField() { Name = "CategoryDescription", Type = ModelFieldType.String },
+                        new ModelField() { Name = "TypeLens", Type = ModelFieldType.String }
+                    )
+                )
+
+                .ServerProxy(X.AjaxProxy()
+                    .Url(Url.Action("GetAllCategories"))
+                    .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                    .Reader(X.JsonReader().RootProperty("data"))
+                )
+
+            )
+
+        .ColumnModel(
+            Html.X().Column()
+                    .Text(FatSod.Ressources.Resources.Code)
+                    .DataIndex("CategoryCode")
+                    .Flex(1)
+                    ,
+            Html.X().Column()
+                .Text(FatSod.Ressources.Resources.LensType)
+                .DataIndex("TypeLens")
+                .Flex(1)
+                ,
+            Html.X().Column()
+                .Text(FatSod.Ressources.Resources.Description)
+                .DataIndex("CategoryDescription")
+                .Flex(1),
+            Html.X().ImageCommandColumn()
+                        .Width(30)
+                        .Hidden(LoadAction.IsMenuActionAble(MenuAction.DELETE, profile, CodeValue.Supply.CategoryMenu.CODE,db))
+                        .Commands(
+                            Html.X().ImageCommand()
+                                .CommandName("Delete")
+                                .IconCls("icon-delete")
+                                .ToolTip(tt =>
+                                    {
+                                        tt.Text = FatSod.Ressources.Resources.ConfirmDeleteMessage;
+                                        tt.Title = "Supression";
+                                    }
+                                 )
+                        )
+                        .DirectEvents(de =>
+                        {
+                            de.Command.Action = "DeleteCategory";
+                            de.Command.Method = HttpMethod.POST;
+                            de.Command.Confirmation.ConfirmRequest = true;
+                            de.Command.Confirmation.Message = FatSod.Ressources.Resources.ConfirmDeleteMessage;
+                            de.Command.Confirmation.Title = FatSod.Ressources.Resources.ConfirmDeleteTitle;
+                            de.Command.ExtraParams.Add(new Parameter("CategoryID", "record.data.CategoryID", ParameterMode.Raw));
+                            de.Command.EventMask.ShowMask = true;
+                            de.Command.EventMask.Msg = FatSod.Ressources.Resources.EventMaskMsg;
+                        }),
+            Html.X().ImageCommandColumn()
+                    .Width(30)
+                    .Hidden(LoadAction.IsMenuActionAble(MenuAction.UPDATE, profile, CodeValue.Supply.CategoryMenu.CODE,db))
+                    .Commands(
+                    Html.X().ImageCommand()
+                            .CommandName("Edit")
+                            .IconCls("icon-edit")
+                            .ToolTip(tt => tt.Text = "Modifier ?")
+                    )
+
+                    .DirectEvents(de =>
+                    {
+                        de.Command.Action = "UpdateCategory";
+                        de.Command.Method = HttpMethod.GET;
+                        de.Command.ExtraParams.Add(new Parameter("CategoryID", "record.data.CategoryID", ParameterMode.Raw));
+                        de.Command.EventMask.ShowMask = true;
+                        de.Command.EventMask.Msg = FatSod.Ressources.Resources.EventMaskUpdate;
+                    })
+            )
+            .Plugins(
+                    X.FilterHeader()
+                )
+            .BottomBar(
+                 Html.X().PagingToolbar()
+            )
+)
+    @*Fin du tableau*@
+}

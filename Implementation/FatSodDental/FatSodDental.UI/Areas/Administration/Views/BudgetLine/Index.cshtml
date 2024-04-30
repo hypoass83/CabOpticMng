@@ -1,0 +1,254 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+@model System.Collections.IEnumerable
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+@section content
+{
+    @(X.FormPanel()
+        .ID("Unknow")
+            //.Title(Resources.FormUserAddTitle)
+        .Items(
+             X.PanelTitle()
+              .ID("PanelTitl555e")
+              .Border(true)
+              .Padding(2)
+              .Content(
+                @<header>
+                    <h4>Defines your Budget Line here</h4>
+                    <h6>@*You must choice the budget line that you want consume and price.*@</h6>
+                </header>
+                    )
+                )
+                .Frame(true)
+                .MarginSpec("-20 20 20 20")
+                .BodyPadding(10)
+    )
+    @(
+ X.Container()
+             .Layout(LayoutType.HBox)
+             .MarginSpec("-40 10 10 10")
+             .Items(
+                X.FieldSet()
+                 .Flex(1)
+                 .Layout(LayoutType.Anchor)
+                 .Border(false)
+                 .DefaultAnchor("100%")
+                 .Items(
+                X.FormPanel()
+                        .ID("BudgetLineForm")
+                        .Title("Budget Line")
+                        .Frame(true)
+                        .Width(350)
+                        .Height(320)
+                        .BodyPadding(10)
+                        .FieldDefaults(fd => { fd.LabelWidth = 120; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+                        .Buttons(
+                            X.Button()
+                                .ID("btnSave")
+                                .Text(Resources.SaveButton)
+                                .Disabled(true)
+                                .Icon(Icon.Eye)
+                                .Margin(5)
+                                .DirectEvents(de =>
+                                {
+                                    de.Click.Url = Url.Action("AddBudgetLine", "BudgetLine");
+                                    de.Click.EventMask.ShowMask = true;
+                                    de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                                }),
+
+                            X.Button()
+                                .Text(Resources.ResetButton)
+                                .MarginSpec("0 20 10 10")
+                                .OnClientClick("this.up('form').reset();")
+                        )
+                        .Listeners(
+                            ls =>
+                            {
+                                ls.FieldChange.Handler = "if(App.BudgetLineForm.isValid()){App.btnSave.setDisabled(false);}else{App.btnSave.setDisabled(true);}";
+                            }
+                        )
+                        .Items(
+                            X.Container()
+                                .Layout(LayoutType.HBox)
+                                .Items(
+                                    X.FieldSet()
+                                        .Flex(1)
+                                        .Title("Identification")
+                                        .Layout(LayoutType.Anchor)
+                                        .Frame(false)
+                                        .Height(290)
+                                        .Width(120)
+                                        .DefaultAnchor("80%")
+                                        .Items(
+                                            X.NumberField().ID("BudgetLineID").Name("BudgetLineID").Hidden(true),
+                                            X.TextField().FieldLabel("Type")
+                                                .Name("BudgetType")
+                                                .MsgTarget(MessageTarget.Side)
+                                                .ID("BudgetType")
+                                                .AllowBlank(false)
+                                                .Value("Expense")
+                                                .Hidden(true)
+                                                //.ReadOnly(true)
+                                                ,
+                                            X.TextField().FieldLabel("Code")
+                                                .Name("BudgetCode")
+                                                .MsgTarget(MessageTarget.Side)
+                                                .ID("BudgetCode")
+                                                .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                                .AllowBlank(false)
+                                                .MinLength(3)  
+                                                .MaxLength(10)  
+                                                .EnforceMaxLength(true)                                            
+                                                , 
+                                            X.TextField().FieldLabel("Label")
+                                                .Name("BudgetLineLabel")
+                                                .MsgTarget(MessageTarget.Side)
+                                                .AllowBlank(false)
+                                                .MinLength(3)
+                                                .ID("BudgetLineLabel")
+                                                ,
+                                                X.FieldContainer().FieldLabel(Resources.isBudgetControl)
+                                                .Layout(LayoutType.HBox)
+                                                .ID("isBudgetControlCon")
+                                                .MsgTarget(MessageTarget.Side)
+                                                .Items(
+                                                    X.Radio().BoxLabel(Resources.Yess).Name("BudgetControl").ID("isBudgetControl").InputValue("1").Checked(true),
+                                                    X.Radio().BoxLabel(Resources.No).Name("BudgetControl").ID("isBudgetControlNO").InputValue("0")
+                                                    .InputType(Ext.Net.InputType.Radio)
+                                                    .LabelWidth(150).FieldLabel(" ").LabelSeparator("")
+                                                    )            
+                                                , 
+                                            X.ComboBox().FieldLabel("Account")
+                                                .Name("AccountID")
+                                                .Items(LoadComponent.AccountOfClass(6))
+                                                .MsgTarget(MessageTarget.Side)
+                                                .ID("AccountID")
+                                                .AllowBlank(false) 
+                                                .ForceSelection(true)                                               
+                                        ),
+
+                                    X.Component().Width(5)
+                                )
+                        )
+                 )
+
+             ,
+        ////
+             X.FieldSet()
+              .Flex(1)
+              .Layout(LayoutType.Anchor)
+              .Border(false)
+              .DefaultAnchor("100%")
+              .Items(
+                    Html.X().GridPanel()
+                            .Title("Budget Line List")
+                            .ID("BudgetLineList")
+                            .Layout(LayoutType.Fit)
+                            .Frame(true)
+                            .Collapsible(true)
+                            .Store(Html.X().Store()
+                                .GroupField("Hystorique")
+                                .ID("BudgetLineListStore")
+                                .PageSize(10)
+                                .ServerProxy(
+                                   X.AjaxProxy()
+                                    .Url(Url.Action("GetBudgetLineList"))
+                                    .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                                    .Reader(X.JsonReader().RootProperty("data"))
+                                )
+                                .AutoLoad(true)
+                                .Model(Html.X().Model()
+                                    .Fields(
+                                        new ModelField() { Name = "BudgetLineID", Type = ModelFieldType.Int },
+                                        new ModelField() { Name = "Account", Type = ModelFieldType.String },
+                                        new ModelField() { Name = "BudgetControl", Type = ModelFieldType.Boolean },
+                                        new ModelField() { Name = "BudgetCode", Type = ModelFieldType.String },
+                                        new ModelField() { Name = "BudgetLineLabel", Type = ModelFieldType.String },
+                                        new ModelField() { Name = "BudgetType", Type = ModelFieldType.String }
+
+
+                                    )
+                                ).DataSource(Model)
+                            )
+
+                            .ColumnModel(
+                                Html.X().Column()
+                                    .Text("Label")
+                                    .DataIndex("BudgetLineLabel")
+                                    .Flex(1)
+                                    ,
+                                Html.X().Column()
+                                    .Text("Type")
+                                    .DataIndex("BudgetType")
+                                    .Flex(1),
+                                Html.X().Column()
+                                    .Text("Account")
+                                    .DataIndex("Account")
+                                    .Flex(1),
+                                Html.X().Column()
+                                    .Text("Control")
+                                    .DataIndex("BudgetControl")
+                                    .Flex(1),                                    
+                                Html.X().Column()
+                                    .Text("Code")
+                                    .DataIndex("BudgetCode")
+                                    .Flex(1)
+                                    ,
+                                Html.X().ImageCommandColumn()
+                                            .Width(30)
+											.Hidden(LoadAction.IsSubMenuActionAble(MenuAction.DELETE, profile, CodeValue.Parameter.MoneyManagement.TillCODE,db))
+                                            .Commands(
+                                                Html.X().ImageCommand()
+                                                    .CommandName("Delete")
+                                                    .IconCls("icon-delete")
+                                            )
+                                            .DirectEvents(de =>
+                                            {
+                                                de.Command.Action = "DeleteBudgetLine";
+                                                de.Command.Confirmation.ConfirmRequest = true;
+                                                de.Command.Confirmation.Message = "Voulez vous supprimer ?";
+                                                de.Command.Confirmation.Title = "Opération de suppression";
+                                                de.Command.ExtraParams.Add(new Parameter("ID", "record.data.BudgetLineID", ParameterMode.Raw));
+                                                de.Command.EventMask.ShowMask = true;
+                                                de.Command.EventMask.Msg = "Opération en cours...";
+                                            }),
+                                Html.X().ImageCommandColumn()
+                                        .Width(30)
+										.Hidden(LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, profile, CodeValue.Parameter.MoneyManagement.TillCODE,db))
+                                        .Commands(
+                                        Html.X().ImageCommand()
+                                                .CommandName("Edit")
+                                                .IconCls("icon-edit")
+                                                .ToolTip(tt => tt.Text = "Modifier ?")
+                                        )
+
+                                        .DirectEvents(de =>
+                                        {
+                                            de.Command.Action = "InitializeFieldsBudgetLine";
+                                            de.Command.ExtraParams.Add(new Parameter("ID", "record.data.BudgetLineID", ParameterMode.Raw));
+                                            de.Command.EventMask.ShowMask = true;
+                                            de.Command.EventMask.Msg = "Chargement des paramètres de modification en cours...";
+                                        })                                    
+                                )
+                                    .Plugins(
+                                    X.FilterHeader()
+                                    )
+                                        .BottomBar(
+                        X.PagingToolbar()
+                )
+                       )
+                 )
+    )
+}

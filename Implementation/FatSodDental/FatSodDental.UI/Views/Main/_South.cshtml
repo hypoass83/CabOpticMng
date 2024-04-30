@@ -1,0 +1,26 @@
+﻿@{
+    var X = Html.X();    
+}
+
+@(
+    X.Panel()
+        .Region(Region.South)
+        .BodyStyle("background-color:transparent;")
+        .Border(false)
+
+        .Items(
+            X.Panel()
+                .Layout(LayoutType.HBox)
+                .PaddingSpec("0 5px 5px 5px")
+                .Defaults(X.Parameter().Name("margins").Value("0 5 0 0").Mode(ParameterMode.Value))
+                .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Middle, Pack = BoxPack.Center })
+                .BodyStyle("background-color:transparent;")
+                .Border(false)
+                .Items(
+                    X.Hyperlink()
+                        .NavigateUrl("http://www.fatsodgroup.com")
+                        .Text("Power by http://www.fatsodgroup.com")
+                        .Target("_blank")
+                )
+        )
+)

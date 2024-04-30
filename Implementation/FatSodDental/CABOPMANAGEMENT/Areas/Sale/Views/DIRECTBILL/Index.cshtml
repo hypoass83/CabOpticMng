@@ -1,0 +1,2086 @@
+﻿@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+@using CABOPMANAGEMENT.Tools;
+
+@using FatSod.Supply.Entities;
+
+@{
+    ViewBag.Title = Resources.MnuVDIRECTBILL;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+<div class="row" style="margin-top:5px;margin-left:25px">
+    @if (TempData["Message"] != null)
+    {
+        @Html.Raw(TempData["Message"])
+    }
+</div>
+<div class="box box-primary box-body" id="SaleValideForm">
+    <div class="col-md-12">
+        @*<div class="row" style="margin-top:-5px;">*@
+        <fieldset>
+            @*<legend>@Resources.CustomerIdentification</legend>*@
+            <input class="form-control input-sm" id="DisplayForm" type="hidden" value="@ViewBag.DisplayForm">
+
+            <div class="panel panel-default" style="padding-top: 10px; padding-bottom: 40px;">
+                <input type="hidden" id="GlobalPersonID" />
+                <input type="hidden" id="AdressID" />
+                <input type="hidden" id="CNI" />
+                <input type="hidden" id="CustomerNumber" />
+                <input type="hidden" id="LastCustomerID" />
+
+                <div class="panel-body1">
+                    <input type="hidden" id="StatutSale" value="@SalePurchaseStatut.Delivered" />
+                    <input type="hidden" id="OldStatutSale" value="@SalePurchaseStatut.Ordered" />
+
+                    <input type="hidden" id="SaleValidate" value="true" />
+                    <input type="hidden" id="CustomerOrderID" />
+                    <input type="hidden" id="SaleDeliver" />
+
+                    <input type="hidden" id="ProductLocalizationID" />
+
+                    <input type="hidden" id="heureVente" />
+                    <input type="hidden" id="TypeLens" />
+
+                    <input type="hidden" id="CustomerOrderNumber" />
+                    <input type="hidden" id="CustomerOrderDate" class="input-sm form-control" value="@ViewBag.BusnessDayDate" />
+                    <input class="form-control" id="CompteurFacture" name="CompteurFacture" type="hidden">
+
+                    <div class="col-md-4">
+                        <div class="row ipt">
+                            <div class="col-sm-5">@Resources.Branches<code>(*)</code></div>
+                            <div class="col-sm-7">
+                                <input type="hidden" id="DefaultBranchID" value="@ViewBag.CurrentBranch" />
+                                <select id="BranchID" class="form-control"></select>
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-5">@Resources.InssureName<code>(*)</code></div>
+                            <div class="col-sm-7">
+                                <input type="text" id="InsurreName" placeholder="@Resources.Select" class="input-sm form-control">
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-5">@Resources.CustomerPatient<code>(*)</code></div>
+                            <div class="col-sm-7">
+                                <input type="text" id="CustomerName" placeholder="@Resources.Select" class="input-sm form-control">
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-5">@Resources.PhoneNumber</div>
+                            <div class="col-sm-7">
+                                <input type="text" id="PhoneNumber" class="input-sm form-control">
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-5">@Resources.DateOfBirth<code>(*)</code></div>
+                            <div class="col-sm-3">
+                                <input type="text" id="DateOfBirth" class="input-sm form-control datepicker" />
+                            </div>
+                            <div class="col-sm-1" style="margin-left:-15px">Age</div>
+                            <div class="col-sm-3">
+                                <input type="text" id="CustomerAge" class="input-sm form-control" readonly />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="row ipt">
+                            <div class="col-sm-5">@Resources.Company<code>(*)</code></div>
+                            <div class="col-sm-7">
+                                <input class="form-control input-sm" id="CompanyName" placeholder="@Resources.Select" type="text">
+                                <input type="hidden" id="InsuredCompanyID" class="form-control">
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-5">@Resources.Remarque</div>
+                            <div class="col-sm-7">
+                                <input class="form-control input-sm" id="Remarque" type="text">
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-5">@Resources.MedecinTraitant</div>
+                            <div class="col-sm-7">
+                                <input class="form-control input-sm" id="MedecinTraitant" type="text">
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-5">@Resources.LieuxdeDepotBordero<code>(*)</code></div>
+                            <div class="col-sm-7">
+                                <select class="form-control" id="LieuxdeDepotBorderoID"></select>
+                            </div>
+                        </div>
+                        <div class="row ipt" id="SexIDF">
+                            <div class="col-sm-5">@Resources.PersonSex</div>
+                            <div class="col-sm-7">
+                                <input type="radio" name="SexID" id="Masculin" value="1" checked="checked" /> @Resources.Male
+                                <input type="radio" name="SexID" id="Feminin" value="2" /> @Resources.Female
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="row ipt">
+                            <div class="col-sm-5">@Resources.Assureur<code>(*)</code></div>
+                            <div class="col-sm-7">
+                                <select class="form-control" id="AssureurID"></select>
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-5">@Resources.PoliceAssurance</div>
+                            <div class="col-sm-7">
+                                <input class="form-control" id="PoliceAssurance" type="text">
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-5">@Resources.NumeroBonPriseEnCharge</div>
+                            <div class="col-sm-7">
+                                <input class="form-control number" id="NumeroBonPriseEnCharge" type="text">
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-5">@Resources.Marqueter<code>(*)</code></div>
+                            <div class="col-sm-7">
+                                <select id="GestionnaireID" class="form-control"></select>
+                            </div>
+                        </div>
+                        <div class="row ipt" id="PreferredLanguage">
+                            <div class="col-sm-5">@Resources.Language<code>(*)</code></div>
+                            <div class="col-sm-3">
+                                @Resources.English <input type="checkbox" name="PreferredLanguage" id="PreferredLanguage_EN" value="EN" />
+                            </div>
+                            <div class="col-sm-4">
+                                @Resources.French <input type="checkbox" name="PreferredLanguage" id="PreferredLanguage_FR" value="FR" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+        @*</div>*@
+    </div>
+    @*<div class="row" style="margin-top:-205px;">*@
+    <div class="col-md-12" style="margin-top:-25px;">
+        <fieldset>
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    @*<div class="row ipt">*@
+                    <input type="hidden" id="GridState" value="0" />
+                    <input type="hidden" id="LineID" value="0" />
+                    <input type="hidden" id="SpecialOrderLineCode" />
+                    <input type="hidden" id="LELineID" />
+                    <input type="hidden" id="RELineID" />
+                    <input type="hidden" id="FRLineID" />
+                    <input type="hidden" id="LensCategory" />
+                    <input type="hidden" id="LocalizationID" class="input-sm form-control" />
+                    <input type="hidden" id="SalesProductsType" class="input-sm form-control">
+                    @*</div>*@
+                    <fieldset style="margin-top:-25px;">
+                        <legend>@Resources.frameProperties</legend>
+                        <div class="panel panel-default">
+                            <div class="panel-bodyFrame">
+                                <div class="col-md-6">
+                                    <div class="row ipt">
+                                        <div class="col-sm-4">@Resources.CodeBar</div>
+                                        <div class="col-sm-8">
+                                            <div class="row">
+                                                <div class="col-sm-8">
+                                                    <input autocomplete="off" type="text" id="BarCode" placeholder="Scan barcode or type it manually" class="input-sm form-control">
+                                                </div>
+                                                <div class="col-sm-2" style="margin-left: -30px;">
+                                                    <button style="padding: 2px 12px;" type="submit" class="btn btn-success btnreduice" id="btnBarCodeScanned">OK</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row ipt">
+                                        <div class="col-sm-4">@Resources.NumeroSerie <code>(*)</code></div>
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <input type="text" id="referenceName" placeholder="@Resources.Select" class="input-sm form-control">
+                                                <input type="hidden" id="NumeroSerie" class="form-control" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row ipt">
+                                        <div class="col-sm-4">@Resources.StockQuantity</div>
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <input type="number" id="StockQuantity" class="input-sm form-control" readonly />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row ipt">
+                                        <div class="col-sm-4">@Resources.Marque <code>(*)</code></div>
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <input type="text" id="marque" class="input-sm form-control" readonly />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row ipt">
+                                        <div class="col-sm-4">@Resources.UnitPrice <code>(*)</code></div>
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <input type="number" min="0" id="FramePrice" class="input-sm form-control" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="row ipt">
+                                        <div class="col-sm-4">@Resources.FrameCategory <code>(*)</code></div>
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <select id="FrameCategory" class="input-sm form-control"></select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row ipt">
+                                        <div class="col-sm-4">@Resources.Reference <code>(*)</code></div>
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <input type="text" id="reference" class="form-control" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row ipt">
+                                        <div class="col-sm-4">@Resources.Categories <code>(*)</code></div>
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <input type="hidden" id="ProductID" class="input-sm form-control" />
+                                                <input type="text" id="ProductCode" class="input-sm form-control" readonly />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row ipt">
+                                        <div class="col-sm-4">@Resources.Quantity <code>(*)</code></div>
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <input type="number" min="1" id="FrameLineQuantity" class="input-sm form-control" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row ipt">
+                                        <div class="col-sm-4">@Resources.TreatmentDate<code>(*)</code></div>
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <input type="text" id="TreatmentDate" class="input-sm form-control datepicker" />
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <fieldset style="margin-top:-25px;">
+                        <legend>@Resources.lensProperties</legend>
+                        <div class="panel panel-default">
+                            <div class="panel-bodyLens">
+                                <div class="col-md-6">
+                                    <div class="row ipt">
+                                        <div class="col-sm-3">@Resources.Categories</div>
+                                        <div class="row">
+                                            <div class="col-sm-8">
+                                                <select id="LensCategoryCode" class="input-sm form-control"></select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="row ipt">
+                                        <div class="col-sm-3">Supplying Name</div>
+                                        <div class="row">
+                                            <div class="col-sm-8">
+                                                <input type="text" id="SupplyingName" class="input-sm form-control">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-12">
+                                    <div class="row ipt">
+                                        <div class="col-sm-2">
+                                            <span>@Resources.EyeSide</span>
+                                        </div>
+                                        <div class="col-sm-1" style="margin-left:-75px;">
+                                            <span>Sphere</span>
+                                        </div>
+                                        <div class="col-sm-1" style="margin-left:-25px;">
+                                            <span>Cylinder</span>
+                                        </div>
+                                        <div class="col-sm-1" style="margin-left:-25px;">
+                                            <span>Axis</span>
+                                        </div>
+                                        <div class="col-sm-1" style="margin-left:-25px;">
+                                            <span>Addition</span>
+                                        </div>
+                                        <div class="col-sm-2" style="margin-left:-25px;">
+                                            <span>Command Lens ?</span>
+                                        </div>
+                                        <div class="col-sm-2" style="margin-left:-25px;">
+                                            <span>@Resources.Price</span>
+                                        </div>
+                                    </div>
+                                    <div class="row ipt">
+                                        <div class="col-sm-2">
+                                            <span>@Resources.RightSide</span>
+                                        </div>
+                                        <div class="col-sm-1" style="margin-left:-75px;">
+                                            <input type="text" id="RESphere" class="input-sm form-control">
+                                        </div>
+                                        <div class="col-sm-1" style="margin-left:-25px;">
+                                            <input type="text" id="RECylinder" class="input-sm form-control">
+                                        </div>
+                                        <div class="col-sm-1" style="margin-left:-25px;">
+                                            <input type="text" id="REAxis" class="input-sm form-control NumbersAndDecimal">
+                                        </div>
+                                        <div class="col-sm-1" style="margin-left:-25px;">
+                                            <input type="text" id="REAddition" class="input-sm form-control">
+                                        </div>
+                                        <div class="col-sm-2" style="margin-left:-25px;">
+                                            <select id="isRCommandGlass" class="input-sm form-control">
+                                                <option value="False">NO</option>
+                                                <option value="True">YES</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-sm-2" style="margin-left:-25px;">
+                                            <input type="number" id="REPrice" class="input-sm form-control">
+                                        </div>
+                                        <input type="hidden" id="REIndex" class="input-sm form-control NumbersAndDecimal">
+                                        <div class="col-sm-2" style="width:10px;margin-left:-25px;margin-top:-1px;">
+                                            <button type="submit" class="btn btn-primary" id="btnApplyREToLE"><span class="glyphicon glyphicon-chevron-down"></span></button>
+                                        </div>
+                                    </div>
+
+                                    <div class="row ipt">
+                                        <div class="col-sm-2">
+                                            <span>@Resources.LeftSide</span>
+                                        </div>
+                                        <div class="col-sm-1" style="margin-left:-75px;">
+                                            <input type="text" id="LESphere" class="input-sm form-control">
+                                        </div>
+                                        <div class="col-sm-1" style="margin-left:-25px;">
+                                            <input type="text" id="LECylinder" class="input-sm form-control">
+                                        </div>
+                                        <div class="col-sm-1" style="margin-left:-25px;">
+                                            <input type="text" id="LEAxis" class="input-sm form-control NumbersAndDecimal">
+                                        </div>
+                                        <div class="col-sm-1" style="margin-left:-25px;">
+                                            <input type="text" id="LEAddition" class="input-sm form-control">
+                                        </div>
+                                        <div class="col-sm-2" style="margin-left:-25px;">
+                                            <select id="isLCommandGlass" class="input-sm form-control">
+                                                <option value="False">NO</option>
+                                                <option value="True">YES</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-sm-2" style="margin-left:-25px;">
+                                            <input type="number" id="LEPrice" class="input-sm form-control">
+                                        </div>
+                                        <input type="hidden" id="LEIndex" class="input-sm form-control NumbersAndDecimal">
+                                        <div class="col-sm-2" style="width:10px;margin-left:-25px;">
+                                            <button type="submit" class="btn btn-primary" id="btnApplyLEToRE"><span class="glyphicon glyphicon-chevron-up"></span></button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="row ipt">
+                                        <div class="col-sm-5">@Resources.LensPriceSimple <code>(*)</code></div>
+                                        <div class="col-sm-7">
+                                            <input type="number" min="0" id="LensPrice" class="input-sm form-control" readonly />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="row ipt">
+                                        <div class="col-sm-4">@Resources.Quantity <code>(*)</code></div>
+                                        <div class="col-sm-8">
+                                            <input type="number" min="1" id="LensLineQuantity" class="input-sm form-control" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="row ipt">
+                                        <div class="col-sm-4">@Resources.Seller<code>(*)</code></div>
+                                        <div class="col-sm-8">
+                                            <select id="SellerID" class="form-control"></select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <div class="row ipt" style="margin-top:-28px;">
+                        <div class="col-sm-2" style="margin-left:25px;">@Resources.SaleAmount</div>
+                        <div class="col-sm-2" style="margin-left:-55px;">
+                            <input type="number" id="LineUnitPrice" class="input-sm form-control" readonly />
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <div class="col-md-6">
+                            <div class="row ipt">
+                                <div class="col-sm-6" style="margin-left:15px;">@Resources.DetailBill</div>
+                                <div class="col-sm-4">
+                                    <input type="radio" name="DatailBill" id="NoDetail" value="0" /> @Resources.No
+                                    <input type="radio" name="DatailBill" id="IsDetail" value="1" checked="checked" /> @Resources.Yess
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="col-md-6">
+
+                            <fieldset>
+                                <legend>@Resources.Plafond</legend>
+                                <div class="row ipt">
+                                    <div class="col-sm-3" id="lbLens">
+                                        <span>@Resources.lenses</span>
+                                    </div>
+                                    <div class="col-sm-3" id="lbMonture">
+                                        <span>@Resources.Monture</span>
+                                    </div>
+                                    <div class="col-sm-3" id="lbRemise">
+                                        <span>@Resources.Remise</span>
+                                    </div>
+                                    <div class="col-sm-3" id="lbTotal">
+                                        <span>@Resources.TotalAmount</span>
+                                    </div>
+                                </div>
+                                <div class="row ipt">
+                                    <div class="col-sm-3" id="dVerreAssurance">
+                                        <input type="number" id="VerreAssurance" class="input-sm form-control">
+                                    </div>
+                                    <div class="col-sm-3" id="dMontureAssurance">
+                                        <input type="number" id="MontureAssurance" class="input-sm form-control">
+                                    </div>
+                                  
+                                    @*@if (LoadAction.IsMenuActionAble(MenuAction.DELETE, @profile, CodeValue.Sale.NewSale.DIRECTBILL, db))
+                                    {*@
+                                        <div class="col-sm-3" id="dRemise">
+                                            <input type="number" readonly id="Remise" class="input-sm form-control" step="0.01" min="0" max="100">
+                                        </div>
+                                    @*}
+                                    else
+                                    {
+                                        <div class="col-sm-3" id="dRemise">
+                                            <input type="number" id="Remise" class="input-sm form-control" step="0.01" min="0" max="100">
+                                        </div>
+                                    }*@
+
+                                    <div class="col-sm-3" id="dPlafond">
+                                        <input type="number" id="Plafond" class="input-sm form-control">
+                                    </div>
+                                    <div class="col-sm-12" id="dNetAPayer" style="margin-top: 20px;display: flex;">
+                                        <label class="col-sm-6">@Resources.NetApayer </label>
+                                        <input type="number" readonly id="NetAPayer" class="col-sm-6 input-sm form-control">
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </div>
+                        <div class="col-md-6">
+                            <fieldset>
+                                <legend>@Resources.ParMalade</legend>
+                                <div class="row ipt">
+                                    <div class="col-sm-4" id="lbLensP">
+                                        <span>@Resources.lenses</span>
+                                    </div>
+                                    <div class="col-sm-4" id="lbMontureP">
+                                        <span>@Resources.Monture</span>
+                                    </div>
+                                    <div class="col-sm-4" id="lbTotalP">
+                                        <span>@Resources.TotalAmount</span>
+                                    </div>
+                                </div>
+                                <div class="row ipt">
+                                    <div class="col-sm-4" id="dVerreMalade">
+                                        <input type="number" id="VerreMalade" class="input-sm form-control">
+                                    </div>
+                                    <div class="col-sm-4" id="dMontureMalade">
+                                        <input type="number" id="MontureMalade" class="input-sm form-control">
+                                    </div>
+                                    <div class="col-sm-4" id="dTotalMalade">
+                                        <input type="number" id="TotalMalade" class="input-sm form-control">
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </div>
+
+                    </div>
+
+
+                </div>
+            </div>
+        </fieldset>
+    </div>
+
+    <!-- Save and Reset Buttons -->
+    <div class="row" style="margin-top:-20px">
+        <div class="col-sm-2" style="margin-left:20px;">
+            <button id="btnCancel" class="btn btn-primary btn-danger">@Resources.Cancel</button>
+        </div>
+        @*<div class="col-sm-2" style="margin-left:-60px;">
+                <button id="btnProforma" class="btn btn-primary" onclick="location.href='@Url.Action("RptProforma", "ReportsHome", new { area = "" })'"><i class="fa fa-print"></i> @Resources.PrintProforma</button>
+            </div>*@
+        <div class="col-sm-2">
+            <button id="btnSubmit" class="btn btn-primary btn-success">@Resources.ValidateButton</button>
+        </div>
+        <div class="col-sm-1">
+        </div>
+
+        <div class="col-sm-2">
+            <button id="btnDeliveryOrder" class="btn btn-primary" onclick="location.href='@Url.Action("RptFacture", "ReportsHome", new { area = "" })'"><i class="fa fa-print"></i> @Resources.Printfacture (FR)</button>
+        </div>
+        <div class="col-sm-2">
+            <button id="btnDeliveryOrderEN" class="btn btn-primary" onclick="location.href='@Url.Action("RptFactureEN", "ReportsHome", new { area = "" })'"><i class="fa fa-print"></i> @Resources.Printfacture (EN)</button>
+        </div>
+        <div class="col-sm-2">
+            <button id="btnReceipt" class="btn btn-primary" onclick="location.href='@Url.Action("RptBordero", "ReportsHome", new { area = ""})'"><i class="fa fa-print"></i> @Resources.PrintBordDep</button>
+        </div>
+    </div>
+</div>
+
+<!-- Css Begins Here -->
+
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 3px;
+        margin-left: -5px;
+    }
+
+    #img-upload {
+        width: 100%;
+    }
+
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin: 0;
+        min-width: 0;
+        padding: 10px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 540px;
+        margin-bottom: 1%;
+    }
+
+    .panel-body1 {
+        height: 130px;
+        margin-bottom: 1%;
+    }
+
+    .panel-body3 {
+        height: 35px;
+    }
+
+    .panel-bodyFrame {
+        height: 135px;
+        margin-bottom: 20px;
+        margin-top: 10px;
+    }
+
+    .panel-bodyLens {
+        height: 160px;
+        margin-bottom: 2%;
+    }
+
+    .panel-bodyInsurePrice {
+        height: 160px;
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+</style>
+
+<!--********** JavaScripts **********-->
+<script>
+
+    function clickNoDetail() {
+        $('#dVerreAssurance').hide();
+        $('#dMontureAssurance').hide();
+        $('#lbLens').hide();
+        $('#lbMonture').hide();
+        $('#lbLensP').hide();
+        $('#lbMontureP').hide();
+        $('#Plafond').prop('disabled', false);
+        $('#TotalMalade').prop('disabled', false);
+        $('#dVerreMalade').hide();
+        $('#dMontureMalade').hide();
+    }
+    function clickIsDetail() {
+        $('#dVerreAssurance').show();
+        $('#dMontureAssurance').show();
+        $('#lbLens').show();
+        $('#lbMonture').show();
+        $('#lbLensP').show();
+        $('#lbMontureP').show();
+        $('#Plafond').prop('disabled', true);
+        $('#TotalMalade').prop('disabled', true);
+        $('#dVerreMalade').show();
+        $('#dMontureMalade').show();
+    }
+
+    function enablebutton()
+    {
+        $('#btnDeliveryOrder').prop('disabled', false);
+        $('#btnDeliveryOrderEn').prop('disabled', false);
+        $('#btnProformaDetail').prop('disabled', false);
+    }
+    function disablebutton() {
+        $('#btnDeliveryOrder').prop('disabled', true);
+        $('#btnDeliveryOrderEn').prop('disabled', true);
+        $('#btnProformaDetail').prop('disabled', true);
+    }
+
+    //get list of deposit locations
+    function getListofDepositLocations() {
+        $.get('@Url.Action("getListofDepositLocations", "MenuProforma")', {}, function (data) {
+            $('#LieuxdeDepotBorderoID').empty();
+            $.each(data, function (key, value) {
+                $('#LieuxdeDepotBorderoID').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+    // Get the Users List
+    function populateUsers() {
+        $.get('@Url.Action("populateUsers", "DIRECTBILL")', {}, function (data) {
+            $('#GestionnaireID').empty();
+            $('#GestionnaireID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#GestionnaireID').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+    // Get the Seller Users List
+    function populateSelerUsers() {
+        $.get('@Url.Action("populateSellerUsers", "DIRECTBILL")', {}, function (data) {
+            $('#SellerID').empty();
+            $('#SellerID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#SellerID').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+    // Get the Branch List
+    function populateBranch() {
+        $.get('@Url.Action("GetOpenedBranches", "DIRECTBILL")', {}, function (data) {
+            $('#BranchID').empty();
+            $('#BranchID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#BranchID').append($("<option></option>").val(value.BranchID).html(value.BranchName));
+            });
+            var _DefaultId = $('#DefaultBranchID').val();
+            $('#BranchID').val(_DefaultId);
+            InitDate(_DefaultId);
+            loadCustomerNumber();
+        }, 'json');
+    }
+    function InitDate(Branch) {
+        $.get('@Url.Action("InitDate", "DIRECTBILL")', { BranchID: Branch }, function (data) {
+            $('#CustomerOrderDate').empty();
+            $('#MedecinTraitant').empty();
+            $('#LocalizationID').empty();
+            $('#SalesProductsType').empty();
+
+            $.each(data, function (key, value) {
+                $('#CustomerOrderDate').val(value.CustomerOrderDate);
+                $('#MedecinTraitant').val(value.MedecinTraitant);
+                $('#LocalizationID').val(value.LocalizationID);
+                $('#SalesProductsType').val(value.SalesProductsType);
+            });
+            //chargement des frames
+            //var LocalizationID = $("#LocalizationID").val();
+            //populateGetFrameProducts(LocalizationID);
+            //chargement des numero
+            loadSerialNumber();
+        }, 'json');
+    }
+
+    @*// Get the Frame List
+    function populateGetFrameProducts(DepartureLocalizationID) {
+        $.get('@Url.Action("GetAllProducts", "DIRECTBILL")', { DepartureLocalizationID: DepartureLocalizationID }, function (data) {
+            $('#ProductID').empty();
+            $('#ProductID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#ProductID').append($("<option></option>").val(value.ProductID).html(value.ProductCode));
+            });
+        }, 'json');
+    }*@
+
+    @*//det detail selected frame
+    function OnProductSelected(Localization, CurrentProduct) {
+        $.get('@Url.Action("OnProductSelected", "DIRECTBILL")', { Localization: Localization, CurrentProduct: CurrentProduct }, function (data) {
+            $('#StockQuantity').empty();
+            $('#FrameLineQuantity').empty();
+            $('#FramePrice').empty();
+
+            $.each(data, function (key, value) {
+                $('#StockQuantity').val(value.StockQuantity);
+                $('#FrameLineQuantity').val(value.FrameLineQuantity);
+                $('#FramePrice').val(value.FramePrice);
+            });
+            onPriceAmountChanged();
+        }, 'json');
+    };*@
+
+    // Get the Product category List
+    function GetAllLensCategories() {
+        $.get('@Url.Action("GetAllLensCategories", "DIRECTBILL")', {}, function (data) {
+            $('#LensCategoryCode').empty();
+            $('#LensCategoryCode').append($("<option value='0' selected='selected'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#LensCategoryCode').append($("<option></option>").val(value.CategoryCode).html(value.CategoryCode));
+            });
+            var LensCategoryCode = $('#LensCategoryCode').val();
+            SetSupplyingName(LensCategoryCode);
+
+        }, 'json');
+    }
+
+    function SetSupplyingName(LensCategoryCode) {
+        $.get('@Url.Action("SetSupplyingName", "DIRECTBILL")', { LensCategoryCode: LensCategoryCode }, function (data) {
+            $('#SupplyingName').empty();
+            $('#LensLineQuantity').empty();
+            $('#TypeLens').empty();
+
+            $.each(data, function (key, value) {
+                $('#SupplyingName').val(value.SupplyingName);
+                $('#LensLineQuantity').val(value.LensLineQuantity);
+                $('#TypeLens').val(value.TypeLens);
+            });
+            var TypeLens = $('#TypeLens').val();
+            if (TypeLens=="SV")
+            {
+                $('#REAddition').prop('readonly', true);
+                $('#LEAddition').prop('readonly', true);
+            }
+            else
+            {
+                $('#REAddition').prop('readonly', false);
+                $('#LEAddition').prop('readonly', false);
+            }
+        }, 'json');
+    }
+    function LActivateAxe(CylinderVal){
+        if (CylinderVal.trim() == '' || CylinderVal.length == 0){
+            $('#LEAxis').prop('readonly', true);
+            $('#LEAxis').val('');
+        }
+        else{
+            $('#LEAxis').prop('readonly', false);
+        }
+    }
+    function RActivateAxe(CylinderVal) {
+        if (CylinderVal.trim() == '' || CylinderVal.length == 0) {
+            $('#REAxis').prop('readonly', true);
+            $('#REAxis').val('');
+        }
+        else {
+            $('#REAxis').prop('readonly', false);
+        }
+    }
+    function InitialiseHeader() {
+        //header
+        $("#CustomerOrderID").val('');
+        $("#GestionnaireID").val('0');
+        $("#SellerID").val('0');
+
+        $('#Customer').val('');
+        $('#CustomerName').val('');
+        $('#InsurreName').val('');
+        $('#Remarque').val('');
+        $('#MedecinTraitant').val('');
+
+        $('#DateOfBirth').val('');
+        $('#CustomerAge').val('');
+        $('#CNI').val('');
+        $('#CustomerNumber').val('');
+        $('#LastCustomerID').val('');
+        $("#PreferredLanguage_EN").prop("checked", false);
+        $("#PreferredLanguage_FR").prop("checked", false);
+        $("#GlobalPersonID").val('');
+
+        $('#PhoneNumber').val('');
+        $('#CompanyName').val('');
+        $('#InsuredCompanyID').val('');
+
+
+        $('#AssureurID').val('0');
+        $('#PoliceAssurance').val('');
+        $('#CompteurFacture').val('');
+        $('#NumeroBonPriseEnCharge').val('');
+
+        //amount detail
+        $('#LineUnitPrice').val('0');
+
+
+        var _DefaultId = $('#DefaultBranchID').val();
+        $('#BranchID').val(_DefaultId);
+        InitDate(_DefaultId);
+        loadCustomerNumber();
+    }
+
+    function loadCustomerNumber() {
+        var BranchID = $('#BranchID').val();
+        //chargement detail
+        $.get('@Url.Action("InitTrnNumber", "../CRM/Customer")', { BranchID: BranchID }, function (data) {
+            console.log("Information call ", data, BranchID);
+            $.each(data, function (key, value) {
+                $('#CustomerNumber').val(value.CustomerNumber + 1);
+                $('#CNI').val(value.CustomerNumber + 1);
+                $('#LastCustomerID').val(value.LastCustomerID + 1);
+            });
+        }, 'json').fail(function (jqXHR, textStatus) {
+            console.log("error message", jqXHR, textStatus);
+        });
+    }
+
+    function InitialiseFrame()
+    {
+        $('#FrameLineQuantity').val('');
+        $('#FramePrice').val('');
+        $('#ProductID').val('');
+        $('#marque').val('');
+        $('#reference').val('');
+
+        $('#referenceName').val('');
+        $('#ProductCode').val('');
+        $('#StockQuantity').val('');
+        $('#NumeroSerie').val('');
+    }
+    function InitialiseFooter()
+    {
+        $('#VerreAssurance').val('0');
+        $('#MontureAssurance').val('0');
+        $('#Plafond').val('0');
+
+        $('#VerreMalade').val('0');
+        $('#MontureMalade').val('0');
+        $('#TotalMalade').val('0');
+    }
+
+    function productitems()
+    {
+        $('#LensLineQuantity').val('');
+        $('#LensPrice').val('');
+        $('#LensCategoryCode').val('0');
+        $('#SupplyingName').val('');
+        InitRE();
+        InitLE();
+    }
+    function productitemsansCat() {
+        InitRE();
+        InitLE();
+        $('#LensLineQuantity').val('');
+        $('#LensPrice').val('');
+        $('#SupplyingName').val('');
+    }
+
+    function ClearForm() {
+        InitialiseHeader();
+        InitialiseFrame();
+        InitialiseFooter();
+        //initCheckBox();
+        productitems();
+        $('#btnSubmit').prop('disabled', false);
+    }
+
+    // Get the Frame List
+    function loadSerialNumber() {
+
+        $("#referenceName").autocomplete({
+            minLength: 1, // set minimum of 1 characters before search executes.
+            delay: 100, // wait 0.1 second after keystroke before search executes.
+            source: function (request, response) {
+                $.ajax({
+                    url: '@Url.Action("GetAllSerialNumber", "DIRECTBILL")',
+                    type: "POST",
+                    dataType: "json",
+                    //cache: false,
+                    data: { filter: request.term, DepartureLocalizationID: $("#LocalizationID").val() },
+                    success: function (data) {
+                        response($.map(data, function (item) {
+                            return { label: item.Name, value: item.Name, id: item.ID };
+                        }))
+                    }
+                })
+            },
+            messages: {
+                noResults: "No results",
+                results: function (count) {
+                    return count + (count == 0 ? ' result' : ' results');
+                }
+            },
+            select: function (event, ui) {
+                $("#ProductLocalizationID").val(ui.item.id);
+                var _ProductLocalizationID = $('#ProductLocalizationID').val();
+                loadProductInfo(_ProductLocalizationID);
+            }
+        });
+
+    }
+
+    function loadProductInfo(ProductLocalizationID) {
+
+        $.get('@Url.Action("InitProductDetail", "DIRECTBILL")', { ProductLocalizationID: ProductLocalizationID }, function (data) {
+            $('#ProductID').empty();
+            $('#ProductCode').empty();
+            $('#marque').empty();
+            $('#StockQuantity').empty();
+            $('#FrameLineQuantity').empty();
+            $('#FramePrice').empty();
+            $('#reference').empty();
+            $('#NumeroSerie').empty();
+
+            $.each(data, function (key, value) {
+                $('#ProductID').val(value.ProductID);
+                $('#ProductCode').val(value.ProductCode);
+                $('#marque').val(value.marque);
+                $('#StockQuantity').val(value.StockQuantity);
+                $('#FrameLineQuantity').val(value.FrameLineQuantity);
+                $('#FramePrice').val(value.FramePrice);
+                $('#reference').val(value.reference)
+                $('#NumeroSerie').val(value.NumeroSerie);
+            });
+            onPriceAmountChanged();
+        }, 'json');
+    }
+
+     // Get the Assurance List
+    function GetRemiseAssurance() {
+        $.get('@Url.Action("GetRemiseOfCurrentAssurence", "MenuValideProforma")', { AssureurID: $('#AssureurID').val()  }, function (data) {
+            $('#Remise').val(data.Remise)
+            if ([0, '0', ''].includes(data.Remise)) {
+                $('#Remise').prop("disabled", true);
+            }else{
+                $('#Remise').prop("disabled",false); 
+            }
+            const netapayer =  parseInt($('#Plafond').val()) - (parseInt($('#Plafond').val())* parseFloat(data.Remise)) /100
+            $('#NetAPayer').val(netapayer);
+
+        }, 'json');
+    }
+
+
+    $(document).on('ready', function () {
+
+        $(function () {
+            $(".datepicker").datepicker({
+                format: 'dd-mm-yyyy'
+            });
+        });
+        var todaysDate = new Date();
+
+        if ($('#DisplayForm').val().trim() == 0) {
+            $("#SaleValideForm").hide();
+        }
+        else {
+            $("#SaleValideForm").show();
+        }
+        //disablebutton();
+        InitialiseHeader();
+        //chargement des agence
+        populateBranch();
+        populateAssurance();
+        populateUsers();
+        populateSelerUsers();
+        getListofDepositLocations();
+        populateCustomerName();
+        //chargement des company
+        populateCompanyName();
+
+        $('input[type=radio][name=DatailBill]').change(function () {
+            if (this.value == '0') {
+                //write your logic here
+                clickNoDetail();
+            }
+            else if (this.value == '1') {
+                //write your logic here
+                clickIsDetail();
+            }
+        });
+        clickIsDetail();
+       
+
+        $('#VerreAssurance').keyup(function () {
+            Patien_Lens_price();
+        });
+
+        $('#MontureAssurance').keyup(function () {
+            Patien_Lens_price();
+        });
+
+        $('#VerreMalade').keyup(function () {
+            Patien_Total_price();
+        });
+
+        $('#MontureMalade').keyup(function () {
+            Patien_Total_price();
+        });
+
+        $('#Plafond').keyup(function () {
+            NoDet_Lens_price();
+        });
+        $('#Remise').keyup(function () {
+            Calculate_Net_Prixe_after_Reduction();
+        });
+
+        $('#AssureurID').on('change', () => {
+          GetRemiseAssurance() ;
+       })
+
+        ////chargement des qte de frame product
+        //$('#ProductID').change(function () {
+        //    var ProductID = $('#ProductID').val();
+        //    var LocalizationID = $('#LocalizationID').val();
+        //    OnProductSelected(LocalizationID, ProductID);
+
+        //});
+
+        populateFrameMaterial();
+
+        $('#FramePrice').on('keyup', function () {
+            onPriceAmountChanged();
+        });
+        $('#LensPrice').on('keyup', function () {
+            onPriceAmountChanged();
+        });
+        $('#LensLineQuantity').on('keyup', function () {
+            onPriceAmountChanged();
+        });
+        $('#FrameLineQuantity').on('keyup', function () {
+            onPriceAmountChanged();
+        });
+
+        $('#RECylinder').on('keyup', function () {
+            var RCylinderVal = $('#RECylinder').val();
+            RActivateAxe(RCylinderVal)
+        });
+
+        $('#REAxis').on('keyup', function () {
+            var RCylinderVal = $('#RECylinder').val();
+            RActivateAxe(RCylinderVal)
+        });
+        $('#REPrice').on('keyup', function () {
+            EyePriceChange();
+        });
+
+        $('#LECylinder').on('keyup', function () {
+            var LCylinderVal = $('#LECylinder').val();
+            LActivateAxe(LCylinderVal)
+        });
+
+        $('#LEAxis').on('keyup', function () {
+            var LCylinderVal = $('#LECylinder').val();
+            LActivateAxe(LCylinderVal)
+        });
+        $('#LEPrice').on('keyup', function () {
+            EyePriceChange();
+        });
+
+        //chargement des categories
+        GetAllLensCategories();
+        $('#LensCategoryCode').change(function () {
+            productitemsansCat();
+        });
+        $('#LensCategoryCode').change(function () {
+            var LensCategoryCode = $('#LensCategoryCode').val();
+            SetSupplyingName(LensCategoryCode);
+        });
+
+
+        $('#btnApplyREToLE').on('click', function () {
+            ApplyREToLE();
+        });
+        $('#btnApplyLEToRE').on('click', function () {
+            ApplyLEToRE();
+        });
+
+        $('#btnCancel').on('click', function () {
+            location.reload(true);
+        });
+        $('#btnSubmit').on('click', function () {
+            ValideCommande();
+        });
+
+        $("#DateOfBirth").blur(function () {
+            var DateOfBirth = $('#DateOfBirth').val();
+            var dobyear = parseInt(DateOfBirth.substring(6, 10))
+            var CustomerAge = todaysDate.getFullYear() - dobyear;
+            $('#CustomerAge').val(CustomerAge);
+        });
+
+        $("input:checkbox").on('click', function () {
+            // in the handler, 'this' refers to the box clicked on
+            var $box = $(this);
+            if ($box.is(":checked")) {
+                // the name of the box is retrieved using the .attr() method
+                // as it is assumed and expected to be immutable
+                var group = "input:checkbox[name='" + $box.attr("name") + "']";
+                // the checked state of the group/box on the other hand will change
+                // and the current value is retrieved using .prop() method
+                $(group).prop("checked", false);
+                $box.prop("checked", true);
+            } else {
+                $box.prop("checked", false);
+            }
+        });
+
+        $('#btnBarCodeScanned').on('click', function () {
+            OnBarCodeScanned();
+        });
+
+    });
+
+    function OnBarCodeScanned() {
+        var barCode = $('#BarCode').val();
+
+        $(this).val('Please wait...');
+
+		$.ajax({
+			url: '@Url.Action("BarCodeScanned", "../CashRegister/AuthorizePrescriptionSale")',
+			type: "POST",
+			data: JSON.stringify({ BarCode: barCode}),
+			dataType: "JSON",
+			contentType: "application/json",
+			success: function (frame) {
+				//check is successfully save to database
+                if (frame.status == true) {
+                    //$("#referenceName").autocomplete("search", frame.NumeroSerie);
+                    //$("#referenceName").autocomplete("select", frame.NumeroSerie);
+                    $("#ProductLocalizationID").val(frame.ProductLocalizationID);
+                    $("#referenceName").val(frame.NumeroSerie);
+                    loadProductInfo(frame.ProductLocalizationID)
+				}
+				else {
+                    alert(frame.Message);
+				}
+			},
+			error: function () {
+				alert('Error. Please try again.');
+			}
+		});
+
+    }
+
+
+    function Patien_Total_price() {
+        var TotalMalade = parseInt($('#VerreMalade').val()) + parseInt($('#MontureMalade').val());
+        $('#TotalMalade').val(TotalMalade);
+    }
+    function Patien_Lens_price() {
+        var valueLens = $('#LensPrice').val();
+        var lensPartprice = $('#VerreAssurance').val();
+        var LensLineQuantity =  parseInt($('#LensLineQuantity').val())/2;
+
+        var lensCustPartprice = parseInt(valueLens)*LensLineQuantity - parseInt(lensPartprice);
+        $('#VerreMalade').val(lensCustPartprice);
+
+        //monture malade
+        var valueMonture = $('#FramePrice').val();
+        var FramePartprice = $('#MontureAssurance').val();
+        var FrameLineQuantity = $('#FrameLineQuantity').val();
+      
+        var FrameCustPartprice = parseInt(valueMonture)*parseInt(FrameLineQuantity) - parseInt(FramePartprice);
+      
+        $('#MontureMalade').val(FrameCustPartprice);
+
+        var PlafondInsPartprice = parseInt($('#VerreAssurance').val()) + parseInt($('#MontureAssurance').val());
+        $('#Plafond').val(PlafondInsPartprice);
+
+        var TotalMalade = parseInt($('#VerreMalade').val()) + parseInt($('#MontureMalade').val());
+        $('#TotalMalade').val(TotalMalade);
+        
+        const netapayer =  parseInt($('#Plafond').val()) - (parseInt($('#Plafond').val())* parseFloat($("#Remise").val())) /100
+        $('#NetAPayer').val(netapayer);
+    }
+
+    function Calculate_Net_Prixe_after_Reduction() {
+        
+        var TotalMalade = parseInt($('#LineUnitPrice').val()) - parseInt($('#Plafond').val());
+        $('#TotalMalade').val(TotalMalade);
+
+        const netapayer =  parseInt($('#Plafond').val()) - (parseInt($('#Plafond').val())* parseFloat($("#Remise").val())) /100
+        $('#NetAPayer').val(netapayer);
+    }
+
+    function NoDet_Lens_price() {
+
+        $('#VerreAssurance').val('0');
+        $('#MontureAssurance').val('0');
+
+        $('#VerreMalade').val('0');
+        $('#MontureMalade').val('0');
+
+        var TotalMalade = parseInt($('#LineUnitPrice').val()) - parseInt($('#Plafond').val());
+        $('#TotalMalade').val(TotalMalade);
+
+        const netapayer =  parseInt($('#Plafond').val()) - (parseInt($('#Plafond').val())* parseFloat($("#Remise").val())) /100
+        $('#NetAPayer').val(netapayer);
+    }
+
+
+
+    // Get the Assurance List
+    function populateAssurance() {
+        $.get('@Url.Action("populateAssurance", "DIRECTBILL")', {}, function (data) {
+            $('#AssureurID').empty();
+            $('#AssureurID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#AssureurID').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+            var AssureurID = $('#AssureurID').val();
+            LoadCompteur(AssureurID);
+        }, 'json');
+    }
+
+    function LoadCompteur(AssureurID) {
+
+        $.get('@Url.Action("LoadCompteurFacture", "DIRECTBILL")', { AssureurID: AssureurID }, function (data) {
+            $.each(data, function (key, value) {
+                $('#CompteurFacture').val(value.CompteurFacture);
+            });
+        }, 'json');
+
+
+    }
+
+    // Get the FrameMaterial List
+    function populateFrameMaterial() {
+
+        $.get('@Url.Action("GetFrameMaterial", "DIRECTBILL")', { }, function (data) {
+            $('#FrameCategory').empty();
+            $('#FrameCategory').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#FrameCategory').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+    function onPriceAmountChanged() {
+        //var FramePrice = ($('#FramePrice').val() == '') ? 0 : parseFloat($('#FramePrice').val());
+        //var LensPrice = ($('#LensPrice').val() == '') ? 0 : parseFloat($('#LensPrice').val());
+        //var TotalAmount = FramePrice + LensPrice;
+        //$('#LineUnitPrice').val(TotalAmount);
+
+        var FramePrice = ($('#FramePrice').val() == '') ? 0 : parseFloat($('#FramePrice').val());
+        var LensPrice = ($('#LensPrice').val() == '') ? 0 : parseFloat($('#LensPrice').val());
+
+        $('#LineUnitPrice').val('0');
+        //lens details
+        var LensCategoryCode = $.trim($('#LensCategoryCode').val());
+
+
+        var LECylinder = $.trim($('#LECylinder').val());
+        var LESphere = $.trim($('#LESphere').val());
+
+
+        var RECylinder = $.trim($('#RECylinder').val());
+        var RESphere = $.trim($('#RESphere').val());
+
+        var LensLineQuantity = ($('#LensLineQuantity').val() == '') ? 0 : parseFloat($('#LensLineQuantity').val());
+        var FrameLineQuantity = ($('#FrameLineQuantity').val() == '') ? 0 : parseFloat($('#FrameLineQuantity').val());
+
+        $.get('@Url.Action("GetTotalPrice", "DIRECTBILL")', {
+            LensLineQuantity: LensLineQuantity, FramePrice: FramePrice, LensPrice: LensPrice, FrameLineQuantity: FrameLineQuantity,
+            LECylinder: LECylinder, LESphere: LESphere, RECylinder: RECylinder, RESphere: RESphere
+        }, function (data) {
+            $.each(data, function (key, value) {
+                $('#LineUnitPrice').val(value.LineUnitPrice);
+            });
+        }, 'json');
+    }
+
+    // Get the Customer List
+    function populateCompanyName() {
+
+        $("#CompanyName").autocomplete({
+            minLength: 1, // set minimum of 1 characters before search executes.
+            delay: 100, // wait 0.1 second after keystroke before search executes.
+            source: function (request, response) {
+                $.ajax({
+                    url: '@Url.Action("LoadCompanyName", "DIRECTBILL")',
+                    type: "POST",
+                    dataType: "json",
+                    //cache: false,
+                    data: { filter: request.term },
+                    success: function (data) {
+                        response($.map(data, function (item) {
+                            return { label: item.Name, value: item.Name, id: item.ID };
+                        }))
+                    }
+                })
+            },
+            messages: {
+                noResults: "No results",
+                results: function (count) {
+                    return count + (count == 0 ? ' result' : ' results');
+                }
+            },
+            select: function (event, ui) {
+                $("#InsuredCompanyID").val(ui.item.id);
+            }
+        });
+    }
+
+    function populateCustomerName() {
+        $("#CustomerName").autocomplete({
+            minLength: 1, // set minimum of 1 characters before search executes.
+            delay: 100, // wait 0.1 second after keystroke before search executes.
+            source: function (request, response) {
+                $.ajax({
+                    url: '@Url.Action("LoadExistingCustomers", "MenuProforma")',
+                    type: "GET",
+                    dataType: "json",
+                    //cache: false,
+                    data: { filter: request.term },
+                    success: function (data) {
+                        console.log('Call data ', data);
+                        response($.map(data, function (item) {
+                            return { label: item.Name, value: item.Name, id: item.GlobalPersonID };
+                        }))
+                    },
+                    error: function (jqXHR, textStatus) {
+                        console.error('Call error ', jqXHR, textStatus);
+                    }
+                })
+            },
+            messages: {
+                noResults: "No results",
+                results: function (count) {
+                    return count + (count == 0 ? ' result' : ' results');
+                }
+            },
+            select: function (event, ui) {
+                console.log("Selected Customer ", ui);
+                loadCustomerInformation(ui.item.id)
+            }
+        });
+    }
+
+    function loadCustomerInformation(customerId) {
+        console.log('Call data ', customerId);
+        $.get('@Url.Action("GetCustomer", "MenuProforma")', { customerId: customerId }, function (data) {
+            console.log('Call data ', data);
+            $("#GlobalPersonID").val(data.GlobalPersonID);
+            $("#CNI").val(data.CNI);
+            $("#CustomerNumber").val(data.CustomerNumber);
+            $("#CustomerName").val(data.CustomerName);
+            $("#PhoneNumber").val(data.PhoneNumber);
+            $("#DateOfBirth").val(data.DateOfBirth);
+            $('input[name=SexID][value="' + data.SexID + '"]').prop('checked', true);
+            $('input[name=PreferredLanguage][value="' + data.PreferredLanguage + '"]').prop('checked', true);
+            $("#AdressID").val(data.AdressID);
+            $('#CustomerAge').val(data.CustomerAge);
+        }).fail(function (jqXHR, textStatus) {
+            console.error('Call error ', jqXHR, textStatus);
+        }).always(function () {
+
+        });
+    }
+
+    function EyePriceChange()
+    {
+        var LEPrice = ($('#LEPrice').val() == '') ? 0 : parseFloat($('#LEPrice').val());
+        var REPrice = ($('#REPrice').val() == '') ? 0 : parseFloat($('#REPrice').val());
+        var LensPrice = LEPrice + REPrice;
+        $('#LensPrice').val(LensPrice);
+        onPriceAmountChanged();
+    }
+
+
+    //validation d'une commande
+    function ValideCommande() {
+
+        var isAllValid = true;
+        var d = new Date();
+        var hourPayment = d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds();
+        $('#heureVente').val(hourPayment);
+
+        if ($('#DateOfBirth').val().trim() == '') {
+            isAllValid = false;
+            $('#DateOfBirth').addClass("invalid-data");
+        }
+        else {
+            $('#DateOfBirth').addClass("valid-data");
+        }
+
+        if ($('#TreatmentDate').val().trim() == '') {
+            isAllValid = false;
+            $('#TreatmentDate').addClass("invalid-data");
+        }
+        else {
+            $('#TreatmentDate').addClass("valid-data");
+        }
+
+        var language = $('input[name=PreferredLanguage]:checked').val();
+        if (language != "FR" && language != "EN") {
+            isAllValid = false;
+            $('#PreferredLanguage').addClass("invalid-data");
+            alert('Please select a valid Language(English Or French) for Customer ');
+        }
+
+        if ($('#heureVente').val().trim() == '') {
+            isAllValid = false;
+        }
+        if ($('#CustomerName').val() == '') {
+            isAllValid = false;
+            $("#CustomerName").addClass("invalid-data");
+        }
+        else {
+            $("#CustomerName").addClass("valid-data");
+        }
+
+        if ($('#InsurreName').val() == '') {
+            isAllValid = false;
+            $("#InsurreName").addClass("invalid-data");
+        }
+        else {
+            $("#InsurreName").addClass("valid-data");
+        }
+
+        if ($('#CustomerOrderDate').val() == '') {
+            isAllValid = false;
+            $("#CustomerOrderDate").addClass("invalid-data");
+        }
+        else {
+            $("#CustomerOrderDate").addClass("valid-data");
+        }
+        if ($('#MedecinTraitant').val() == '') {
+            isAllValid = false;
+            $("#MedecinTraitant").addClass("invalid-data");
+        }
+        else {
+            $("#MedecinTraitant").addClass("valid-data");
+        }
+
+
+        if ($('#LocalizationID').val() == "0") {
+            isAllValid = false;
+            $("#LocalizationID").addClass("invalid-data");
+        }
+        else {
+            $("#LocalizationID").addClass("valid-data");
+        }
+
+        if ($('#SalesProductsType').val() == "0") {
+            isAllValid = false;
+            $("#SalesProductsType").addClass("invalid-data");
+        }
+        else {
+            $("#SalesProductsType").addClass("valid-data");
+        }
+
+
+
+        if ($('#MedecinTraitant').val().trim() == '') {
+            isAllValid = false;
+            $("#MedecinTraitant").addClass("invalid-data");
+        }
+        else {
+            $("#MedecinTraitant").addClass("valid-data");
+        }
+
+        if ($('#PoliceAssurance').val().trim() == '') {
+            isAllValid = false;
+            $("#PoliceAssurance").addClass("invalid-data");
+        }
+        else {
+            $("#PoliceAssurance").addClass("valid-data");
+        }
+
+
+        if ($('#InsuredCompanyID').val().trim() == '') {
+            isAllValid = false;
+            alert('THIS COMPANY DOES NOT EXIST');
+            $("#CompanyName").addClass("invalid-data");
+        }
+        else {
+            $("#CompanyName").addClass("valid-data");
+        }
+
+        if ($('#CompanyName').val().trim() == '') {
+            isAllValid = false;
+            $("#CompanyName").addClass("invalid-data");
+        }
+        else {
+            $("#CompanyName").addClass("valid-data");
+        }
+
+        if ($('#BranchID').val().trim() == '') {
+            isAllValid = false;
+            $("#BranchID").addClass("invalid-data");
+        }
+        else {
+            $("#BranchID").addClass("valid-data");
+        }
+
+
+        if (parseInt($('#Plafond').val()) <= 0) {
+            isAllValid = false;
+            $("#Plafond").addClass("invalid-data");
+        }
+        else {
+            $("#Plafond").addClass("valid-data");
+        }
+
+        if (parseInt($('#TotalMalade').val()) < 0) {
+            isAllValid = false;
+            $("#TotalMalade").addClass("invalid-data");
+        }
+        else {
+            $("#TotalMalade").addClass("valid-data");
+        }
+
+
+        if ($('#AssureurID').val() == "0") {
+            isAllValid = false;
+            $('#AssureurID').addClass("invalid-data");
+        }
+        else {
+            $('#AssureurID').addClass("valid-data");
+        }
+        if ($('#GestionnaireID').val() == "0") {
+            isAllValid = false;
+            $('#GestionnaireID').addClass("invalid-data");
+        }
+        else {
+            $('#GestionnaireID').addClass("valid-data");
+        }
+
+        var regex = /^\d{1,2}(\.\d{1,2})?$/;
+        if (!regex.test($('#Remise').val().trim())) {
+            isAllValid = false;
+            $('#Remise').addClass("invalid-data");
+        }else {
+            $('#Remise').addClass("valid-data");
+        }
+
+        if ($('#SellerID').val() == "0") {
+            isAllValid = false;
+            $('#SellerID').addClass("invalid-data");
+        }
+        else {
+            $('#SellerID').addClass("valid-data");
+        }
+
+        if ($('#LieuxdeDepotBorderoID').val() == "0" || $('#LieuxdeDepotBorderoID').val() == "" || $('#LieuxdeDepotBorderoID').val() == null) {
+            isAllValid = false;
+            $("#LieuxdeDepotBorderoID").addClass("invalid-data");
+        }
+        else {
+            $("#LieuxdeDepotBorderoID").addClass("valid-data");
+        }
+
+        //si le cadre n'est pas clique
+        if ($('#ProductID').val() == "0" || $('#ProductID').val() == '') { //cadre
+            //on verifi si le verre est choisi
+            if ($('#LensCategoryCode').val() == "0") {
+                isAllValid = false;
+                $("#LensCategoryCode").addClass("invalid-data");
+                $("#ProductID").addClass("invalid-data");
+            }
+            else { //si le verre est choisi -> saisi seulement du verre
+                $("#LensCategoryCode").addClass("valid-data");
+                if (parseFloat($('#LensPrice').val()) <= 0) {
+                    isAllValid = false;
+                    $("#LensPrice").addClass("invalid-data");
+                }
+                else {
+                    $("#LensPrice").addClass("valid-data");
+                }
+
+                var RESphere = $('#RESphere').val();
+                var RECylinder = $('#RECylinder').val();
+                var REAddition = $('#REAddition').val();
+
+                var LESphere = $('#LESphere').val();
+                var LECylinder = $('#LECylinder').val();
+                var LEAddition = $('#REAddition').val()
+
+                //Verifier si le nombre de cote de verre remplit concorde avec la quantiter entrer ( par example remplire RE et LE voudrait impliquer que la quantiter doit etre paire)
+
+                // cette variable contiendra le nombre de coter remplit par l'usager ( sachant ce nombre est d'au plus 2 )
+                let numberOfLensFilledSides = 0;
+
+                // si une des proprieter de RE a une valeur valide alors on considere que l'usager a remplire RE et on incremente le nombre de coter remplit
+                if ((RESphere != null && RESphere.length >= 4) || (RECylinder != null && RECylinder.length >= 4) || (REAddition != null && REAddition.length >= 4))
+                    numberOfLensFilledSides++
+
+                // si une des proprieter de LE a une valeur valide alors on considere que l'usager a remplire LE et on incremente le nombre de coter remplit
+                if ((LESphere != null && LESphere.length >= 4) || (LECylinder != null && LECylinder.length >= 4) || (LEAddition != null && LEAddition.length >= 4))
+                    numberOfLensFilledSides++
+
+                // la quantiter entrer par l'usager
+                var LensLineQuantity = ($('#LensLineQuantity').val() == '') ? 0 : parseFloat($('#LensLineQuantity').val());
+
+                // je verifie si la quantiter modulo le nombre de ligne remplir est different de 0 ( sachant numberOfLensFilledSides est soit egal a 1 ou 2  )
+                if (numberOfLensFilledSides != 0 && LensLineQuantity % numberOfLensFilledSides != 0) {
+                    isAllValid = false;
+                    alert("Please make sure the quantity entered is concording with the filled lens property")
+
+                }
+
+                //on verrifi les caracterisque du verre
+                //verification de l'addition
+                var TypeLens = $('#TypeLens').val();
+                if (TypeLens != "SV") {
+
+                    if ((RESphere != null && RESphere.length >= 4) || (RECylinder != null && RECylinder.length >= 4)) {
+                        if ($('#REAddition').val().trim() == '') {
+                            isAllValid = false;
+                            $("#REAddition").addClass("invalid-data");
+                        }
+                        else {
+                            $("#REAddition").addClass("valid-data");
+                        }
+                    }
+                    if ((LESphere != null && LESphere.length >= 4) || (LECylinder != null && LECylinder.length >= 4)) {
+                        if ($('#LEAddition').val().trim() == '') {
+                            isAllValid = false;
+                            $("#LEAddition").addClass("invalid-data");
+                        }
+                        else {
+                            $("#LEAddition").addClass("valid-data");
+                        }
+                    }
+                }
+
+
+            }
+        }
+        else { //si le cadre est choisi
+            if ($('#marque').val().trim() == '') {
+                isAllValid = false;
+                $("#marque").addClass("invalid-data");
+            }
+            else {
+                $("#marque").addClass("valid-data");
+            }
+            if ($('#reference').val().trim() == '') {
+                isAllValid = false;
+                $("#reference").addClass("invalid-data");
+            }
+            else {
+                $("#reference").addClass("valid-data");
+            }
+            if ($('#NumeroSerie').val().trim() == '') {
+                isAllValid = false;
+                $("#NumeroSerie").addClass("invalid-data");
+            }
+            else {
+                $("#NumeroSerie").addClass("valid-data");
+            }
+            if ($('#FrameCategory').val() == "0" || $('#FrameCategory').val() == null) {
+                isAllValid = false;
+                $("#FrameCategory").addClass("invalid-data");
+            }
+            else {
+                $("#FrameCategory").addClass("valid-data");
+            }
+            if ($('#FrameLineQuantity').val().trim() == '') {
+                isAllValid = false;
+                $("#FrameLineQuantity").addClass("invalid-data");
+            }
+            else {
+                $("#FrameLineQuantity").addClass("valid-data");
+            }
+
+            // si le verre n'est pas choisi
+            if ($('#LensCategoryCode').val() == "0") {
+                isAllValid = true;
+                $("#LensCategoryCode").addClass("valid-data");
+                $("#ProductID").addClass("valid-data");
+            }
+            else { //si le verre est choisi -> saisi seulement du verre
+                $("#LensCategoryCode").addClass("valid-data");
+                //on verrifi les caracterisque du verre
+                if (parseFloat($('#LensPrice').val()) <= 0) {
+                    isAllValid = false;
+                    $("#LensPrice").addClass("invalid-data");
+                }
+                else {
+                    $("#LensPrice").addClass("valid-data");
+                }
+
+                var RESphere = $('#RESphere').val();
+                var RECylinder = $('#RECylinder').val();
+                var REAddition = $('#REAddition').val();
+
+                var LESphere = $('#LESphere').val();
+                var LECylinder = $('#LECylinder').val();
+                var LEAddition = $('#REAddition').val()
+
+                //Verifier si le nombre de cote de verre remplit concorde avec la quantiter entrer ( par example remplire RE et LE voudrait impliquer que la quantiter doit etre paire)
+
+                // cette variable contiendra le nombre de coter remplit par l'usager ( sachant ce nombre est d'au plus 2 )
+                let numberOfLensFilledSides = 0;
+
+                // si une des proprieter de RE a une valeur valide alors on considere que l'usager a remplire RE et on incremente le nombre de coter remplit
+                if ((RESphere != null && RESphere.length >= 4) || (RECylinder != null && RECylinder.length >= 4) || (REAddition != null && REAddition.length >= 4))
+                    numberOfLensFilledSides++
+
+                // si une des proprieter de LE a une valeur valide alors on considere que l'usager a remplire LE et on incremente le nombre de coter remplit
+                if ((LESphere != null && LESphere.length >= 4) || (LECylinder != null && LECylinder.length >= 4) || (LEAddition != null && LEAddition.length >= 4))
+                    numberOfLensFilledSides++
+
+                // la quantiter entrer par l'usager
+                var LensLineQuantity = ($('#LensLineQuantity').val() == '') ? 0 : parseFloat($('#LensLineQuantity').val());
+
+                // je verifie si la quantiter modulo le nombre de ligne remplir est different de 0 ( sachant numberOfLensFilledSides est soit egal a 1 ou 2  )
+                if (numberOfLensFilledSides != 0 && LensLineQuantity % numberOfLensFilledSides != 0) {
+                    isAllValid = false;
+                    alert("Please make sure the quantity entered is concording with the filled lens property")
+
+                }
+                //verification de l'addition
+                var TypeLens = $('#TypeLens').val();
+                if (TypeLens != "SV") {
+                    if ((RESphere != null && RESphere.length >= 4) || (RECylinder != null && RECylinder.length >= 4)) {
+                        if ($('#REAddition').val().trim() == '') {
+                            isAllValid = false;
+                            $("#REAddition").addClass("invalid-data");
+                        }
+                        else {
+                            $("#REAddition").addClass("valid-data");
+                        }
+                    }
+                    if ((LESphere != null && LESphere.length >= 4) || (LECylinder != null && LECylinder.length >= 4)) {
+                        if ($('#LEAddition').val().trim() == '') {
+                            isAllValid = false;
+                            $("#LEAddition").addClass("invalid-data");
+                        }
+                        else {
+                            $("#LEAddition").addClass("valid-data");
+                        }
+                    }
+                }
+            }
+        }
+        if (isAllValid) {
+
+
+            var data = {
+                GlobalPersonID: $('#GlobalPersonID').val(),
+                CustomerID: $('#GlobalPersonID').val(),
+                CNI: $('#CNI').val(),
+                DateOfBirth: $('#DateOfBirth').val(),
+                PreferredLanguage: $('input[name=PreferredLanguage]:checked').val(),
+                CustomerNumber: $('#CustomerNumber').val(),
+                SexID: $('input[name=SexID]:checked').val(),
+                AdressID: $('#AdressID').val(),
+
+                heureVente: $('#heureVente').val().trim(),
+                LieuxdeDepotBorderoID: $('#LieuxdeDepotBorderoID').val(),
+                FrameCategory: $('#FrameCategory').val().trim(),
+                CustomerOrderDate: $('#CustomerOrderDate').val(),
+                GestionnaireID: $('#GestionnaireID').val(),
+                SellerID: $('#SellerID').val(),
+                Remarque: $('#Remarque').val().trim(),
+                MedecinTraitant: $('#MedecinTraitant').val().trim(),
+                CustomerName: $('#CustomerName').val(),
+                InsurreName: $('#InsurreName').val(),
+                CompanyName: $('#CompanyName').val(),
+                InsuredCompanyID: $('#InsuredCompanyID').val(),
+                PhoneNumber: $('#PhoneNumber').val(),
+                BranchID: $('#BranchID').val(),
+                SalesProductsType: $.trim($('#SalesProductsType').val()),
+                LocalizationID: $.trim($('#LocalizationID').val()),
+
+                CustomerOrderID: $("#CustomerOrderID").val(),
+
+                //frame details
+                FrameLineQuantity: $.trim($('#FrameLineQuantity').val()),
+                FramePrice: $.trim($('#FramePrice').val()),
+                FrameProductID: $('#ProductID').val(),
+                marque: $('#marque').val(),
+                reference: $('#reference').val(),
+                NumeroSerie: $('#NumeroSerie').val(),
+                //lens details
+                LensCategoryCode: $.trim($('#LensCategoryCode').val()),
+                SupplyingName: $.trim($('#SupplyingName').val()),
+                LEAddition: $.trim($('#LEAddition').val()),
+                LEAxis: $.trim($('#LEAxis').val()),
+                LEIndex: $.trim($('#LEIndex').val()),
+                LECylinder: $.trim($('#LECylinder').val()),
+                LESphere: $.trim($('#LESphere').val()),
+                LEPrice: $.trim($('#LEPrice').val()),
+                isLCommandGlass: $('#isLCommandGlass').val(),
+
+                REAddition: $.trim($('#REAddition').val()),
+                REAxis: $.trim($('#REAxis').val()),
+                REIndex: $.trim($('#REIndex').val()),
+                RECylinder: $.trim($('#RECylinder').val()),
+                RESphere: $.trim($('#RESphere').val()),
+                REPrice: $.trim($('#REPrice').val()),
+                isRCommandGlass: $('#isRCommandGlass').val(),
+
+                LensLineQuantity: $.trim($('#LensLineQuantity').val()),
+                LensPrice: $.trim($('#LensPrice').val()),
+                //price detail
+                TotalPriceTTC: $.trim($('#LineUnitPrice').val()),
+
+                CompteurFacture: $('#CompteurFacture').val(),
+                AssureurID: $('#AssureurID').val().trim(),
+                RemiseAssurance : $('#Remise').val(),
+
+                PoliceAssurance: $('#PoliceAssurance').val(),
+                NumeroBonPriseEnCharge: $('#NumeroBonPriseEnCharge').val(),
+                DatailBill: $('input[name=DatailBill]:checked').val(),
+                VerreAssurance: $('#VerreAssurance').val(),
+                MontureAssurance: $('#MontureAssurance').val(),
+                Plafond: $('#Plafond').val(),
+                TotalMalade: $('#TotalMalade').val(),
+                TreatmentDate: $('#TreatmentDate').val()
+                //spray: $('#spray').val(),
+                //boitier: $('#boitier').val(),
+            }
+            $(this).val('Please wait...');
+            $('#btnSubmit').prop('disabled', true);
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("AddAssureSale", "DIRECTBILL")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        location.reload(true);
+                        ClearForm();
+                        enablebutton();
+                    }
+                    else {
+                        alert(d.Message);
+                        $('#btnSubmit').prop('disabled', false);
+                    }
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').prop('disabled', false);
+                }
+            });
+        }
+
+    }
+
+    function initCheckBox() {
+        $('input[id="spray"]').prop('value', 1);
+        $('input[id="spray"]').prop('checked', true)
+        $('input[id="boitier"]').prop('value', 1);
+        $('input[id="boitier"]').prop('checked', true)
+    }
+    function CheckSprayClick() {
+
+        if ($('input[id="spray"]').prop('checked')) {
+            $('input[id="spray"]').prop('value', 1);
+        }
+        else {
+            $('input[id="spray"]').prop('value', 0);
+        }
+    };
+    function CheckboitierClick() {
+
+        if ($('input[id="boitier"]').prop('checked')) {
+            $('input[id="boitier"]').prop('value', 1);
+        }
+        else {
+            $('input[id="boitier"]').prop('value', 0);
+        }
+    };
+
+    //supression commande en attente
+    function DeleteCommand(obj) {
+        if (confirm("Do you want to Delete ?")) {
+            var globalID = $(obj).parent().siblings(":first").text();
+            //post to the server
+            $(this).val('Please wait...');
+            var data = {
+                ID: parseInt(globalID)
+            }
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("DeleteCommand", "DIRECTBILL")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        //location.reload(true);
+                        ClearForm();
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                }
+            });
+        }
+
+    }
+
+
+    function InitRE() {
+        //set values
+        $('#REAddition').val('');
+        $('#REAxis').val('');
+        $('#REIndex').val('');
+        $('#RECylinder').val('');
+        $('#RESphere').val('');
+        $('#REPrice').val('');
+        $('#isRCommandGlass').val('False');
+    }
+    function ApplyLEToRE() {
+        //get values
+        var LEAddition = $('#LEAddition').val();
+        var LEAxis = $('#LEAxis').val();
+        var LEIndex = $('#LEIndex').val();
+        var LECylinder = $('#LECylinder').val();
+        var LESphere = $('#LESphere').val();
+        var LEPrice = $('#LEPrice').val();
+        var isLCommandGlass = $('#isLCommandGlass').val();
+        //set values
+        $('#REAddition').val(LEAddition);
+        $('#REAxis').val(LEAxis);
+        $('#REIndex').val(LEIndex);
+        $('#RECylinder').val(LECylinder);
+        $('#RESphere').val(LESphere);
+        $('#REPrice').val(LEPrice);
+        $('#isRCommandGlass').val(isLCommandGlass);
+        EyePriceChange();
+    }
+
+    function InitLE() {
+        //set values
+        $('#LEAddition').val('');
+        $('#LEAxis').val('');
+        $('#LEIndex').val('');
+        $('#LECylinder').val('');
+        $('#LESphere').val('');
+        $('#LEPrice').val('');
+        $('#isLCommandGlass').val('False');
+    }
+
+
+    function ApplyREToLE() {
+
+        //get values
+        var REAddition = $('#REAddition').val();
+        var REAxis = $('#REAxis').val();
+        var REIndex = $('#REIndex').val();
+        var RECylinder = $('#RECylinder').val();
+        var RESphere = $('#RESphere').val();
+        var REPrice = $('#REPrice').val();
+        var isRCommandGlass = $('#isRCommandGlass').val();
+        //set values
+        $('#LEAddition').val(REAddition);
+        $('#LEAxis').val(REAxis);
+        $('#LEIndex').val(REIndex);
+        $('#LECylinder').val(RECylinder);
+        $('#LESphere').val(RESphere);
+        $('#LEPrice').val(REPrice);
+        $('#isLCommandGlass').val(isRCommandGlass);
+        EyePriceChange();
+    }
+
+    function LEIndexChange() {
+
+        var SupplyingName = $('#SupplyingName').val();
+        var LEIndex = ' ' + " INDEX " + $('#LEIndex').val();
+        if ($('#LEIndex').val().length > 0) {
+            if (SupplyingName.indexOf("INDEX") == -1) {//On n'a pas index dans la chaine
+                SupplyingName = SupplyingName + LEIndex;
+                $('#SupplyingName').val(SupplyingName);
+            }
+            else {
+                //Recherche et suppression de l'ancienne index
+                var start = SupplyingName.indexOf("INDEX");
+                var end = SupplyingName.length;
+                var oldLEIndex = SupplyingName.slice(start, end);
+
+                SupplyingName = SupplyingName.replace(oldLEIndex, "");
+                //alert(SupplyingName);
+                SupplyingName = SupplyingName.trim();
+
+                SupplyingName = SupplyingName + LEIndex;
+                $('#SupplyingName').val(SupplyingName);
+            }
+        }
+
+    }
+
+    function REIndexChange() {
+
+        if ($('#REIndex').val().length > 0) {
+
+            var SupplyingName =$('#SupplyingName').val();
+            var REIndex = ' ' + " INDEX " + $('#REIndex').val();
+
+            if (SupplyingName.indexOf("INDEX") == -1) {//On n'a pas index dans la chaine
+                SupplyingName = SupplyingName + REIndex;
+                $('#SupplyingName').val(SupplyingName);
+            }
+            else {
+                //Recherche et suppression de l'ancienne index
+                var start = SupplyingName.indexOf("INDEX");
+                var end = SupplyingName.length;
+                var oldLEIndex = SupplyingName.slice(start, end);
+                SupplyingName = SupplyingName.replace(oldLEIndex, "");
+                SupplyingName = SupplyingName.trim();
+
+                SupplyingName = SupplyingName + REIndex;
+                $('#SupplyingName').val(SupplyingName);
+            }
+        }
+    }
+
+    /*Fin du code JS de la page OrderLensOrder*/
+</script>

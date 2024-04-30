@@ -1,0 +1,1051 @@
+﻿@using FatSod.Ressources;
+@using FatSod.Supply.Entities;
+@using FatSod.DataContext.Initializer;
+@using CABOPMANAGEMENT.Tools;
+
+@{
+    ViewBag.Title = @Resources.MenuValideProforma;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var profile = (Session["UserProfile"] == null) ? 0 : (int)Session["UserProfile"];
+    var user = (Session["UserID"] == null) ? 0 : (int)Session["UserID"];
+
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+
+<div class="row" style="margin-top:5px;margin-left:25px">
+    @if (TempData["Message"] != null)
+    {
+        @Html.Raw(TempData["Message"])
+    }
+</div>
+<div class="box box-primary box-body" id="SaleValideForm">
+    <div class="row">
+        <div class="col-md-12">
+            <fieldset>
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="row ipt">
+                                <div class="col-sm-3" style="margin-left:50px;">@Resources.UIBeginDate</div>
+                                <div class="col-sm-2" style="margin-left:-100px;">
+                                    <input class="form-control datepicker" id="BeginDate" type="text" placeholder="choose Begin date" value="@ViewBag.BusnessDayDate">
+                                </div>
+                                <div class="col-sm-3">@Resources.UIEndDate</div>
+                                <div class="col-sm-2" style="margin-left:-100px;">
+                                    <input class="form-control datepicker checkDateNoGraterThanToday" id="EndDate" type="text" placeholder="choose End date" value="@ViewBag.BusnessDayDate">
+                                </div>
+                                <div class="col-sm-2">
+                                    <button type="button" class="btn btn-primary" id="btnSearch">@Resources.Search</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+                <input class="form-control input-sm" id="DisplayForm" type="hidden" value="@ViewBag.DisplayForm">
+                <div class="panel panel-default">
+                    <div class="panel-body2">
+
+                        <table class="table" id="mainTable">
+                            <thead>
+                                <tr class="dataTableHead">
+                                    <th>ID</th>
+                                    <th>@Resources.Insurance</th>
+                                    <th>@Resources.SaleRef</th>
+                                    <th>@Resources.InssureName</th>
+                                    <th>@Resources.CustomerPatient</th>
+                                    <th>@Resources.UIDateOperation</th>
+                                    <th>@Resources.ProfomaAmount</th>
+                                    @*<th>@Resources.Remainder</th>*@
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+
+                        </table>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+    <div class="row" style="margin-top:-20px">
+        <div class="col-md-12">
+            <fieldset class="panel-bodyfielset1">
+                <div class="panel panel-default">
+                    <div class="panel-body1">
+
+                        
+                        <input class="form-control" id="GestionnaireID" name="GestionnaireID" type="hidden">
+                        <input class="form-control" id="SellerID" name="SellerID" type="hidden">
+                        <input class="form-control" id="CustomerOrderID" name="CustomerOrderID" type="hidden">
+                        <input class="form-control" id="CustomerID" name="CustomerID" type="hidden">
+                        <input class="form-control" id="heureVente" name="heureVente" type="hidden">
+                        <input class="form-control" id="CompteurFacture" name="CompteurFacture" type="hidden">
+                        <input class="form-control" id="CustomerOrderNumber" name="CustomerOrderNumber" type="hidden">
+                        <input class="form-control" id="NumeroFacture" name="NumeroFacture" type="hidden">
+                        <input class="form-control" id="DeviseID" name="DeviseID" value="@ViewBag.DefaultDeviseID" type="hidden" />
+                        <input class="form-control" id="BranchID" name="BranchID" value="@ViewBag.CurrentBranch" type="hidden">
+                        <div class="col-md-12">
+                            <div class="col-md-4">
+                                <div class="row ipt">
+                                    <div class="col-sm-5">@Resources.InssureName<code>(*)</code></div>
+                                    <div class="col-sm-7">
+                                        <input class="form-control" id="InsurreName" type="text">
+                                    </div>
+                                </div>
+                                <div class="row ipt">
+                                    <div class="col-sm-5">@Resources.CustomerPatient</div>
+                                    <div class="col-sm-7">
+                                        <input class="form-control" id="CustomerName" type="text">
+                                    </div>
+                                </div>
+                                <div class="row ipt">
+                                    <div class="col-sm-5">@Resources.DepositDate</div>
+                                    <div class="col-sm-7">
+                                        <input class="form-control" id="DepositDate" type="text" value="@ViewBag.BusnessDayDate" readonly>
+                                    </div>
+                                </div>
+                                <div class="row ipt">
+                                    <div class="col-sm-5">@Resources.Company</div>
+                                    <div class="col-sm-7">
+                                        <input class="form-control" id="CompanyName" type="text">
+                                        <input type="hidden" id="InsuredCompanyID" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="row ipt">
+                                    <div class="col-sm-5">@Resources.Assureur</div>
+                                    <div class="col-sm-7">
+                                        <select class="form-control" id="AssureurID"></select>
+                                    </div>
+                                </div>
+                                <div class="row ipt">
+                                    <div class="col-sm-5">@Resources.TreatmentDate<code>(*)</code></div>
+                                    <div class="col-sm-7">
+                                        <input type="text" id="TreatmentDate" class="input-sm form-control datepicker" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="row ipt">
+                                    <div class="col-sm-5">@Resources.PoliceAssurance</div>
+                                    <div class="col-sm-7">
+                                        <input class="form-control" id="PoliceAssurance" type="text">
+                                    </div>
+                                </div>
+                                <div class="row ipt">
+                                    <div class="col-sm-5">@Resources.NumeroBonPriseEnCharge</div>
+                                    <div class="col-sm-7">
+                                        <input class="form-control number" id="NumeroBonPriseEnCharge" type="text">
+                                    </div>
+                                </div>
+                                <div class="row ipt">
+                                    <div class="col-sm-5">@Resources.LieuxdeDepotBordero<code>(*)</code></div>
+                                    <div class="col-sm-7">
+                                        <select class="form-control" id="LieuxdeDepotBorderoID"></select>
+                                    </div>
+                                </div>
+                                <div class="row ipt">
+                                    <div class="col-sm-5">@Resources.PhoneNumber</div>
+                                    <div class="col-sm-7">
+                                        <input class="form-control" id="PhoneNumber" type="text">
+                                    </div>
+                                </div>
+                                <div class="row ipt">
+                                    <div class="col-sm-5">@Resources.Remarque</div>
+                                    <div class="col-sm-7">
+                                        <input class="form-control" id="Remarque" type="text">
+                                    </div>
+                                </div>
+                            </div>
+                                <div class="col-md-4">
+                                    <div class="row ipt">
+                                        <div class="col-sm-4">@Resources.MedecinTraitant</div>
+                                        <div class="col-sm-8">
+                                            <input class="form-control number" id="MedecinTraitant" type="text">
+                                        </div>
+                                    </div>
+                                    <div class="row ipt">
+                                        <div class="col-sm-4">@Resources.TotalProforma</div>
+                                        <div class="col-sm-8">
+                                            <input class="form-control number" id="Debt" type="number" readonly>
+                                            <input class="form-control number" id="Matricule" type="hidden">
+                                        </div>
+                                    </div>
+                                    <div class="row ipt">
+                                        <div class="col-sm-4">@Resources.lenses</div>
+                                        <div class="col-sm-8">
+                                            <input class="form-control number" id="Verres" type="number" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="row ipt">
+                                        <div class="col-sm-4">@Resources.Monture</div>
+                                        <div class="col-sm-8">
+                                            <input class="form-control number" id="Monture" type="number" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="row ipt">
+                                        <div class="col-sm-5">@Resources.DetailBill</div>
+                                        <div class="col-sm-7">
+                                            <input type="radio" name="DatailBill" id="NoDetail" value="0" /> @Resources.No
+                                            <input type="radio" name="DatailBill" id="IsDetail" value="1" checked="checked" /> @Resources.Yess
+                                        </div>
+                                    </div>
+                                </div>
+
+                                @*--------------end first div*@
+                            </div>
+                        <div class="col-md-12">
+                            <div class="col-md-6">
+                                <fieldset class="panel-bodyfielset2">
+                                    <legend>@Resources.Plafond</legend>
+                                    <div class="row ipt">
+                                        <div class="col-sm-3" id="lbLens">
+                                            <span>@Resources.lenses</span>
+                                        </div>
+                                        <div class="col-sm-3" id="lbMonture">
+                                            <span>@Resources.Monture</span>
+                                        </div>
+
+                                        <div class="col-sm-3" id="lbRemise">
+                                            <span>@Resources.Remise</span>
+                                        </div>
+                                        <div class="col-sm-3" id="lbTotal">
+                                            <span>@Resources.TotalAmount</span>
+                                        </div>
+                                        
+                                    </div>
+
+                                    <div class="col-sm-3" id="dVerreAssurance">
+                                        <input type="number" id="VerreAssurance" class="input-sm form-control">
+                                    </div>
+
+                                    <div class="col-sm-3" id="dMontureAssurance">
+                                        <input type="number" id="MontureAssurance" class="input-sm form-control">
+                                    </div>
+
+                                    @*@if(LoadAction.IsMenuActionAble(MenuAction.DELETE, @profile, CodeValue.Sale.NewSale.DIRECTBILL, db)){*@
+                                        <div class="col-sm-3" id="dRemise">
+                                            <input type="number" readonly  id="Remise" class="input-sm form-control" step="0.01" min="0" max="100">
+                                        </div>
+                                    @*}else{
+                                        <div class="col-sm-3" id="dRemise">
+                                            <input type="number"  id="Remise" class="input-sm form-control" step="0.01" min="0" max="100">
+                                        </div>
+                                    }*@
+
+                                    <div class="col-sm-3" id="dPlafond">
+                                        <input type="number" id="Plafond" class="input-sm form-control">
+                                    </div>
+                                  
+
+                                    <div class="col-sm-12" id="dNetAPayer" style="margin-top: 20px;display: flex;">
+                                        <label class="col-sm-6">@Resources.NetApayer </label>
+                                        <input type="number" readonly id="NetAPayer" class="col-sm-6 input-sm form-control">
+                                    </div>
+
+
+                                </fieldset>
+                            </div>
+                            <div class="col-md-6">
+                                <fieldset class="panel-bodyfielset2">
+                                    <legend>@Resources.ParMalade</legend>
+                                    <div class="row ipt">
+                                        <div class="col-sm-4" id="lbLensP">
+                                            <span>@Resources.lenses</span>
+                                        </div>
+                                        <div class="col-sm-4" id="lbMontureP">
+                                            <span>@Resources.Monture</span>
+                                        </div>
+                                        <div class="col-sm-4" id="lbTotalP">
+                                            <span>@Resources.TotalAmount</span>
+                                        </div>
+                                    </div>
+                                    <div class="row ipt">
+                                        <div class="col-sm-4" id="dVerreMalade">
+                                            <input type="number" id="VerreMalade" class="input-sm form-control">
+                                        </div>
+                                        <div class="col-sm-4" id="dMontureMalade">
+                                            <input type="number" id="MontureMalade" class="input-sm form-control">
+                                        </div>
+                                        <div class="col-sm-4" id="dTotalMalade">
+                                            <input type="number" id="TotalMalade" class="input-sm form-control">
+                                        </div>
+                                    </div>
+                                </fieldset>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+    
+    <div class="row" style="margin-top:5px">
+        <div class="col-sm-2" style="margin-left:20px;">
+            <button id="btnCancel" class="btn btn-primary btn-danger">@Resources.Cancel</button>
+        </div>
+        <div class="col-sm-2" style="margin-left:-80px;">
+            <button id="btnProforma" class="btn btn-primary" onclick="location.href='@Url.Action("RptProforma", "ReportsHome", new { area = "" })'"><i class="fa fa-print"></i> @Resources.PrintProforma</button>
+        </div>
+        <div class="col-sm-2">
+            <button id="btnSubmit" class="btn btn-primary btn-success">@Resources.ValidateButton</button>
+        </div>
+       
+
+        <div class="col-sm-2" style="margin-left:-60px;">
+            <button id="btnDeliveryOrder" class="btn btn-primary" onclick="location.href='@Url.Action("RptFacture", "ReportsHome", new { area = "" })'"><i class="fa fa-print"></i> @Resources.Printfacture (FR)</button>
+        </div>
+        <div class="col-sm-2">
+            <button id="btnDeliveryOrderEn" class="btn btn-primary" onclick="location.href='@Url.Action("RptFactureEN", "ReportsHome", new { area = "" })'"><i class="fa fa-print"></i> @Resources.Printfacture (EN)</button>
+        </div>
+        <div class="col-sm-2">
+            <button id="btnReceipt" class="btn btn-primary" onclick="location.href='@Url.Action("RptBordero", "ReportsHome", new { area = ""})'"><i class="fa fa-print"></i> @Resources.PrintBordDep</button>
+        </div>
+    </div>
+</div>
+
+<!-- Css Begins Here -->
+
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 6px;
+    }
+
+    #img-upload {
+        width: 100%;
+    }
+
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin-left: 10px;
+        min-width: 0;
+        padding: 10px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 70px;
+    }
+
+    .panel-bodyfielset1 {
+        height: 400px;
+        margin-bottom:2%;
+    }
+
+    .panel-bodyfielset2 {
+        height: 100px;
+    }
+
+    .panel-body1 {
+        height: 280px;
+        margin-top: 5px;
+        margin-bottom:2%;
+    }
+
+    .panel-body2 {
+        height: 200px;
+        margin-top: 10px;
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+
+    .panel-body3 {
+        height: 75px;
+        margin-top: 5px;
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+
+    .panel-body4 {
+        height: 300px;
+        margin-left: 10px;
+    }
+</style>
+
+<script>
+
+    function initCheckBox() {
+        $('input[id="spray"]').prop('value', 1);
+        $('input[id="spray"]').prop('checked', true)
+        $('input[id="boitier"]').prop('value', 1);
+        $('input[id="boitier"]').prop('checked', true)
+    }
+    function CheckSprayClick() {
+
+        if ($('input[id="spray"]').prop('checked')) {
+            $('input[id="spray"]').prop('value', 1);
+        }
+        else {
+            $('input[id="spray"]').prop('value', 0);
+        }
+    };
+    function CheckboitierClick() {
+
+        if ($('input[id="boitier"]').prop('checked')) {
+            $('input[id="boitier"]').prop('value', 1);
+        }
+        else {
+            $('input[id="boitier"]').prop('value', 0);
+        }
+    };
+
+    function clickNoDetail()
+    {
+        $('#dVerreAssurance').hide();
+        $('#dMontureAssurance').hide();
+        $('#lbLens').hide();
+        $('#lbMonture').hide();
+        $('#lbLensP').hide();
+        $('#lbMontureP').hide();
+        $('#Plafond').prop('disabled', false);
+        $('#TotalMalade').prop('disabled', false);
+        $('#dVerreMalade').hide();
+        $('#dMontureMalade').hide();
+        $('#NetAPayer').val('')
+    }
+    function clickIsDetail()
+    {
+        $('#dVerreAssurance').show();
+        $('#dMontureAssurance').show();
+        $('#lbLens').show();
+        $('#lbMonture').show();
+        $('#lbLensP').show();
+        $('#lbMontureP').show();
+        $('#Plafond').prop('disabled', true);
+        $('#TotalMalade').prop('disabled', true);
+        $('#dVerreMalade').show();
+        $('#dMontureMalade').show();
+        $('#NetAPayer').val('')
+    }
+
+
+    function enablebutton()
+    {
+        $('#btnDeliveryOrder').prop('disabled', false);
+        $('#btnDeliveryOrderEn').prop('disabled', false);
+
+        $('#btnReceipt').prop('disabled', false);
+    }
+    function disablebutton() {
+        $('#btnDeliveryOrder').prop('disabled', true);
+        $('#btnDeliveryOrderEn').prop('disabled', true);
+        $('#btnReceipt').prop('disabled', true);
+    }
+    function Patien_Total_price()
+    {
+        var TotalMalade = parseInt($('#VerreMalade').val()) + parseInt($('#MontureMalade').val());
+        $('#TotalMalade').val(TotalMalade);
+}
+    function Patien_Lens_price ()
+    {
+        var valueLens = $('#Verres').val();
+        var lensPartprice = $('#VerreAssurance').val();
+
+        var lensCustPartprice = parseInt(valueLens) - parseInt(lensPartprice);
+        $('#VerreMalade').val(lensCustPartprice);
+
+        //monture malade
+        var valueMonture = $('#Monture').val();
+        var FramePartprice = $('#MontureAssurance').val();
+
+        var FrameCustPartprice = parseInt(valueMonture) - parseInt(FramePartprice);
+        $('#MontureMalade').val(FrameCustPartprice);
+
+        var PlafondInsPartprice = parseInt($('#VerreAssurance').val()) + parseInt($('#MontureAssurance').val());
+        $('#Plafond').val(PlafondInsPartprice);
+
+        var TotalMalade = parseInt($('#VerreMalade').val()) + parseInt($('#MontureMalade').val());
+        $('#TotalMalade').val(TotalMalade);
+
+       const netapayer =  parseInt($('#Plafond').val()) - (parseInt($('#Plafond').val())* parseFloat($("#Remise").val())) /100
+        $('#NetAPayer').val(netapayer);
+    }
+
+    function Calculate_Net_Prixe_after_Reduction() {
+
+        var TotalMalade = parseInt($('#LineUnitPrice').val()) - parseInt($('#Plafond').val());
+        $('#TotalMalade').val(TotalMalade);
+
+        const netapayer =  parseInt($('#Plafond').val()) - (parseInt($('#Plafond').val())* parseFloat($("#Remise").val())) /100
+        $('#NetAPayer').val(netapayer);
+    }
+
+
+    function NoDet_Lens_price() {
+
+        $('#VerreAssurance').val('0');
+        $('#MontureAssurance').val('0');
+
+        $('#VerreMalade').val('0');
+        $('#MontureMalade').val('0');
+
+        var TotalMalade = parseInt($('#Debt').val()) - parseInt($('#Plafond').val());
+        $('#TotalMalade').val(TotalMalade);
+
+        const netapayer =  parseInt($('#Plafond').val()) - (parseInt($('#Plafond').val())* parseFloat($("#Remise").val())) /100
+        $('#NetAPayer').val(netapayer);
+    }
+
+    //chargement des commandes a valider
+    function GetAllCommand(test, BeginDate, EndDate) {
+
+        if (test)
+        {
+            $('#mainTable').dataTable().fnDestroy();
+        }
+        var oTable = $('#mainTable');
+
+        oTable = $('#mainTable').dataTable({
+
+            fixedColumns: true,
+            "paging": true,
+            "pageLength": 3,
+            "lengthMenu": [[3, 5, 10, -1], [3, 5, 10, "All"]],
+            "searching": true,
+            "ordering": true,
+            "pagingType": "full_numbers",
+            // Ajax call
+            "ajax": {
+                "url": "@Url.Action("PendingCustomerSale", "MenuValideProforma")",
+                //"type": "GET",
+                "datatype": "json",
+                "data": { BeginDate: BeginDate, EndDate: EndDate }
+            },
+            //"dom": '<"toolbar">frtip',
+            "columns": [
+                { "data": "CustomerOrderID", "width": "1%" },
+                { "data": "Insurance" },
+                { "data": "CustomerOrderNumber" },
+                { "data": "InsurreName" },
+                { "data": "CustomerFullName" },
+                { "data": "CustomerOrderDate" },
+                { "data": "SaleTotalPrice" },
+                //{ "data": "Remainder" },
+                {// this is Actions Column
+                    mRender: function (data, type, row) {
+
+                        var deleteOption = '@LoadAction.IsMenuActionAble(MenuAction.DELETE, @profile, CodeValue.Sale.NewSale.ValideProforma, db)';
+                        var T_deleteOption = (deleteOption == 'False') ? '<a href=# class="editor_remove" onclick="DeleteItem(' + row.CustomerOrderID + ')"><span class="glyphicon glyphicon-trash"></span></a>' : '';
+
+                        var updateOption = '@LoadAction.IsMenuActionAble(MenuAction.UPDATE, @profile, CodeValue.Sale.NewSale.ValideProforma, db)';
+                        var T_updateOption = (updateOption == 'False') ? '<a href="#" class="editor_remove" onclick="UpdateItem(' + row.CustomerOrderID + ')"><span class="glyphicon glyphicon-edit"></a>' : '';
+
+                        return T_updateOption + " | " + T_deleteOption;
+                    }
+                }
+            ]
+        });
+        /*var brefresh = '<a href="#" class="btn btn-primary" style="margin-left:40%;" onclick="RefreshGrid()"><span class="fa fa-refresh"></span></a>'
+        $("div.toolbar").html(brefresh);*/
+    }
+
+    function clearInitializeCommandFields()
+    {
+        $('#CustomerOrderID').val('');
+        $('#CustomerID').val('');
+
+        $('#GestionnaireID').val('');
+        $('#SellerID').val('');
+
+        $('#BranchID').val('');
+        $('#CustomerName').val('');
+        $('#InsurreName').val('');
+        $('#CompanyName').val('');
+        $('#InsuredCompanyID').val('');
+        $('#AssureurID').val('0');
+        $('#PoliceAssurance').val('');
+        $('#CompteurFacture').val('');
+        $('#PhoneNumber').val('');
+        $('#Remarque').val('');
+
+
+        $('#MedecinTraitant').val('');
+        $('#NumeroBonPriseEnCharge').val('');
+        $('#CustomerOrderNumber').val('');
+        $('input[name=DatailBill][value="0"]').prop('checked', true);
+
+        $('#Debt').val('');
+        $('#Matricule').val('');
+
+        $('#DeviseID').val('');
+        $('#Verres').val('');
+        $('#Monture').val('');
+        $('#VerreAssurance').val('');
+
+        $('#MontureAssurance').val('');
+        $('#Plafond').val('');
+
+        $('#btnSubmit').prop('disabled', false);
+        //initCheckBox();
+    }
+
+    function DeleteItem(obj) {
+
+        if (confirm("Do you want to Delete this Proforma ?")) {
+            var globalID = obj;
+            //post to the server
+            $(this).val('Please wait...');
+            var data = {
+                CustomerOrderID: parseInt(globalID)
+            }
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("Delete", "MenuValideProforma")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        //clear form
+                        clearInitializeCommandFields();
+                        GetAllCommand(true, $("#BeginDate").val(), $("#EndDate").val());
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                }
+            });
+        }
+    }
+
+    function UpdateItem(obj) {
+        var globalID = obj;
+        $('#btnSubmit').prop('disabled', false);
+        $.get('@Url.Action("InitializeFields", "MenuValideProforma")', { CustomerOrderID: parseInt(globalID) }, function (data) {
+            $.each(data, function (key, value) {
+                $('#GestionnaireID').val(value.GestionnaireID);
+                $('#SellerID').val(value.SellerID);
+                $('#CustomerOrderID').val(value.CustomerOrderID);
+                $('#CustomerID').val(value.CustomerID);
+
+                $('#BranchID').val(value.BranchID);
+                $('#CustomerName').val(value.CustomerName);
+                $('#InsurreName').val(value.InsurreName);
+
+                $('#CompanyName').val(value.CompanyName);
+                $('#InsuredCompanyID').val(value.InsuredCompanyID);
+                $('#AssureurID').val(value.AssureurID);
+                $('#LieuxdeDepotBorderoID').val(value.LieuxdeDepotBorderoID);
+                $('#PoliceAssurance').val(value.PoliceAssurance);
+                $('#CompteurFacture').val(value.CompteurFacture);
+                $('#PhoneNumber').val(value.PhoneNumber);
+                $('#Remarque').val(value.Remarque);
+
+
+                $('#MedecinTraitant').val(value.MedecinTraitant);
+                $('#NumeroBonPriseEnCharge').val(value.NumeroBonPriseEnCharge);
+                $('#CustomerOrderNumber').val(value.CustomerOrderNumber);
+                $('input[name=DatailBill][value="' + value.IsDetail + '"]').prop('checked', true);
+
+                if (value.IsDetail == '0') {
+                    //write your logic here
+                    clickNoDetail();
+                }
+                else if (value.IsDetail == '1') {
+                    //write your logic here
+                    clickIsDetail();
+                }
+
+                $('#Debt').val(value.Debt);
+               // $('#Matricule').val(value.Matricule);
+
+                $('#DeviseID').val(value.DeviseID);
+                $('#Verres').val(value.Verres);
+                $('#Monture').val(value.Monture);
+
+                $('#VerreAssurance').val(value.VerreAssurance);
+                $('#MontureAssurance').val(value.MontureAssurance);
+                $('#Plafond').val(value.Plafond);
+                GetRemiseAssurance();
+
+
+
+
+            });
+        }, 'json');
+
+
+        disablebutton();
+
+
+    }
+
+    //get list of deposit locations
+    function getListofDepositLocations() {
+        $.get('@Url.Action("getListofDepositLocations", "MenuValideProforma")', {}, function (data) {
+            $('#LieuxdeDepotBorderoID').empty();
+            $.each(data, function (key, value) {
+                $('#LieuxdeDepotBorderoID').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+
+    // Get the Assurance List
+    function populateAssurance() {
+        $.get('@Url.Action("populateAssurance", "MenuValideProforma")', {}, function (data) {
+            $('#AssureurID').empty();
+            $('#AssureurID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#AssureurID').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+
+    // Get the Assurance List
+    function GetRemiseAssurance() {
+        $.get('@Url.Action("GetRemiseOfCurrentAssurence", "MenuValideProforma")', { AssureurID: $('#AssureurID').val()  }, function (data) {
+            $('#Remise').val(data.Remise)
+            if ([0, '0', ''].includes(data.Remise)) {
+                $('#Remise').prop("disabled", true);
+            }else{
+                 $('#Remise').prop("disabled",false);
+            }
+
+            const netapayer =  parseInt($('#Plafond').val()) - (parseInt($('#Plafond').val())* parseFloat(data.Remise)) /100
+            $('#NetAPayer').val(netapayer);
+
+        }, 'json');
+    }
+
+
+
+
+    function LoadMatricule(AssureurID) {
+        $.get('@Url.Action("LoadMatricule", "MenuValideProforma")', { AssureurID: AssureurID }, function (data) {
+            $('#Matricule').empty();
+            $.each(data, function (key, value) {
+                $('#Matricule').val(value.Matricule);
+            });
+        }, 'json');
+    }
+
+    function ValideVente()
+    {
+
+        var isAllValid = true;
+        var d = new Date();
+        var hourPayment = d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds();
+        $('#heureVente').val(hourPayment);
+
+        if ($('#heureVente').val().trim() == '') {
+            isAllValid = false;
+        }
+        if ($('#CustomerOrderID').val().trim() == '') {
+            isAllValid = false;
+        }
+        if ($('#BranchID').val().trim() == '') {
+            isAllValid = false;
+        }
+        //if ($('#CustomerID').val().trim() == '') {
+        //    isAllValid = false;
+        //}
+        if ($('#CustomerName').val().trim() == '') {
+            isAllValid = false;
+            $("#CustomerName").addClass("invalid-data");
+        }
+        else {
+            $("#CustomerName").addClass("valid-data");
+        }
+
+        if ($('#InsurreName').val() == '') {
+            isAllValid = false;
+            $("#InsurreName").addClass("invalid-data");
+        }
+        else {
+            $("#InsurreName").addClass("valid-data");
+        }
+
+        if ($('#PoliceAssurance').val().trim() == '') {
+            isAllValid = false;
+            $("#PoliceAssurance").addClass("invalid-data");
+        }
+        else {
+            $("#PoliceAssurance").addClass("valid-data");
+        }
+
+        //if ($('#NumeroBonPriseEnCharge').val()== '') {
+        //    isAllValid = false;
+        //    $("#NumeroBonPriseEnCharge").addClass("invalid-data");
+        //}
+        //else {
+        //    $("#NumeroBonPriseEnCharge").addClass("valid-data");
+        //}
+
+        if (parseInt($('#Plafond').val()) <= 0) {
+            isAllValid = false;
+            $("#Plafond").addClass("invalid-data");
+        }
+        else {
+            $("#Plafond").addClass("valid-data");
+        }
+
+        if (parseInt($('#TotalMalade').val()) < 0) {
+            isAllValid = false;
+            $("#TotalMalade").addClass("invalid-data");
+        }
+        else {
+            $("#TotalMalade").addClass("valid-data");
+        }
+
+        if ($('#LieuxdeDepotBorderoID').val() == "0" || $('#LieuxdeDepotBorderoID').val() == '' || $('#LieuxdeDepotBorderoID').val() == null) {
+            isAllValid = false;
+            $("#LieuxdeDepotBorderoID").addClass("invalid-data");
+        }
+        else {
+            $("#LieuxdeDepotBorderoID").addClass("valid-data");
+        }
+
+        if ($('#AssureurID').val() == "0" || $('#AssureurID').val() == '' || $('#AssureurID').val() == null) {
+            isAllValid = false;
+            $('#AssureurID').addClass("invalid-data");
+        }
+        else {
+            $('#AssureurID').addClass("valid-data");
+        }
+
+
+        if ($('#DeviseID').val().trim() == '') {
+            isAllValid = false;
+            $("#DeviseID").addClass("invalid-data");
+        }
+        else {
+            $("#DeviseID").addClass("valid-data");
+        }
+
+        if ($('#TreatmentDate').val().trim() == '') {
+            isAllValid = false;
+            $('#TreatmentDate').addClass("invalid-data");
+        }
+        else {
+            $('#TreatmentDate').addClass("valid-data");
+        }
+        //if ($('#PaymentMethodID').empty())
+        //{
+        //    $('#PaymentMethodID').val('0');
+        //}
+
+        // regex to verify a percentage
+        var regex = /^\d{1,2}(\.\d{1,2})?$/;
+        if (!regex.test($('#Remise').val().trim())) {
+            isAllValid = false;
+            $('#Remise').addClass("invalid-data");
+        }else {
+            $('#Remise').addClass("valid-data");
+        }
+
+
+        if (isAllValid) {
+
+
+            var data = {
+
+                AssureurID: $('#AssureurID').val(),
+                CustomerID: $('#CustomerID').val(),
+                LieuxdeDepotBorderoID: $('#LieuxdeDepotBorderoID').val(),
+                heureVente: $('#heureVente').val().trim(),
+                PoliceAssurance: $('#PoliceAssurance').val(),
+                NumeroFacture: $('#NumeroFacture').val(),
+                CustomerOrderDate: $('#DepositDate').val(),
+                NumeroBonPriseEnCharge: $('#NumeroBonPriseEnCharge').val(),
+                PhoneNumber: $('#PhoneNumber').val(),
+
+                CompteurFacture:$('#CompteurFacture').val(),
+                CustomerOrderNumber: $('#CustomerOrderNumber').val(),
+                //PoliceAssurance: $('#PoliceAssurance').val(),
+                BranchID: $('#BranchID').val(),
+                CustomerName: $('#CustomerName').val().trim(),
+                InsurreName: $('#InsurreName').val().trim(),
+                CompanyName: $('#CompanyName').val(),
+                InsuredCompanyID: $('#InsuredCompanyID').val(),
+
+                Remarque: $('#Remarque').val().trim(),
+                MedecinTraitant: $('#MedecinTraitant').val(),
+
+                DeviseID: $('#DeviseID').val(),
+                DatailBill:$('input[name=DatailBill]:checked').val(),
+                VerreAssurance: $('#VerreAssurance').val(),
+                CustomerOrderID: $('#CustomerOrderID').val(),
+                MontureAssurance: $('#MontureAssurance').val(),
+
+                Plafond: $('#Plafond').val(),
+                TotalMalade: $('#TotalMalade').val(),
+                RemiseAssurance : $('#Remise').val(),
+
+                GestionnaireID: $('#GestionnaireID').val(),
+                SellerID: $('#SellerID').val(),
+                TreatmentDate: $('#TreatmentDate').val()
+
+                //RateReduction: $('#Reduction').val(),
+                //RateDiscount: $('#Discount').val(),
+                //Transport: $('#Transport').val()
+
+            }
+            $(this).val('Please wait...');
+            $('#btnSubmit').prop('disabled', true);
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("ValidateProforma", "MenuValideProforma")',
+                type: "POST",
+                data: JSON.stringify(data), //formData, //formData,//
+                dataType: "JSON",
+                contentType: "application/json",
+                //contentType: false,
+                //processData: false,
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        //reinitialisation des champs
+                        //clear form
+                        clearInitializeCommandFields();
+                        GetAllCommand(true, $("#BeginDate").val(), $("#EndDate").val());
+                        enablebutton();
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                }
+            });
+        }
+
+    }
+    function RefreshGrid()
+    {
+        clearApplyExtraPrices();
+        clearInitializeCommandFields();
+        GetAllCommand(true, $("#BeginDate").val(), $("#EndDate").val());
+        enablebutton();
+    }
+    $(document).on('ready', function () {
+
+        $(function () {
+            $(".datepicker").datepicker({
+                format: 'yyyy-mm-dd'
+            });
+        });
+
+        if ($('#DisplayForm').val().trim() == 0) {
+            $("#SaleValideForm").hide();
+        }
+        else {
+            $("#SaleValideForm").show();
+        }
+
+        $('input[type=radio][name=DatailBill]').change(function () {
+            if (this.value == '0') {
+                //write your logic here
+                clickNoDetail();
+            }
+            else if (this.value == '1') {
+                //write your logic here
+                clickIsDetail();
+            }
+        });
+
+        clickIsDetail();
+
+        $('#VerreAssurance').keyup(function () {
+            Patien_Lens_price();
+        });
+
+        $('#MontureAssurance').keyup(function () {
+            Patien_Lens_price();
+        });
+
+        $('#VerreMalade').keyup(function () {
+            Patien_Total_price();
+        });
+
+        $('#MontureMalade').keyup(function () {
+            Patien_Total_price();
+        });
+
+        $('#Plafond').keyup(function () {
+            NoDet_Lens_price();
+        });
+
+         $('#Remise').keyup(function () {
+            Calculate_Net_Prixe_after_Reduction();
+        });
+
+        var BeginDate = $("#BeginDate").val();
+        var d = new Date();
+        if ($("#BeginDate").val() == "") {
+            BeginDate = d.getFullYear() + "/" + d.getMonth() + "/" + d.getDay();
+        }
+
+        var EndDate = $("#EndDate").val();
+        var d = new Date();
+        if ($("#EndDate").val() == "") {
+            EndDate = d.getFullYear() + "/" + d.getMonth() + "/" + d.getDay();
+        }
+
+        GetAllCommand(false, BeginDate, EndDate);
+
+        $('#btnSearch').on('click', function () {
+            GetAllCommand(true, $("#BeginDate").val(), $("#EndDate").val());
+        });
+
+        populateAssurance();
+        getListofDepositLocations();
+
+        $('#btnCancel').on('click', function () {
+            location.reload(true);
+        });
+        $('#btnSubmit').on('click', function () {
+            ValideVente();
+        });
+
+       $('#AssureurID').on('change', () => {
+          GetRemiseAssurance() ;
+       })
+    });
+
+
+</script>

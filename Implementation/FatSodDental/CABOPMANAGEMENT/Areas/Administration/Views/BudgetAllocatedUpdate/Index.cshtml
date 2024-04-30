@@ -1,0 +1,427 @@
+﻿@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+@using CABOPMANAGEMENT.Tools;
+
+@model IEnumerable<FatSod.Budget.Entities.BudgetAllocatedUpdate>
+@{
+    ViewBag.Title = @Resources.Updateallocatedbudget;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var profile = (Session["UserProfile"] == null) ? 0 : (int)Session["UserProfile"];
+    var user = (Session["UserID"] == null) ? 0 : (int)Session["UserID"];
+
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+
+}
+
+<div class="box box-primary box-body">
+    <div class="row">
+        <div class="col-md-12">
+            <fieldset>
+                <legend>Generals Informations</legend>
+
+                <div class="panel panel-default">
+                    <div class="panel-body1">
+                        <div class="row ipt" style="margin-top:2px;">
+                            <input type="hidden" id="BudgetAllocatedUpdateID" />
+                           
+                            <input type="hidden" id="TMPID" value="0" />
+
+                            <div class="col-sm-2">@Resources.Branches<code>(*)</code></div>
+                            <div class="row">
+                                <div class="col-sm-8">
+                                    <input type="hidden" id="DefaultBranchID" value="@ViewBag.CurrentBranch" />
+                                    <select id="BranchID" class="form-control"></select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row ipt" style="margin-top:2px;">
+                            <div class="col-sm-2">@Resources.Justification</div>
+                            <div class="col-sm-8">
+                                <textarea class="form-control input-sm" id="Justification" type="text"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+
+    <div class="row" style="margin-top:-50px;">
+        <div class="col-md-6">
+            <fieldset>
+                <legend>@Resources.AddProdCady</legend>
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="row ipt">
+                            <div class="col-sm-4">@Resources.BudgetAllocated<code>(*)</code></div>
+                            <div class="row">
+                                <div class="col-sm-7" style="margin-left:-25px;">
+                                    <select id="BudgetAllocatedID" class="input-sm form-control"></select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-4">@Resources.Sens<code>(*)</code></div>
+                            <div class="row">
+                                <div class="col-sm-7" style="margin-left:-25px;">
+                                    <select id="SensImputation" class="input-sm form-control">
+                                        <option value="0" selected>@Resources.Select</option>
+                                        <option value="CR">@Resources.UIcredit</option>
+                                        <option value="DB">@Resources.UIdebit</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-4">@Resources.Amount <code>(*)</code></div>
+                            <div class="row">
+                                <div class="col-sm-4" style="margin-left:-25px;">
+                                    <input type="number" min="1" id="Amount" class="input-sm form-control NumbersAndDecimal" />
+                                </div>
+                            </div>
+                        </div>
+                       
+                        <div class="row">
+                            <div class="col-sm-5">
+                                <button type="submit" class="btn btn-primary" id="AddToGrid">@Resources.AddProdCady</button>
+                            </div>
+                            <div class="col-sm-1">
+                            </div>
+                            <div class="col-sm-4">
+                                <button type="button" id="btnCancelGrid" class="btn btn-primary">@Resources.ResetButton</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+        <div class="col-md-6">
+            <fieldset>
+                <legend>@Resources.CadyContent</legend>
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <table class="table" id="CommandLinesGrid">
+                            <thead>
+                                <tr class="dataTableHead">
+                                    <th>
+                                        ID
+                                    </th>
+                                    <th>
+                                        @Resources.BudgetAllocated
+                                    </th>
+                                    <th>
+                                        @Resources.Amount
+                                    </th>
+                                    <th>
+                                        @Resources.Justification
+                                    </th>
+                                    <th>
+                                        @Resources.Sens
+                                    </th>
+                                    <th>
+                                        Action
+                                    </th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+        <br />
+        <!-- Save and Reset Buttons -->
+        <div class="row">
+            <div class="col-sm-8">
+            </div>
+            <div class="col-sm-2">
+                <button type="submit" class="btn btn-primary btn-success" id="btnSubmit">@Resources.SaveButton</button>
+            </div>
+            <div class="col-sm-2">
+                <button type="button" id="btnCancel" class="btn btn-primary btn-danger">@Resources.ResetButton</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+<!--css detail-->
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 3px;
+        margin-left: 1px;
+    }
+
+    #img-upload {
+        width: 100%;
+    }
+
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin: 0;
+        min-width: 0;
+        padding: 10px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 250px;
+    }
+
+    .panel-body1 {
+        height: 90px;
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+</style>
+
+<!--javascript-->
+<script>
+    // Get the Branch List
+    function populateBranch() {
+        $.get('@Url.Action("OpenedBusday", "BudgetAllocatedUpdate")', {}, function (data) {
+            $('#BranchID').empty();
+            $('#BranchID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#BranchID').append($("<option></option>").val(value.BranchID).html(value.BranchName));
+            });
+        }, 'json');
+    }
+    // Get the BudgetAllcated List
+    function populateBudgetAllocated() {
+        $.get('@Url.Action("BudgetAllocateds", "BudgetAllocatedUpdate")', {}, function (data) {
+            $('#BudgetAllocatedID').empty();
+            $('#BudgetAllocatedID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#BudgetAllocatedID').append($("<option></option>").val(value.BudgetAllocatedID).html(value.BudgetLineLabel));
+            });
+        }, 'json');
+    }
+    function ClearLeft()
+    {
+        $('#BudgetAllocatedID').val('0');
+        $('#SensImputation').val('0');
+        $('#Amount').val('0');
+    }
+    function ClearForm()
+    {
+        ClearLeft();
+        LoadCommandLinesGrid(true);
+        $('#Justification').val('');
+    }
+    $(document).on('ready', function () {
+        populateBranch();
+        populateBudgetAllocated();
+
+        LoadCommandLinesGrid(false);
+        $('#AddToGrid').on('click', function () {
+            addToGrid();
+        });
+        $('#btnCancelGrid').on('click', function () {
+            ClearLeft();
+        });
+        $('#btnCancel').on('click', function () {
+            location.reload(true);
+        });
+        $('#btnSubmit').on('click', function () {
+            ValideCommande();
+        });
+    });
+
+    //validation d'une commande
+    function ValideCommande() {
+
+        var isAllValid = true;
+        if ($('#BranchID').val() == '') {
+            isAllValid = false;
+            $("#BranchID").addClass("invalid-data");
+        }
+        else {
+            $("#BranchID").addClass("valid-data");
+        }
+        if ($('#Justification').val().trim() == "") {
+            isAllValid = false;
+            $("#Justification").addClass("invalid-data");
+        }
+        else {
+            $("#Justification").addClass("valid-data");
+        }
+
+        if (isAllValid) {
+            var data = {
+                BranchID: $('#BranchID').val().trim(),
+                Justification: $.trim($('#Justification').val())
+            }
+            $(this).val('Please wait...');
+
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("AddBudgetAllocatedUpdate", "BudgetAllocatedUpdate")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        ClearForm();
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                }
+            });
+        }
+
+    }
+    //chargement d'une commandes d'un client
+    function LoadCommandLinesGrid(test) {
+
+        if (test)
+        {
+            $('#CommandLinesGrid').dataTable().fnDestroy();
+        }
+        var oTable = $('#CommandLinesGrid');
+
+        oTable = $('#CommandLinesGrid').dataTable({
+            "paging": true,
+            "pageLength": 4,
+            "lengthMenu": [[4, 8, 12, -1], [4, 8, 12, "All"]],
+            "searching": false,
+            "ordering": true,
+            "pagingType": "full_numbers",
+            "order": [[0, 'asc']],
+            // Ajax call
+            "ajax": "@Url.Action("GetBudgetAllocatedUpdateList", "BudgetAllocatedUpdate")",
+
+            "columns": [
+                { "data": "BudgetAllocatedUpdateID" },
+                { "data": "BudgetAllocatedLabel", "width": "40%" },
+                { "data": "Amount", "width": "10%" },
+                { "data": "Justification", "width": "35%" },
+                { "data": "SensImputation", "width": "10%" },
+                {// this is Actions Column
+                    mRender: function (data, type, row) {
+                        return '<a href="#" class="editor_remove" onclick="RemoveCustomerOrderLine(' + row.BudgetAllocatedUpdateID + ')"><span class="glyphicon glyphicon-trash"></span></a>'
+                    }
+                }
+            ]
+    });
+    }
+    function RemoveCustomerOrderLine(obj) {
+        var globalID = obj;
+
+        $.get('@Url.Action("DeleteBudgetAllocatedUpdate", "BudgetAllocatedUpdate")', { ID: parseInt(globalID) }, function (data) {
+            $.each(data, function (key, value) {
+                LoadCommandLinesGrid(true);
+                ClearLeft();
+            });
+        }, 'json');
+
+    }
+
+    //ajout ds la grille
+    function addToGrid() {
+        var isAllValid = true;
+
+        if ($('#BudgetAllocatedID').val() == '0') {
+            isAllValid = false;
+            $("#BudgetAllocatedID").addClass("invalid-data");
+        }
+        else {
+            $("#BudgetAllocatedID").addClass("valid-data");
+        }
+        if ($('#SensImputation').val() == "0") {
+            isAllValid = false;
+            $("#SensImputation").addClass("invalid-data");
+        }
+        else {
+            $("#SensImputation").addClass("valid-data");
+        }
+
+        if ($('#Justification').val().trim() == "") {
+            isAllValid = false;
+            $("#Justification").addClass("invalid-data");
+        }
+        else {
+            $("#Justification").addClass("valid-data");
+        }
+        if ($('#Amount').val() == '') {
+            isAllValid = false;
+            $("#Amount").addClass("invalid-data");
+        }
+        else {
+            $("#Amount").addClass("valid-data");
+        }
+
+        var data = {
+            BudgetAllocatedID: $.trim($('#BudgetAllocatedID').val()),
+            SensImputation: $.trim($('#SensImputation').val()),
+            Justification: $.trim($('#Justification').val()),
+            Amount: $.trim($('#Amount').val())
+        }
+        $(this).val('Please wait...');
+        if (isAllValid) {
+            $.ajax({
+                url: '@Url.Action("AddBudgetAllUpLine", "BudgetAllocatedUpdate")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        LoadCommandLinesGrid(true);
+                        //clear form
+                        ClearLeft();
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                    $('#AddToGrid').val('@Resources.AddProdCady');
+                },
+                error: function () {
+                    alert('Error. Please try again.');
+                    $('#AddToGrid').val('@Resources.AddProdCady');
+                }
+            });
+        }
+    }
+</script>

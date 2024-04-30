@@ -1,0 +1,1456 @@
+﻿@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+@using CABOPMANAGEMENT.Tools;
+
+@using FatSod.Supply.Entities;
+
+@model IEnumerable<FatSod.Supply.Entities.Sale>
+@{
+    ViewBag.Title = Resources.OtherSale;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var profile = (Session["UserProfile"] == null) ? 0 : (int)Session["UserProfile"];
+    var user = (Session["UserID"] == null) ? 0 : (int)Session["UserID"];
+
+    string cashRegisterCode = CodeValue.Accounting.DefaultCodeAccountingSection.CODECAIS;
+    string banCode = CodeValue.Accounting.DefaultCodeAccountingSection.CODEBANK;
+    string creditcode = CodeValue.Accounting.DefaultCodeAccountingSection.Credit;
+    string savingcode = CodeValue.Supply.DepositReason.SavingAccount;
+
+    double VatRate1 = CodeValue.Accounting.ParamInitAcct.VATRATE / 100;
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+
+}
+
+<div class="row" style="margin-top:5px;margin-left:25px">
+    @if (TempData["Message"] != null)
+    {
+        @Html.Raw(TempData["Message"])
+    }
+</div>
+<div class="box box-primary box-body" id="SaleValideForm">
+
+    <div class="row">
+        <fieldset class="panel-body2">
+            <input class="form-control input-sm" id="DisplayForm" type="hidden" value="@ViewBag.DisplayForm">
+            <div class="col-md-4">
+                <div class="panel panel-default">
+                    <div class="panel-body1">
+                        <div class="row ipt" style="margin-top:2px;">
+                            <input type="hidden" id="SaleID" />
+
+                            <input type="hidden" id="heureVente" />
+
+                            <input type="hidden" id="Guaranteed" value="0" />
+                            <input type="hidden" id="StatutSale" value="@SalePurchaseStatut.Delivered" />
+                            <input type="hidden" id="OldStatutSale" value="@SalePurchaseStatut.Ordered" />
+                            <input type="hidden" id="SaleValidate" value="True" />
+                            @*<input type="hidden" id="SaleDeliver" />*@
+                            <input class="form-control input-sm" id="CashCustomer" type="hidden" readonly>
+
+                            <div class="col-sm-3">@Resources.Branches<code>(*)</code></div>
+                            <div class="row">
+                                <div class="col-sm-7">
+                                    <input type="hidden" id="DefaultBranchID" value="@ViewBag.CurrentBranch" />
+                                    <select id="BranchID" class="form-control"></select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-3">@Resources.Customer<code>(*)</code></div>
+                            <div class="row">
+                                <div class="col-sm-8">
+                                    <input type="text" id="Customer" placeholder="@Resources.Select" class="form-control">
+                                    <input type="hidden" id="CustomerID" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-3">@Resources.Commanddate</div>
+                            <div class="col-sm-6">
+                                <input type="text" id="SaleDate" value="@ViewBag.BusnessDayDate" class="input-sm form-control" readonly />
+                            </div>
+                        </div>
+                        @*<div class="row ipt">
+                            <div class="col-sm-3">@Resources.Deliverydate</div>
+                            <div class="col-sm-6">
+                                <input type="text" id="SaleDeliveryDate" value="@ViewBag.BusnessDayDate" class="input-sm form-control" readonly />
+                            </div>
+                        </div>*@
+                        <div class="row ipt">
+                            @*<div class="col-sm-3">@Resources.SaleRef</div>*@
+                            <div class="col-sm-6">
+                                <input class="form-control input-sm" id="SaleReceiptNumber" type="hidden" readonly>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <!-- Order Amount -->
+            <div class="col-md-4">
+                <div class="panel panel-default">
+                    <div class="panel-body1">
+                        <div class="row ipt" style="margin-top:2px;">
+                            <div class="col-sm-5">@Resources.GrossAmount</div>
+                            <div class="col-sm-7" style="padding-left: 0px; padding-right: 25px;">
+                                <input type="number" id="InitialHT" class="input-sm form-control" readonly />
+                                <input type="hidden" id="InitialTTC" class="input-sm form-control" />
+                                <input type="hidden" id="VatRate" value="@VatRate1" class="input-sm form-control" />
+                                <input class="form-control input-sm" id="SavingAmount" type="hidden" readonly>
+                                <input class="form-control input-sm" id="LimitAmount" type="hidden" readonly>
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-5">@Resources.Reduction<code>(%)</code></div>
+                            <div class="row">
+                                <div class="col-sm-2" style="padding: 0px">
+                                    <input type="number" id="RateReduction" value="0" class="form-control">
+                                </div>
+                                <div class="col-sm-4" style="padding: 0px">
+                                    <input type="number" id="ReductionAmount" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-5">@Resources.NetCom</div>
+                            <div class="col-sm-7" style="padding-left: 0px; padding-right: 25px;">
+                                <input type="number" id="NetCom" class="input-sm form-control" ReadOnly />
+                            </div>
+                        </div>
+                        <div class="row ipt" id="discountbloc">
+                            <div class="col-sm-5">@Resources.Discount<code>(%)</code></div>
+                            <div class="row">
+                                <div class="col-sm-2" style="padding: 0px">
+                                    <input type="number" id="RateDiscount" value="0" class="form-control">
+                                </div>
+                                <div class="col-sm-4" style="padding: 0px">
+                                    <input type="number" id="DiscountAmount" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-5">@Resources.NetFin</div>
+                            <div class="col-sm-7" style="padding-left: 0px; padding-right: 25px;">
+                                <input type="number" id="TotalPriceHT" class="input-sm form-control" readonly />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="panel panel-default">
+                    <div class="panel-body1">
+                        <div class="row ipt">
+                            <div class="col-sm-5">Transport</div>
+                            <div class="col-sm-7" style="padding-left: 0px; padding-right: 25px;">
+                                <input type="number" id="Transport" value="0" class="input-sm form-control" />
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-5">@Resources.TVA</div>
+                            <div class="col-sm-7" style="padding-left: 0px; padding-right: 25px;">
+                                <input type="number" id="TVAAmount" class="input-sm form-control" ReadOnly />
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-5">@Resources.PriceTTC</div>
+                            <div class="col-sm-7" style="padding-left: 0px; padding-right: 25px;">
+                                <input type="number" id="TotalPriceTTC" class="input-sm form-control" ReadOnly />
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-5">@Resources.AdvancedAmount</div>
+                            <div class="col-sm-7" style="padding-left: 0px; padding-right: 25px;">
+                                <input type="number" id="SliceAmount" class="input-sm form-control" />
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-5">@Resources.RemainingAmount</div>
+                            <div class="col-sm-7" style="padding-left: 0px; padding-right: 25px;">
+                                <input type="number" id="RemaingAmount" class="input-sm form-control" ReadOnly />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+    </div>
+    <div class="row" style="margin-top:10px;">
+        <div class="col-md-6">
+            <fieldset>
+                <legend>@Resources.addCmdLine</legend>
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="row ipt">
+                            <input type="hidden" id="GridState" value="0" />
+                            <input type="hidden" id="LineID" value="0" />
+
+                            <input type="hidden" id="LensCategory" />
+
+                            <div class="col-sm-4">@Resources.Localization<code>(*)</code></div>
+                            <div class="row">
+                                <div class="col-sm-6" style="margin-left:-25px;">
+                                    <select id="LocalizationID" class="input-sm form-control"></select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-4">@Resources.Categories</div>
+                            <div class="row">
+                                <div class="col-sm-6" style="margin-left:-25px;">
+                                    <select id="ProductCategory" class="input-sm form-control"></select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row ipt" id="NumeroVerre">
+                            <div class="col-sm-4">@Resources.SelectNumber</div>
+                            <div class="row">
+                                <div class="col-sm-4" style="margin-left:-25px;">
+                                    <input class="form-control" id="ProductNumber" type="text">
+                                    <input class="form-control" id="ProductNumberID" type="hidden">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-4">@Resources.Productlabel<code>(*)</code></div>
+                            <div class="row">
+                                <div class="col-sm-6" style="margin-left:-25px;">
+                                    <select id="ProductID" class="input-sm form-control"></select>
+                                    <input id="ProductID1" type="hidden" class="input-sm form-control">
+                                    <input id="ProductCode" type="text" class="input-sm form-control" />
+                                </div>
+                                <div class="col-sm-2" style="padding-left:0px;">
+                                    <input class="form-control input-sm" id="StockQuantity" type="number" ReadOnly />
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row ipt">
+                            <div class="col-sm-4">@Resources.Quantity <code>*</code></div>
+                            <div class="row">
+                                <div class="col-sm-3" style="margin-left:-25px;">
+                                    <input type="number" min="1" id="LineQuantity" class="input-sm form-control NumbersAndDecimal" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-4">@Resources.SaleAmount <code>*</code></div>
+                            <div class="row">
+                                <div class="col-sm-4" style="margin-left:-25px;">
+                                    <input type="number" id="LineUnitPrice" class="input-sm form-control" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" style="margin-top:5px;">
+                    <div class="col-sm-4">
+                        <button type="submit" class="btn btn-primary" id="AddToGrid">@Resources.AddSaleLine</button>
+                    </div>
+                    @*<div class="col-sm-1">
+                        </div>*@
+                    <div class="col-sm-3">
+                        <button type="button" id="btnCancelGrid" class="btn btn-primary">@Resources.ResetButton</button>
+                    </div>
+                </div>
+            </fieldset>
+
+        </div>
+        <!-- Command Lines State -->
+        <div class="col-md-6">
+            <fieldset>
+                <legend>@Resources.CmdLineState</legend>
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <table class="table" id="CommandLinesGrid">
+                            <thead>
+                                <tr class="dataTableHead">
+                                    <th>
+                                        ID
+                                    </th>
+                                    <th>
+                                        @Resources.Productlabel
+                                    </th>
+                                    <th>
+                                        @Resources.SaleAmount
+                                    </th>
+                                    <th>
+                                        @Resources.Quantity
+                                    </th>
+                                    <th>
+                                        @Resources.Partialprice
+                                    </th>
+                                    <th>
+                                        Action
+                                    </th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+
+                </div>
+            </fieldset>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <fieldset style="margin-top:5px">
+                <div class="panel panel-default">
+                    <div class="panel-body3">
+                        <input class="form-control" id="CashRegisterCode" name="CashRegisterCode" value="@cashRegisterCode" type="hidden">
+                        <input class="form-control" id="banCode" name="banCode" value="@banCode" type="hidden">
+                        <input class="form-control" id="creditcode" name="creditcode" value="@creditcode" type="hidden">
+                        <input class="form-control" id="savingcode" name="savingcode" value="@savingcode" type="hidden">
+
+                        <input class="form-control number" id="PaymentDelay" name="PaymentDelay" value="0" type="hidden">
+                        <input class="form-control number" id="Guaranteed" name="Guaranteed" value="0" type="hidden">
+
+                        <div class="row ipt" style="margin-left:5%;">
+                            <div class="col-sm-2">@Resources.PaymentMethod</div>
+                            <div class="col-sm-3">
+                                <select class="form-control" id="BuyType" name="BuyType"></select>
+                            </div>
+                            <div class="col-sm-2" id="labelchoixbank">@Resources.ChoixBank</div>
+                            <div class="col-sm-3" id="inputchoixbank">
+                                <select class="form-control" id="PaymentMethodID" name="PaymentMethodID"></select>
+                            </div>
+                        </div>
+                        <div class="row ipt" style="margin-left:5%;">
+                            @*<div class="col-sm-2">@Resources.UIDevise</div>
+                            <div class="col-sm-3">
+                                <input class="form-control" id="DeviseID" name="DeviseID" value="@ViewBag.DefaultDeviseID" type="hidden" />
+                                <input class="form-control" id="Devise" name="Devise" value="@ViewBag.DefaultDevise" type="text" disabled />
+                            </div>
+                            <div class="col-sm-2">@Resources.Representant</div>
+                            <div class="col-sm-4">
+                                <input class="form-control" id="Representant" name="Representant" type="text">
+                            </div>*@
+                            <input class="form-control" id="DeviseID" name="DeviseID" value="@ViewBag.DefaultDeviseID" type="hidden" />
+                            <div class="row ipt">
+                                <div class="col-sm-4">
+                                    <input type="radio" name="SaleDeliver" id="NonLivre" value="0" checked="checked" /> @Resources.NonLivre
+                                    <input type="radio" name="SaleDeliver" id="Livre" value="1" /> @Resources.Livre
+                                </div>
+                                <div class="col-sm-2">@Resources.Deliverydate</div>
+                                <div class="col-sm-3" style="margin-left:-55px;">
+                                    <input class="form-control datepicker" type="text" id="SaleDeliveryDate" value="@ViewBag.BusnessDayDate" />
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </fieldset>
+        </div>
+    </div>
+    <!-- Save and Reset Buttons -->
+    <div class="row">
+        <div class="col-sm-2" style="margin-left:10%">
+            <button type="submit" class="btn btn-primary btn-success" id="btnSubmit">@Resources.SaveButton</button>
+        </div>
+        <div class="col-sm-2">
+            <button type="button" id="btnCancel" class="btn btn-primary btn-danger">@Resources.ResetButton</button>
+        </div>
+        <div class="col-sm-2">
+        </div>
+
+        <div class="col-sm-2">
+            <button id="btnPrint" class="btn btn-primary" onclick="location.href='@Url.Action("RptReceipt", "ReportsHome", new { area = "" })'"><i class="fa fa-print"></i> @Resources.PrintReceipt</button>
+        </div>
+        <div class="col-sm-2">
+            <button id="btnDeliveryOrder" class="btn btn-primary" onclick="location.href='@Url.Action("RptReceiptDetailOrther", "ReportsHome", new { area = ""})'"><i class="fa fa-print"></i> @Resources.PrintDatailReceipt</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- Css Begins Here -->
+
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 3px;
+        margin-left: 1px;
+        /*font-size:0.85em;*/
+    }
+
+    #img-upload {
+        width: 100%;
+    }
+
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #99bce8 !important;
+        margin: 0;
+        min-width: 0;
+        padding: 5px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8 /*#f5f5f5*/;
+        /*padding-left: 5px !important;*/
+    }
+
+    legend {
+        font-size: 12px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+
+    .panel-body {
+        height: 210px;
+    }
+
+    .panel-body1 {
+        height: 150px;
+        margin-top:15px;
+    }
+
+    .panel-body2 {
+        height: 185px;
+    }
+</style>
+
+<!--********** JavaScripts **********-->
+<script>
+
+    function enablebutton()
+    {
+        $('#btnDeliveryOrder').prop('disabled', false);
+        $('#btnPrint').prop('disabled', false);
+    }
+    function disablebutton() {
+        $('#btnDeliveryOrder').prop('disabled', true);
+        $('#btnPrint').prop('disabled', true);
+    }
+
+    function hideEquipmentPrice()
+    {
+        $('#Equipement').hide();
+        $('#ProductID').hide();
+
+    }
+    function showEquipmentPrice() {
+        $('#Equipement').show();
+        $('#ProductID').show();
+
+    }
+
+    function hideNumeroVerre() {
+        $('#NumeroVerre').hide();
+        $('#ProductCode').hide();
+    }
+    function showNumeroVerre() {
+        $('#NumeroVerre').show();
+        $('#ProductCode').show();
+    }
+
+    function clearApplyExtraPrices() {
+        $('#InitialHT').val('');
+        $('#InitialTTC').val('');
+        $('#RateReduction').val('');
+        $('#ReductionAmount').val('');
+        $('#NetCom').val('');
+        $('#RateDiscount').val('');
+        $('#DiscountAmount').val('');
+        $('#TotalPriceHT').val('');
+        $('#Transport').val('');
+        $('#VatRate').val('');
+        $('#TVAAmount').val('');
+        $('#TotalPriceTTC').val('');
+    }
+    function loadDetailMontant()
+    {
+        var reduction = $('#RateReduction').val();
+        var discount = $('#RateDiscount').val();
+        var transport = $('#Transport').val();
+        //chargement detail
+        $.get('@Url.Action("ApplyExtraPrices", "OtherSale")', { reduction: reduction, discount: discount, transport: transport }, function (data) {
+            $.each(data, function (key, value) {
+                $('#InitialHT').val(value.InitialHT);
+                $('#InitialTTC').val(value.InitialTTC);
+                $('#ReductionAmount').val(value.ReductionAmount);
+                $('#NetCom').val(value.NetCom);
+                $('#DiscountAmount').val(value.DiscountAmount);
+                $('#TotalPriceHT').val(value.TotalPriceHT);
+                $('#VatRate').val(value.VatRate);
+                $('#TVAAmount').val(value.TVAAmount);
+                $('#TotalPriceTTC').val(value.TotalPriceTTC);
+
+                $('#SliceAmount').val(value.SliceAmount);
+                $('#RemaingAmount').val(value.RemaingAmount);
+                OnSliceAmountChanged();
+            });
+        }, 'json');
+    }
+
+    // Get the Branch List
+    function populateBranch() {
+        $.get('@Url.Action("GetOpenedBranches", "OtherSale")', {}, function (data) {
+            $('#BranchID').empty();
+            $('#BranchID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#BranchID').append($("<option></option>").val(value.BranchID).html(value.BranchName));
+            });
+            var _DefaultId = $('#DefaultBranchID').val();
+            $('#BranchID').val(_DefaultId);
+            InitDate(_DefaultId);
+        }, 'json');
+    }
+    function InitDate(Branch)
+    {
+        $.get('@Url.Action("InitDate", "OtherSale")', { BranchID: Branch }, function (data) {
+            $('#SaleDate').empty();
+            $.each(data, function (key, value) {
+                $('#SaleDate').val(value.SaleDate);
+            });
+        }, 'json');
+    }
+    // Get the Customer List
+    function populateCustomer() {
+
+        $("#Customer").autocomplete({
+            minLength: 1, // set minimum of 1 characters before search executes.
+            delay: 100, // wait 0.1 second after keystroke before search executes.
+            source: function (request, response) {
+                $.ajax({
+                    url: '@Url.Action("LoadCustomers", "OtherSale")',
+                    type: "POST",
+                    dataType: "json",
+                    //cache: false,
+                    data: { filter: request.term },
+                    success: function (data) {
+                        response($.map(data, function (item) {
+                            return { label: item.Name, value: item.Name, id: item.ID };
+                        }))
+                    }
+                })
+            },
+            messages: {
+                noResults: "No results",
+                results: function (count) {
+                    return count + (count == 0 ? ' result' : ' results');
+                }
+            },
+            select: function (event, ui) {
+                $("#CustomerID").val(ui.item.id);
+                //var _CustomerID = $('#CustomerID').val();
+                //var _BranchID = $('#BranchID').val();
+                //loadCustomerdetail(_CustomerID, _BranchID);
+            }
+        });
+    }
+    function loadCustomerdetail(CustomerID, BranchID) {
+        $.get('@Url.Action("InitTrnNumber", "OtherSale")', { BranchID: BranchID, CustomerID: CustomerID }, function (data) {
+            $('#CashCustomer').empty();
+            $('#LimitAmount').empty();
+            $('#SavingAmount').empty();
+            $('#SaleReceiptNumber').empty();
+            $('#Representant').empty();
+
+            $.each(data, function (key, value) {
+                $('#CashCustomer').val(value.IsCashCustomer);
+                $('#LimitAmount').val(value.LimitAmount);
+                $('#SavingAmount').val(value.SavingAmount);
+                $('#SaleReceiptNumber').val(value.SaleReceiptNumber);
+                $('#Representant').val(value.Representant);
+                onManageCashNonCashAccount();
+            });
+        }, 'json');
+    }
+    // Get the Magasin List
+    function populateStockedLocations() {
+        $.get('@Url.Action("GetAllStockedLocations", "OtherSale")', {}, function (data) {
+            $('#LocalizationID').empty();
+            $('#LocalizationID').append($("<option value='0' selected='selected'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#LocalizationID').append($("<option></option>").val(value.LocalizationID).html(value.LocalizationCode));
+            });
+        }, 'json');
+    }
+    
+    //chargement des prix des equipements
+    function GetEquipmentPrice( CurrentProduct)
+    {
+        $.get('@Url.Action("GetEquipmentPrice", "OtherSale")', {CurrentProduct: CurrentProduct }, function (data) {
+            $('#LineUnitPrice').empty();
+            $.each(data, function (key, value) {
+                $('#LineUnitPrice').val(value.LineUnitPrice);
+            });
+        }, 'json');
+    }
+    // Get the Product category List
+    function GetProductCategory() {
+        $.get('@Url.Action("GetProductCategory", "OtherSale")', {}, function (data) {
+            $('#ProductCategory').empty();
+            $('#ProductCategory').append($("<option value='0' selected='selected'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#ProductCategory').append($("<option></option>").val(value.CategoryID).html(value.CategoryCode));
+            });
+            var ProductCategoryID = $('#ProductCategory').val();
+            DisableNumero(ProductCategoryID);
+        }, 'json');
+    }
+
+    function DisableNumero(ProductCategoryID) {
+        $.get('@Url.Action("DisableNumero", "OtherSale")', { ProductCategoryID: ProductCategoryID }, function (data) {
+            $('#LensCategory').empty();
+            $.each(data, function (key, value) {
+                $('#LensCategory').val(value.LensCategory);
+            });
+            var DepartureLocalizationID = $('#LocalizationID').val();
+            //0 = lenscategory
+            //1 = equipement / frame
+            var LensCategory = $('#LensCategory').val();
+            if (LensCategory==0)
+            {
+                hideEquipmentPrice();
+                showNumeroVerre();
+                if (parseInt(DepartureLocalizationID) > 0) {
+                    GetAllPagingNumbers();
+                }
+            }
+            else
+            {
+                showEquipmentPrice();
+                hideNumeroVerre();
+                if (parseInt(DepartureLocalizationID) > 0)
+                {
+                    GetAllEquipementProducts(DepartureLocalizationID, ProductCategoryID, 0);
+                }
+
+            }
+        }, 'json');
+    }
+
+    function GetAllEquipementProducts(DepartureLocalizationID, ProductCategoryID, ProductNumberID)
+    {
+        $.get('@Url.Action("GetAllProducts", "OtherSale")', { DepartureLocalizationID: DepartureLocalizationID, ProductCategoryID: ProductCategoryID, ProductNumberID: ProductNumberID }, function (data) {
+            $('#ProductID').empty();
+            $('#ProductID').append($("<option value='0' selected='selected'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#ProductID').append($("<option></option>").val(value.ProductID).html(value.ProductCode));
+            });
+
+        }, 'json');
+    }
+
+    function OnProductSelected(ProductID, Localization)
+    {
+        $.get('@Url.Action("OnProductSelected", "OtherSale")', { CurrentProduct: ProductID, Localization: Localization }, function (data) {
+            $('#StockQuantity').empty();
+            $('#LineUnitPrice').empty();
+            $.each(data, function (key, value) {
+                $('#StockQuantity').val(value.StockQuantity);
+                $('#LineUnitPrice').val(value.LineUnitPrice);
+            });
+
+
+        }, 'json');
+    }
+
+    function GetAllPagingNumbers()
+    {
+        $("#ProductNumber").autocomplete({
+            minLength: 4, // set minimum of 4 characters before search executes.
+            delay: 100, // wait 0.1 second after keystroke before search executes.
+            source: function (request, response) {
+                $.ajax({
+                    url: '@Url.Action("GetAllNumbers", "OtherSale")',
+                    type: "POST",
+                    dataType: "json",
+                    //cache: false,
+                    data: { filter: request.term, ProductCategory: $('#ProductCategory').val(), localization: $('#LocalizationID').val() },
+                    success: function (data) {
+                        response($.map(data, function (item) {
+                            return { label: item.LensNumberFullCode, value: item.LensNumberFullCode, id: item.LensNumberID };
+                        }))
+                    }
+                })
+            },
+            messages: {
+                noResults: "No results",
+                results: function (count) {
+                    return count + (count == 0 ? ' result' : ' results');
+                }
+            },
+            select: function (event, ui) {
+                $("#ProductNumberID").val(ui.item.id);
+                var ProductNumberID = $('#ProductNumberID').val();
+                var Localization = $('#LocalizationID').val();
+                var ProductCategoryID = $('#ProductCategory').val();
+                OnLensNumberSelected(ProductNumberID, Localization, ProductCategoryID);
+            }
+        });
+    }
+
+    function OnLensNumberSelected(ProductNumberID, Localization, ProductCategoryID)
+    {
+        $.get('@Url.Action("OnLensNumberSelected", "OtherSale")', { ProductNumberID: ProductNumberID, Localization: Localization, ProductCategoryID:ProductCategoryID }, function (data) {
+            $('#StockQuantity').empty();
+            $('#LineUnitPrice').empty();
+            $('#ProductID1').empty();
+            $('#ProductCode').empty();
+            $.each(data, function (key, value) {
+                $('#ProductID1').val(value.ProductID);
+                $('#ProductCode').val(value.ProductCode);
+
+                $('#StockQuantity').val(value.StockQuantity);
+                $('#LineUnitPrice').val(value.LineUnitPrice);
+            });
+        }, 'json');
+    }
+    function InitialiseHeader() {
+        //header
+        $("#SaleID").val('');
+        $('#Customer').val('');
+        $('#CustomerID').val('');
+        $('#SaleReceiptNumber').val('');
+
+        $('#CashCustomer').val('');
+        $('#LimitAmount').val('0');
+        $('#SavingAmount').val('0');
+
+        //amount detail
+        $('#InitialHT').val('0');
+        $('#InitialTTC').val('0');
+        $('#RateReduction').val('0');
+        $('#ReductionAmount').val('0');
+        $('#NetCom').val('0');
+        $('#RateDiscount').val('0');
+        $('#DiscountAmount').val('0');
+        $('#TotalPriceHT').val('0');
+        $('#Transport').val('0');
+        $('#TVAAmount').val('0');
+        $('#TotalPriceTTC').val('0');
+        $('#SliceAmount').val('0');
+
+        $('#RemaingAmount').val('0');
+    }
+    function productitems()
+    {
+        $('#ProductID').val('');
+        $('#ProductID1').val('');
+        $('#ProductCode').val('');
+        $('#LineQuantity').val('');
+        $('#StockQuantity').val('');
+        $('#LineUnitPrice').val('');
+        $('#ProductCategory').val('0');
+        $('#ProductNumberID').val('');
+        $('#ProductNumber').val('');
+       
+    }
+    function productitemsansCat() {
+        $('#ProductID').val('');
+        $('#ProductID1').val('');
+        $('#ProductCode').val('');
+        $('#LineQuantity').val('');
+        $('#StockQuantity').val('');
+        $('#LineUnitPrice').val('');
+        $('#ProductNumberID').val('');
+        $('#ProductNumber').val('');
+       
+    }
+    function productitemsansCat() {
+        $('#ProductID').val('');
+        $('#ProductID1').val('');
+        $('#ProductCode').val('');
+        $('#LineQuantity').val('');
+        $('#StockQuantity').val('');
+        $('#LineUnitPrice').val('');
+        $('#ProductNumberID').val('');
+        $('#ProductNumber').val('');
+
+    }
+    function ClearForm()
+    {
+        InitialiseHeader();
+        productitems();
+        LoadCommandLinesGrid(true);
+
+        $('#btnSubmit').prop('disabled', false);
+    }
+
+
+    function UpdateItem(obj) {
+        var SaleID = obj;
+        ClearForm();
+
+        $.get('@Url.Action("InitializeFieldsToUpdateCommand", "OtherSale")', { ID: parseInt(SaleID) }, function (data) {
+            $.each(data, function (key, value) {
+
+                var BranchID = value.BranchID;
+                var CustomerID = value.CustomerID;
+
+                $("#SaleID").val(SaleID);
+                $("#CustomerID").val(CustomerID);
+                $("#Customer").val(value.CustomerName);
+
+                $('#SaleDate').val(value.SaleDate);
+                $('#CashCustomer').val(value.IsCashCustomer);
+                $('#LimitAmount').val(value.LimitAmount);
+                $('#SavingAmount').val(value.SavingAmount);
+                $('#SaleReceiptNumber').val(value.SaleReceiptNumber);
+
+                LoadCommandLinesGrid(true);
+                //clear form
+                productitemsansCat();
+                //load detail amount
+                loadDetailMontant();
+            });
+        }, 'json');
+    }
+    function addToGrid()
+    {
+        var isAllValid = true;
+        @*if ($('#CustomerID').val() == '') {
+            isAllValid = false;
+            //$("#Customer").addClass("invalid-data");
+            alert('@Resources.Customer');
+        }
+        else {
+            $("#Customer").addClass("valid-data");
+        }*@
+        if ($('#LocalizationID').val() == "0") {
+            isAllValid = false;
+            $("#LocalizationID").addClass("invalid-data");
+        }
+        else {
+            $("#LocalizationID").addClass("valid-data");
+        }
+
+        if ($('#ProductCategory').val() == "0") {
+            isAllValid = false;
+            $("#ProductCategory").addClass("invalid-data");
+        }
+        else {
+            $("#ProductCategory").addClass("valid-data");
+        }
+        var ProductID = 0;
+        var LensCategory = $('#LensCategory').val();
+        if (LensCategory == 0) {
+            if ($('#ProductID1').val() == "0") {
+                isAllValid = false;
+                $("#ProductID1").addClass("invalid-data");
+            }
+            else {
+                $("#ProductID1").addClass("valid-data");
+                ProductID = $('#ProductID1').val();
+            }
+        }
+        else //equipement et frame
+        {
+
+            if ($('#ProductID').val() == "0" || $('#ProductID').val() == '') {
+                isAllValid = false;
+                $("#ProductID").addClass("invalid-data");
+            }
+            else {
+                $("#ProductID").addClass("valid-data");
+                ProductID = $('#ProductID').val();
+            }
+           
+        }
+        if ($('#LineQuantity').val().trim() == '') {
+            isAllValid = false;
+            $("#LineQuantity").addClass("invalid-data");
+        }
+        else {
+            $("#LineQuantity").addClass("valid-data");
+        }
+        if ($('#LineUnitPrice').val().trim() == '') {
+            isAllValid = false;
+            $("#LineUnitPrice").addClass("invalid-data");
+        }
+        else {
+            $("#LineUnitPrice").addClass("valid-data");
+        }
+
+        var data = {
+            LineUnitPrice: $.trim($('#LineUnitPrice').val()),
+            LineQuantity: $.trim($('#LineQuantity').val()),
+            ProductID: ProductID,
+            ProductCategory: $.trim($('#ProductCategory').val()),
+            LocalizationID: $.trim($('#LocalizationID').val()),
+            //OeilDroiteGauche: $('input[name=OeilDroiteGauche]:checked').val().trim()
+        }
+        $(this).val('Please wait...');
+        if (isAllValid) {
+            $.ajax({
+                url: '@Url.Action("AddSaline", "OtherSale")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        LoadCommandLinesGrid(true);
+                        //clear form
+                        productitemsansCat();
+                        //load detail amount
+                        loadDetailMontant();
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                    $('#AddToGrid').val('@Resources.addCmdLine');
+                },
+                error: function () {
+                    alert('Error. Please try again.');
+                    $('#AddToGrid').val('@Resources.addCmdLine');
+                }
+            });
+        }
+    }
+
+
+
+    //chargement d'une commandes d'un client
+    function LoadCommandLinesGrid(test) {
+
+        if (test)
+        {
+            $('#CommandLinesGrid').dataTable().fnDestroy();
+        }
+        var oTable = $('#CommandLinesGrid');
+
+        oTable = $('#CommandLinesGrid').dataTable({
+            "paging": true,
+            "pageLength": 4,
+            "lengthMenu": [[4, 8, 12, -1], [4, 8, 12, "All"]],
+            "searching": false,
+            "ordering": true,
+            "pagingType": "full_numbers",
+            "columnDefs": [
+                    { "visible": false, "targets": 0 }
+            ],
+            // Ajax call
+            "ajax": "@Url.Action("SaleLines", "OtherSale")",
+
+            "columns": [
+                { "data": "LineID" },
+                { "data": "ProductLabel","width": "70%" },
+                { "data": "LineUnitPrice" },
+                { "data": "LineQuantity" },
+                { "data": "LineAmount" },
+                {// this is Actions Column
+                    mRender: function (data, type, row) {
+
+                        var T_deleteOption = '<a href=# class="editor_remove" onclick="RemoveSaleLine(' + row.LineID + ')"><span class="glyphicon glyphicon-trash"></span></a>';
+                        var T_updateOption = '<a href="#" class="editor_remove" onclick="UpdateLine(' + row.LineID + ')"><span class="glyphicon glyphicon-edit"></a>';
+
+                        return @*T_updateOption + " | " +*@ T_deleteOption;
+                    }
+                }
+            ]
+    });
+    }
+    function UpdateLine(obj)
+    {
+        var globalID = obj;
+        $.get('@Url.Action("UpdateLine", "OtherSale")', { ID: parseInt(globalID) }, function (data) {
+            $.each(data, function (key, value) {
+                $('#LineUnitPrice').val(value.LineUnitPrice);
+                $('#LineQuantity').val(value.LineQuantity);
+                $('#StockQuantity').val(value.StockQuantity);
+                $('#LocalizationID').val(value.Localization);
+                $('#ProductCategory').val(value.ProductCategoryID);
+                $('#ProductCode').val(value.ProductCode);
+
+                var ProductID = value.Product;
+                var LensCategory = value.LensCategory;
+
+                if (LensCategory == 0) {
+                    hideEquipmentPrice();
+                    showNumeroVerre();
+                    $('#ProductID1').val(ProductID);
+
+                    $('#ProductNumberID').val(value.ProductNumberID);
+                    $('#ProductNumber').val(value.ProductNumber);
+                }
+                else {
+                    showEquipmentPrice();
+                    hideNumeroVerre();
+                    $('#ProductID').val(ProductID);
+                  
+                }
+
+            });
+        }, 'json');
+    }
+    function RemoveSaleLine(obj) {
+        var globalID = obj;
+
+        $.get('@Url.Action("RemoveSaleLine", "OtherSale")', { ID: parseInt(globalID) }, function (data) {
+            $.each(data, function (key, value) {
+                LoadCommandLinesGrid(true);
+                //load detail amount
+                loadDetailMontant();
+                productitems();
+            });
+        }, 'json');
+
+    }
+
+    // Get the BuyType List
+    function populateBuyType() {
+        $.get('@Url.Action("populateBuyType", "OtherSale")', {}, function (data) {
+            $('#BuyType').empty();
+            $('#BuyType').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#BuyType').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+
+    // Get the PaymentMethodID List
+    function populatePaymentMethodID(BuyTypeCode) {
+
+        $.get('@Url.Action("PaymentMethods", "OtherSale")', { BuyTypeCode: BuyTypeCode }, function (data) {
+            $('#PaymentMethodID').empty();
+            $('#PaymentMethodID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#PaymentMethodID').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+    function loadBankChoice() {
+        var BuyTypeCode = $('#BuyType').val().trim();
+        var banCode = $('#banCode').val().trim();
+        if (BuyTypeCode == banCode) {
+            $('#labelchoixbank').show();
+            $('#inputchoixbank').show();
+            $('#PaymentMethodID').empty();
+            populatePaymentMethodID(BuyTypeCode);
+        }
+        else {
+            $('#PaymentMethodID').empty();
+            $('#labelchoixbank').hide();
+            $('#inputchoixbank').hide();
+        }
+    }
+    $(document).on('ready', function () {
+
+        if ($('#DisplayForm').val().trim() == 0) {
+            $("#SaleValideForm").hide();
+        }
+        else {
+            $("#SaleValideForm").show();
+        }
+
+        var todaysDate = $('#SaleDate').val();
+        $(function () {
+            $(".datepicker").datepicker({
+                format: 'yyyy-mm-dd',
+                showButtonPanel: true,
+                minDate: todaysDate
+            });
+        });
+
+        $('#discountbloc').hide();
+        //disablebutton();
+        //initialosation
+        hideEquipmentPrice();
+        showNumeroVerre();
+        //chargement des agence
+        populateBranch();
+        populateBuyType();
+        $("#BuyType").change(function () {
+            loadBankChoice();
+        });
+        //chargement des clients
+        populateCustomer();
+        //$('#CustomerID').change(function () {
+        //    var _CustomerID = $('#CustomerID').val();
+        //    var _BranchID = $('#BranchID').val();
+        //    loadCustomerdetail(_CustomerID, _BranchID);
+
+        //});
+
+        //action kd la caisse saisi le montant du avancé par le client
+        $("#SliceAmount").blur(function () {
+            OnSliceAmountChanged();
+        });
+        //action kd la caisse saisi le montant du avancé par le client
+        $("#SliceAmount").keyup(function () {
+            var TotalPriceTTC = $('#TotalPriceTTC').val().trim();
+            var SliceAmount = $('#SliceAmount').val().trim();
+            var remaingAmount = parseInt(TotalPriceTTC) - parseInt(SliceAmount);
+            $('#RemaingAmount').val(remaingAmount);
+        });
+        //chargement des magasins
+        populateStockedLocations();
+        $('#LocalizationID').change(function () {
+            productitems();
+        });
+
+        //chargement des categories
+        GetProductCategory();
+        $('#ProductCategory').change(function () {
+            productitemsansCat();
+        });
+        $('#ProductCategory').change(function () {
+            var ProductCategoryID = $('#ProductCategory').val();
+            DisableNumero(ProductCategoryID);
+        });
+        //recuperation qte en stock pr le produit,unite de prix, mtant produit
+        $('#ProductID').change(function () {
+            var ProductID = $('#ProductID').val();
+            var Localization = $('#LocalizationID').val();
+            OnProductSelected(ProductID, Localization);
+            GetEquipmentPrice(ProductID);
+        });
+
+
+        $('#ProductNumber').change(function () {
+            var ProductNumberID = $('#ProductNumberID').val();
+            var Localization = $('#LocalizationID').val();
+            var ProductCategoryID = $('#ProductCategory').val();
+            OnLensNumberSelected(ProductNumberID, Localization, ProductCategoryID);
+        });
+
+        $('#ReductionAmount').on('change', function () {
+            onReductionAmountChanged();
+        });
+        $('#DiscountAmount').on('change', function () {
+            onDiscountAmountChanged();
+        });
+
+        $('#RateReduction').on('change', function () {
+            handler_extra_price();
+        });
+        $('#RateDiscount').on('change', function () {
+            handler_extra_price();
+        });
+        $('#Transport').on('keyup', function () {
+            handler_extra_price();
+        });
+
+        $('#btnCancelGrid').on('click', function () {
+            productitems();
+        });
+
+        LoadCommandLinesGrid(false);
+
+
+        $('#AddToGrid').on('click', function () {
+            addToGrid();
+        });
+        $('#btnCancel').on('click', function () {
+            location.reload(true);
+            //ClearForm();
+        });
+        $('#btnSubmit').on('click', function () {
+            ValideCommande();
+        });
+
+    });
+
+    function OnSliceAmountChanged() {
+
+        var BuyType = $('#BuyType').val().trim();
+
+        var creditcode = $('#creditcode').val();
+        var cashRegisterCode = $('#CashRegisterCode').val();
+        var savingcode = $('#savingcode').val();
+
+        var SavingAmount = $('#SavingAmount').val();
+
+        var SliceAmount = $('#SliceAmount').val();
+        var TotalPriceTTC = $('#TotalPriceTTC').val();
+        var remaingAmount = parseInt(TotalPriceTTC) - parseInt(SliceAmount);
+        $('#RemaingAmount').val(remaingAmount);
+
+
+        if (parseInt(SliceAmount) > 0) {//Si le mode de paiement est credit alors
+            if (parseInt(SavingAmount) >= parseInt(SliceAmount)) {
+                $('#BuyType').val(savingcode);
+            }
+            else {
+                $('#BuyType').val(cashRegisterCode);
+            }
+        }
+
+        if (parseInt(SliceAmount) <= 0) {//Si le mode de paiement est credit alors
+            $('#BuyType').val(creditcode);
+        }
+        loadBankChoice();
+    }
+    //validation d'une commande
+    function ValideCommande() {
+
+        var isAllValid = true;
+        var d = new Date();
+        var hourPayment = d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds();
+        $('#heureVente').val(hourPayment);
+
+        if ($('#heureVente').val().trim() == '') {
+            isAllValid = false;
+        }
+        @*if ($('#CustomerID').val() == '') {
+            isAllValid = false;
+            //$("#Customer").addClass("invalid-data");
+            alert('@Resources.Customer');
+        }
+        else {
+            $("#Customer").addClass("valid-data");
+        }*@
+
+        if ($('#SaleDate').val() == '') {
+            isAllValid = false;
+            $("#SaleDate").addClass("invalid-data");
+        }
+        else {
+            $("#SaleDate").addClass("valid-data");
+        }
+        //if ($('#SaleReceiptNumber').val() == '') {
+        //    isAllValid = false;
+        //    $("#SaleReceiptNumber").addClass("invalid-data");
+        //}
+        //else {
+        //    $("#SaleReceiptNumber").addClass("valid-data");
+        //}
+
+        if (parseFloat($('#VatRate').val()) < 0) {
+            isAllValid = false;
+            $("#VatRate").addClass("invalid-data");
+        }
+        else {
+            $("#VatRate").addClass("valid-data");
+        }
+        if (parseFloat($('#RateReduction').val()) < 0) {
+            isAllValid = false;
+            $("#RateReduction").addClass("invalid-data");
+        }
+        else {
+            $("#RateReduction").addClass("valid-data");
+        }
+
+        if (parseFloat($('#RateDiscount').val()) < 0) {
+            isAllValid = false;
+            $("#RateDiscount").addClass("invalid-data");
+        }
+        else {
+            $("#RateDiscount").addClass("valid-data");
+        }
+
+        if (parseFloat($('#Transport').val()) < 0) {
+            isAllValid = false;
+            $("#Transport").addClass("invalid-data");
+        }
+        else {
+            $("#Transport").addClass("valid-data");
+        }
+
+        if ($('#BuyType').val() == "0") {
+            isAllValid = false;
+            $("#BuyType").addClass("invalid-data");
+        }
+        else {
+            $("#BuyType").addClass("valid-data");
+        }
+        if ($('#DeviseID').val().trim() == '') {
+            isAllValid = false;
+            $("#DeviseID").addClass("invalid-data");
+        }
+        else {
+            $("#DeviseID").addClass("valid-data");
+        }
+
+        if ($('#BranchID').val().trim() == '') {
+            isAllValid = false;
+            $("#BranchID").addClass("invalid-data");
+        }
+        else {
+            $("#BranchID").addClass("valid-data");
+        }
+        if ($('#SaleDeliveryDate').val() == '') {
+            isAllValid = false;
+            $("#SaleDeliveryDate").addClass("invalid-data");
+        }
+        else {
+            $("#SaleDeliveryDate").addClass("valid-data");
+        }
+
+        if (isAllValid) {
+
+
+            var data = {
+                SliceAmount: $('#SliceAmount').val(),
+                TotalPriceTTC: $('#TotalPriceTTC').val(),
+                SaleDate: $('#SaleDate').val(),
+                SaleDeliveryDate: $('#SaleDeliveryDate').val(),
+                VatRate: $('#VatRate').val(),
+                RateReduction: $('#RateReduction').val(),
+                RateDiscount: $('#RateDiscount').val(),
+                CustomerID: $('#CustomerID').val(),
+                PaymentMethodID: $('#PaymentMethodID').val(),
+                SaleReceiptNumber: $('#SaleReceiptNumber').val().trim(),
+                DeviseID: $('#DeviseID').val(),
+                BranchID: $('#BranchID').val(),
+                Transport: $('#Transport').val(),
+                SaleID:$("#SaleID").val(),
+                BuyType: $("#BuyType").val(),
+                Representant: $("#Representant").val(),
+                CashCustomer: $("#CashCustomer").val(),
+                heureVente: $('#heureVente').val().trim(),
+                PaymentDelay: $('#PaymentDelay').val().trim(),
+                StatutSale: $('#StatutSale').val().trim(),
+                OldStatutSale: $('#OldStatutSale').val().trim(),
+                SaleValidate: $('#SaleValidate').val().trim(),
+                Guaranteed: $('#Guaranteed').val().trim(),
+                CustomerName: $('#Customer').val().trim(),
+                SaleDeliver: $('input[name=SaleDeliver]:checked').val(),
+            }
+            $(this).val('Please wait...');
+            $('#btnSubmit').prop('disabled', true);
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("AddSale", "OtherSale")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        ClearForm();
+                        enablebutton();
+                    }
+                    else {
+                        alert(d.Message);
+                        $('#btnSubmit').prop('disabled', false);
+                    }
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+
+                }
+            });
+        }
+
+    }
+    function onManageCashNonCashAccount() {
+        var CashCustomer = $('#CashCustomer').val().trim();
+        if (CashCustomer == "Cash") {
+            $('#SliceAmount').prop('disabled', true);
+        }
+        else {
+            $('#SliceAmount').prop('disabled', false);
+        }
+    }
+    function onReductionAmountChanged()
+    {
+        var valueOperation = parseFloat($('#InitialHT').val());
+        var remise =parseFloat($('#RateReduction').val());
+        var ReductionAmount = parseFloat($('#ReductionAmount').val());
+        var reduction =  (100 * ReductionAmount) / valueOperation;
+        if(remise != reduction){
+            $('#RateReduction').val(reduction);
+        }
+        handler_extra_price();
+    }
+
+    function onDiscountAmountChanged()
+    {
+        var NetCom = parseFloat($('#NetCom').val());
+        var discount = parseFloat($('#RateDiscount').val());
+        var DiscountAmount = parseFloat($('#DiscountAmount').val());
+        var escompte =  (100 * DiscountAmount) / NetCom;
+        if(escompte != discount){
+            $('#RateDiscount').val(escompte);
+        }
+        handler_extra_price();
+    }
+
+    function handler_extra_price ()
+    {
+        var valueOperation = parseFloat($('#InitialHT').val());
+        var ReductionAmount = parseFloat($('#ReductionAmount').val());
+        var DiscountAmount = parseFloat($('#DiscountAmount').val());
+        var reduction = parseFloat($('#RateReduction').val());
+        var discount = parseFloat($('#RateDiscount').val());
+        var transport = parseFloat($('#Transport').val());
+        var new_HT_price = valueOperation;
+        var remise = 0;
+        var escompte = 0;
+        var vatRate = ($('#VatRate').val() == '') ? 0 : parseFloat($('#VatRate').val());
+
+        var netFin = valueOperation;
+        var NetCom = valueOperation;
+
+        //Réduction
+        if (reduction > 0)
+        {
+            remise = Math.round((reduction / 100) * valueOperation);
+            new_HT_price -= remise;
+            NetCom -= remise;
+            netFin = NetCom;
+        }
+
+        if (discount > 0)
+        {
+            escompte = Math.round((discount / 100) * new_HT_price);
+            new_HT_price -= escompte;
+            netFin = new_HT_price;
+        }
+
+        if (transport > 0)
+        {
+            new_HT_price += transport;
+        }
+
+        var tva_amount = Math.round(new_HT_price * vatRate);
+
+        if(ReductionAmount != remise){
+            $('#ReductionAmount').val(remise);
+        }
+
+        if(escompte != DiscountAmount){
+            $('#DiscountAmount').val(escompte);
+        }
+
+        $('#NetCom').val(NetCom);
+        $('#TotalPriceHT').val(netFin);
+        $('#TVAAmount').val(tva_amount);
+        $('#TotalPriceTTC').val(new_HT_price+tva_amount);
+
+        var CashCustomer = $('#CashCustomer').val().trim();
+        if (CashCustomer == "Cash") {
+            $('#SliceAmount').val(new_HT_price+tva_amount);
+        }
+        else {
+            $('#SliceAmount').val(0);
+        }
+
+    }
+
+</script>

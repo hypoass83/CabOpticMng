@@ -1,0 +1,276 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+@using FatSod.Supply.Entities;
+@model System.Collections.IEnumerable
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    string labelSeparator = "  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :";
+    string cashRegisterCode = CodeValue.Accounting.DefaultCodeAccountingSection.CODECAIS;
+    string bank = CodeValue.Accounting.DefaultCodeAccountingSection.CODEBANK;
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+    
+}
+
+@section content
+{
+    @************************************************ Sales form informations ********************************@
+   
+
+        @(
+         X.FormPanel()
+            .ID("PostSupForm")
+            .Frame(true)
+            .MarginSpec("-50 0 -10 0")
+            .BodyPadding(10)
+            .Items(
+                X.DateField().FieldLabel(Resources.DepositDate)
+                .AllowBlank(false).Name("DepositDate")
+                .ID("DepositDate")
+                .Format("dd/MM/yyyy")
+                .Value((DateTime)ViewBag.BusnessDayDate)
+                .MarginSpec("25 0 10 0")
+                .InputType(Ext.Net.InputType.DateTime)
+                .DirectEvents(de =>
+                {
+                    de.Change.Action = "ReloadDepositListStore";
+                    de.Change.Method = HttpMethod.POST;
+                    de.Change.EventMask.ShowMask = true;
+                    de.Change.EventMask.Msg = Resources.EventMaskUpdate;
+                })
+
+                )
+
+        )
+
+
+    @*************************************************** Desposit list *************************************************************@
+    @(X.GridPanel()
+        .ID("DepositList")
+        .Layout(LayoutType.Fit)
+        .MarginSpec("0 0 10 0")
+        .Margin(5)
+        .Frame(false)
+        .Collapsible(false)
+        .Store(X.Store()
+            .GroupField("Old Deposit list")
+            .ID("DepositListStore")
+            .RemotePaging(true)
+            .AutoLoad(true)
+            .PageSize(5)
+            .Model(
+                X.Model()
+                    .IDProperty("DepositOrderID")
+                    .Fields(
+                        new ModelField("AllDepositDate", ModelFieldType.Date),
+                        new ModelField("AllDepositID", ModelFieldType.Int),
+                        new ModelField("Amount", ModelFieldType.Float),
+                        new ModelField("AllDepositReference", ModelFieldType.String),
+                        new ModelField("CustomerFullName", ModelFieldType.String),
+                        new ModelField("Representant", ModelFieldType.String)
+
+                    )
+            )
+            .DataSource(Model)
+            .ServerProxy(
+                X.AjaxProxy()
+                .Url(Url.Action("ReturnAbleDeposit"))
+                .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                .Reader(X.JsonReader().RootProperty("data"))
+            )
+            .Parameters(ps =>
+                ps.Add(new StoreParameter("DepositDate", "App.DepositDate.getValue()", ParameterMode.Raw))
+            )
+            .Sorters(
+                X.DataSorter()
+                .Property("CustomerFullName")
+                .Direction(Ext.Net.SortDirection.ASC)
+            )
+        )
+
+        .ColumnModel(
+            X.RowNumbererColumn()
+            ,
+
+            X.DateColumn()
+                .Text(Resources.DepositDate)
+                .DataIndex("AllDepositDate")
+                .Flex(1),
+
+           X.Column()
+                .Text(Resources.Customer)
+                .DataIndex("CustomerFullName")
+                .Flex(1),
+
+        X.Column()
+                .Text(Resources.Representant)
+                .DataIndex("Representant")
+                .Flex(1)
+                ,
+
+            X.Column()
+                .Text(Resources.Commandref)
+                .DataIndex("AllDepositReference")
+                .Flex(1)
+                ,
+
+            X.Column()
+                .Text(Resources.Amount)
+                .DataIndex("Amount")
+                .Flex(1),
+             Html.X().ImageCommandColumn()
+                        .Width(30)
+                        .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.DELETE, profile, CodeValue.CashRegister.MENU_DEPOSIT_RECEIPT, db))
+                        .Commands(
+                            Html.X().ImageCommand()
+                                .CommandName("Delete")
+                                .IconCls("icon-delete")
+                                .ToolTip(tt =>
+                                    {
+                                        tt.Text = "Voulez-vous supprimer ?";
+                                        tt.Title = "Supression";
+                                    }
+                                 )
+                        )
+                        .DirectEvents(de =>
+                        {
+                            de.Command.Action = "Delete";
+                            de.Command.Method = HttpMethod.POST;
+                            de.Command.Confirmation.ConfirmRequest = true;
+                            de.Command.Confirmation.Message = Resources.ConfirmDeleteMessage;
+                            de.Command.Confirmation.Title = Resources.ConfirmDeleteTitle;
+                            de.Command.ExtraParams.Add(new Parameter("AllDepositID", "record.data.AllDepositID", ParameterMode.Raw));
+                            de.Command.EventMask.ShowMask = true;
+                            de.Command.EventMask.Msg = Resources.EventMaskMsg;
+                        }),
+            X.ImageCommandColumn()
+                .Width(30)
+                .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, profile, CodeValue.CashRegister.MENU_DEPOSIT_RECEIPT, db))
+                .Commands(
+                X.ImageCommand()
+                        .CommandName("Edit")
+                        .IconCls("icon-edit")
+                )
+                .DirectEvents(de =>
+                {
+                    de.Command.Action = "InitializeFields";
+                    de.Command.Method = HttpMethod.POST;
+                    de.Command.ExtraParams.Add(new Parameter("AllDepositID", "record.data.AllDepositID", ParameterMode.Raw));
+                    de.Command.EventMask.ShowMask = true;
+                    de.Command.EventMask.Msg = Resources.EventMaskUpdate;
+                })
+
+            )
+                    .Plugins(
+                        X.FilterHeader()
+                    )
+                    .BottomBar(
+                            X.PagingToolbar()
+                    )
+    )
+    @***********************  Sale form  ***************************@
+    @(
+ X.FormPanel()
+        .ID("GlobalDepositForm")
+        .MarginSpec("0 0 0 0")
+        .Padding(0)
+        .FieldDefaults(fd => { fd.LabelWidth = 110; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+        .Buttons(
+            X.Button()
+                .ID("btnReceipt")
+                .Text(Resources.PrintReceipt)
+                .Icon(Icon.Printer)
+                .OnClientClick("App.FormCustomerIdentification.setHidden(true);App.Pdf.setHidden(false)")
+                .DirectEvents(de =>
+                {
+                    de.Click.Url = Url.Action("PrintDepositReceipt");
+                    de.Click.EventMask.ShowMask = true;
+                    de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                }),
+            X.Button()
+                .Text(Resources.ResetButton)
+                .MarginSpec("0 20 10 10")
+                .OnClientClick("this.up('form').reset();App.FormCustomerIdentification.setHidden(false);App.Pdf.setHidden(true)")
+        )
+        .Items(
+            X.FormPanel()
+                .ID("FormCustomerIdentification")
+                .MarginSpec("0 0 0 0")
+                .Title(Resources.CustomerIdentification)
+                .Items(
+        //Top Fields, sale information
+                    X.Container()
+                     .MarginSpec("0 0 0 0")
+                     //.Title(" ")
+                     .Layout(LayoutType.Column)
+                     .LayoutConfig(new ColumnLayoutConfig { DefaultValueMode = DefaultValueMode.RenderExplicit })
+                     .Items(
+                        X.TextField().Name("AllDepositID").ID("AllDepositID").Hidden(true),
+                        X.TextField().Name("BranchID").Hidden(true).ID("BranchID"),
+                        X.TextField().Name("CustomerID").FieldLabel(Resources.Customer).Hidden(true).ID("CustomerID"),
+                        X.TextField().Name("CustomerName")
+                         .FieldLabel(Resources.Customer)
+                         .ID("CustomerName")
+                         .MarginSpec("5 0 10 0")
+                         .ReadOnly(true),
+                            X.DateField().FieldLabel(Resources.DepositDate)
+                            .AllowBlank(false).Name("AllDepositDate")
+                            .ID("AllDepositDate")
+                            .ReadOnly(true)
+                            .MarginSpec("5 0 10 0")
+                            .InputType(Ext.Net.InputType.DateTime)
+                        ,
+                        X.TextField().FieldLabel(Resources.Reference)
+                            .MarginSpec("5 0 10 0")
+                            .Name("AllDepositReference")
+                            .AllowBlank(false)
+                            .ID("AllDepositReference")
+                            .MinLength(2)
+                            .ReadOnly(true),
+                          X.NumberField().FieldLabel(Resources.Amount)
+                            .MarginSpec("5 0 10 0")
+                            .Name("Amount")
+                            .AllowBlank(false)
+                            .ID("Amount")
+                            .ReadOnly(true)
+                       )
+                     )
+                     ,
+      
+        //Panel for print
+                        X.Container()
+                        .ID("Pdf")
+                        //.Title(Resources.panelprintvalreceip)
+                        .Hidden(true)
+                        .Layout(LayoutType.HBox)
+                        .Flex(1)
+                        //.Collapsible(true)
+                        .Padding(20)
+                        .AutoScroll(false)
+                        .Hidden(true)
+                        .MinHeight(500)
+                        .Loader(
+                           X.ComponentLoader()
+                            .AutoLoad(false)
+                            .Mode(LoadMode.Frame)
+                            .LoadMask(lm =>
+                                {
+                                    lm.ShowMask = true;
+                                    lm.Msg = Resources.MsgGenerateState;
+                                    lm.UseMsg = true;
+
+                                })
+                            )
+                     )
+
+                        //End sale regelement
+    )
+
+}

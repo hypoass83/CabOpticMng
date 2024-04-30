@@ -1,0 +1,85 @@
+﻿@using System.Threading;
+@using FatSod.Ressources;
+@{
+    var X = Html.X();
+
+    Boolean Etat1, Etat2;
+    
+    if (Resources.Culture.ToString() == "en-US") 
+    //if (Thread.CurrentThread.CurrentUICulture.Name == "en-US")
+    { Etat1 = true; Etat2 = false; }
+    else
+    { Etat1 = false; Etat2 = true; }
+}
+
+@(
+    X.Panel()
+        .Region(Region.North)
+        .BodyStyle("background-color:transparent;")
+        .Border(false)
+        .Layout(LayoutType.Fit)
+        .Items(
+            X.Panel()
+                .BodyStyle("background-color:transparent;")
+                .Border(false)
+                .Layout(LayoutType.Column)
+                .Items(
+                    // -- Panel de droite -- // 
+                    X.Panel()
+                        .BodyStyle("background-color:transparent;")
+                        .PaddingSpec("5px 0 0 10px")
+                        .Layout(LayoutType.VBox)
+                        .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Left })
+                        .Border(false)
+                        .ColumnWidth(0.5)
+                        .Items(
+                            X.Label().ID("Label_list_connecte")
+                                 //   .Html(/*Model.Nombre_connecte + */" 0 " + "Resources.User_logged")
+                                .Icon(Icon.UserSuitBlack)
+                                .Plugins(
+                                    X.MouseDistanceSensor()
+                                        .MinOpacity(
+                                            (decimal)0.3
+                                        )
+                                        .DirectEvents(l => {
+                                            l.Near.Action = "Rafraichir_liste";
+                                        })
+                                )
+                        ),
+
+                    // -- Panel de gauche -- //
+                    X.Panel()
+                        .BodyStyle("background-color:transparent;")
+                        .PaddingSpec("0 10px 0 0")
+                        .Layout(LayoutType.HBox)
+                        .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Middle, Pack = BoxPack.End })
+                        .ColumnWidth(0.5)
+                        .Border(false)
+                        .Items(
+                                                       
+                            X.FieldSet()
+                                .Layout(LayoutType.Column)
+                                .Title(Resources.Language)
+                                .Width(130)
+                                .Items(
+                                    X.Label().Width(7),
+                                    X.Radio()
+                                        .ID("en")
+                                        .Name("lang")
+                                        .Checked(Etat1),
+                                    X.Image().ImageUrl(@Url.Content("~/Content/Images/png/Icon-English.png")).Border(false).Height(14).Width(33),
+                                    X.Label().Width(5),
+                                    X.Radio()
+                                        .ID("fr")
+                                        .Name("lang")
+                                        .Checked(Etat2)
+                                        .DirectEvents(de =>
+                                        {
+                                            de.Change.Action = "ChangeLanguage";
+                                        }),
+                                    X.Image().ImageUrl(@Url.Content("~/Content/Images/png/Icon-French.png")).Height(14).Width(33)
+                                )
+                        )
+                )
+        )
+)

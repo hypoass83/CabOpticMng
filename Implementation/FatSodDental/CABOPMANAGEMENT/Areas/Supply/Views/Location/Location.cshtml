@@ -1,0 +1,524 @@
+﻿@using FatSod.Ressources;
+@using CABOPMANAGEMENT.Tools;
+@using FatSod.DataContext.Initializer;
+
+@model IEnumerable<FatSod.Supply.Entities.Localization>
+
+@{
+    ViewBag.Title = @Resources.Localization;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var profile = (Session["UserProfile"] == null) ? 0 : (int)Session["UserProfile"];
+    var user = (Session["UserID"] == null) ? 0 : (int)Session["UserID"];
+
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+
+<div class="box box-primary box-body">
+    <!--<form id="FormAccountingSection">-->
+    @****************************@
+    @Html.AntiForgeryToken()
+    <h1>@Resources.LocalizationFormTitle</h1>
+    <h6>@Resources.RequireField<code>(*)</code>.</h6>
+
+    <div class="box box-primary box-body">
+        <div class="row">
+            <!-- Left Side Begins Here -->
+            <div class="col-sm-6">
+                <div class="panel panel-default">
+                    <div class="panel-body1">
+                        <fieldset>
+                            <legend>@Resources.GeneralInfoIdentification</legend>
+                            <input type="hidden" id="LocalizationID" />
+
+
+                            <div class="row ipt">
+                                <!-- LocalizationCode -->
+                                <div class="col-sm-4">@Resources.Code<code>(*)</code></div>
+                                <div class="col-sm-8">
+                                    <input type="text" id="LocalizationCode" class="input-sm form-control" />
+                                </div>
+                            </div>
+                            <div class="row ipt">
+                                <!-- Date Operation -->
+                                <div class="col-sm-4">@Resources.Label<code>(*)</code></div>
+                                <div class="col-sm-8">
+                                    <input type="text" id="LocalizationLabel" class="input-sm form-control" />
+                                </div>
+                            </div>
+
+                            <div class="row ipt">
+                                <!-- LocalizationDescription -->
+                                <div class="col-sm-4">@Resources.Description<code>(*)</code></div>
+                                <div class="col-sm-8">
+                                    <textarea id="LocalizationDescription" class="input-sm form-control"></textarea>
+                                </div>
+                            </div>
+                            <div class="row ipt">
+                                <!-- Branch -->
+                                <div class="col-sm-4">@Resources.Branches<code>(*)</code></div>
+                                <div class="col-sm-8">
+                                    <select id="BranchID" class="input-sm form-control"></select>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+            </div>
+            <!-- Right Side Begins Here -->
+            <div class="col-sm-6">
+                <div class="panel panel-default">
+                    <div class="panel-body1">
+                        <fieldset style="border-left: 2px solid black">
+                            <legend>Identification du quartier</legend>
+                            <div class="row ipt">
+                                <!-- CountryID -->
+                                <div class="col-sm-4">@Resources.AdressCountry<code>(*)</code></div>
+                                <div class="col-sm-8">
+                                    <select id="CountryID" class="input-sm form-control"></select>
+                                </div>
+                            </div>
+                            <div class="row ipt">
+                                <!-- AccountNumber -->
+                                <div class="col-sm-4">@Resources.AdressRegion<code>(*)</code></div>
+                                <div class="col-sm-8">
+                                    <select id="RegionID" class="input-sm form-control"></select>
+                                </div>
+                            </div>
+
+                            <div class="row ipt">
+                                <div class="col-sm-4">@Resources.AdressTown<code>(*)</code></div>
+                                <div class="row ipt">
+                                    <div class="col-sm-8">
+                                        <select id="TownID" class="input-sm form-control"></select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row ipt">
+                                <div class="col-sm-4">@Resources.QTER<code>(*)</code></div>
+                                <div class="row ipt">
+                                    <div class="col-sm-8">
+                                        <select id="QuarterID" class="input-sm form-control"></select>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </fieldset>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row ipt">
+            <div class="col-sm-4">
+                <button type="button" id="btnCancel" class="btn btn-primary">@Resources.ResetButton</button>
+            </div>
+            <div class="col-sm-8">
+                <button type="submit" class="btn btn-primary" id="btnSubmit">@Resources.SaveButton</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Ajout de la table contenant les data deja enregistrees-->
+<h2>@Resources.LocalizationList</h2>
+<div class="box box-body box-primary">
+
+    <table class="table" id="mainTable">
+        <thead>
+            <tr class="dataTableHead">
+                <th>
+                    ID
+                </th>
+                <th>
+                    @Resources.Code
+                </th>
+                <th>
+                    @Resources.Label
+                </th>
+                <th>
+                    @Resources.UserBranch
+                </th>
+                <th>
+                    @Resources.QTER
+                </th>
+
+                <th>
+                    @Resources.Description
+                </th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.LocalizationID)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.LocalizationCode)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.LocalizationLabel)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Branch.BranchName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Quarter.QuarterLabel)
+                </td>
+
+                <td>
+                    @Html.DisplayFor(modelItem => item.LocalizationDescription)
+                </td>
+
+                <td>
+                    @if (!LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, @profile, CodeValue.Supply.Location_SM.CODE, db))
+                    {<a href=# onclick="UpdateItem(this)"><span class="glyphicon glyphicon-edit"></span></a> } |
+                    @if (!LoadAction.IsSubMenuActionAble(MenuAction.DELETE, @profile, CodeValue.Supply.Location_SM.CODE, db))
+                    {<a href=# onclick="DeleteItem(this)"><span class="glyphicon glyphicon-trash"></span></a> }
+                </td>
+            </tr>
+        }
+
+    </table>
+</div>
+
+
+<!--********** JavaScripts **********-->
+<script>
+    function populateBranches() {
+        $.get('@Url.Action("getAllBranches", "Location")', {}, function (data) {
+            $('#BranchID').empty();
+            $('#BranchID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#BranchID').append($("<option></option>").val(value.BranchID).html(value.Name));
+            });
+        }, 'json');
+    }
+
+   function populateCountry() {
+        $.get('@Url.Action("getAllCountries", "Location")', {}, function (data) {
+            $('#CountryID').empty();
+            $('#CountryID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#CountryID').append($("<option></option>").val(value.CountryID).html(value.Name));
+            });
+        }, 'json');
+    }
+    function populateRegion(CountryID)
+    {
+        $.get('@Url.Action("getRegions", "Location")', { CountryID: CountryID }, function (data) {
+            $('#RegionID').empty();
+            $('#RegionID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#RegionID').append($("<option></option>").val(value.RegionID).html(value.Name));
+            });
+        }, 'json');
+    }
+    function populateTown(RegionID) {
+        $.get('@Url.Action("getTowns", "Location")', { RegionID: RegionID }, function (data) {
+            $('#TownID').empty();
+            $('#TownID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#TownID').append($("<option></option>").val(value.TownID).html(value.Name));
+            });
+
+        }, 'json');
+    }
+        function populateQuater(TownID) {
+            $.get('@Url.Action("getQuarters", "Location")', { TownID: TownID }, function (data) {
+                $('#QuarterID').empty();
+                $('#QuarterID').append($("<option value='0'>@Resources.Select</option>"));
+                $.each(data, function (key, value) {
+                    $('#QuarterID').append($("<option></option>").val(value.QuarterID).html(value.Name));
+                });
+
+            }, 'json');
+    }
+    function UpdateItem(obj) {
+        var globalID = $(obj).parent().siblings(":first").text();
+        clearForm();
+        var RegionID = 0;
+        var TownID = 0;
+        var QuarterID = 0;
+        $.get('@Url.Action("InitializeLocalizationFields", "Location")', { ID: globalID }, function (data) {
+            $.each(data, function (key, value) {
+                $('#LocalizationID').val(value.LocalizationID);
+                $('#LocalizationCode').val(value.LocalizationCode);
+                $('#LocalizationLabel').val(value.LocalizationLabel);
+                $('#LocalizationDescription').val(value.LocalizationDescription);
+                $('#BranchID').val(value.BranchID);
+                $('#CountryID').val(value.CountryID);
+                RegionID=value.RegionID;
+                TownID=value.TownID;
+                QuarterID=value.QuarterID;
+            });
+            var CountryID = $('#CountryID').val();
+            populateRegion(CountryID);
+            populateTown(RegionID);
+            populateQuater(TownID);
+
+        }, 'json');
+
+        $('#RegionID').val(RegionID);
+        $('#TownID').val(TownID);
+        $('#QuarterID').val(QuarterID);
+    }
+
+    function clearForm() {
+
+        $('#LocalizationID').val('');
+        $('#LocalizationCode').val('');
+        $('#LocalizationLabel').val('');
+        $('#LocalizationDescription').val('');
+        $('#QuarterID').val('0');
+        $('#CountryID').val('0');
+        $('#RegionID').val('0');
+        $('#TownID').val('0');
+        $('#BranchID').val('0');
+    }
+
+    function ValideProduct()
+    {
+        var isAllValid = true;
+
+
+        if ($('#BranchID').val() == '0') {
+            isAllValid = false;
+            $("#BranchID").addClass("invalid-data");
+        }
+        else {
+            $("#BranchID").addClass("valid-data");
+        }
+
+        if ($('#CountryID').val() == '0') {
+            isAllValid = false;
+            $("#CountryID").addClass("invalid-data");
+        }
+        else {
+            $("#CountryID").addClass("valid-data");
+        }
+
+        if ($('#RegionID').val() == '0') {
+            isAllValid = false;
+            $("#RegionID").addClass("invalid-data");
+        }
+        else {
+            $("#RegionID").addClass("valid-data");
+        }
+        if ($('#LocalizationCode').val() == '') {
+            isAllValid = false;
+            $("#LocalizationCode").addClass("invalid-data");
+        }
+        else {
+            $("#LocalizationCode").addClass("valid-data");
+        }
+
+        if ($('#TownID').val() == '0') {
+            isAllValid = false;
+            $("#TownID").addClass("invalid-data");
+        }
+        else {
+            $("#TownID").addClass("valid-data");
+        }
+
+        if ($('#QuarterID').val() == '0') {
+            isAllValid = false;
+            $("#QuarterID").addClass("invalid-data");
+        }
+        else {
+            $("#QuarterID").addClass("valid-data");
+        }
+
+        if ($('#LocalizationLabel').val().trim() == '') {
+            isAllValid = false;
+            $("#LocalizationLabel").addClass("invalid-data");
+        }
+        else {
+            $("#LocalizationLabel").addClass("valid-data");
+        }
+
+        if ($('#LocalizationDescription').val().trim() == '') {
+            isAllValid = false;
+            $("#LocalizationDescription").addClass("invalid-data");
+        }
+        else {
+            $("#LocalizationDescription").addClass("valid-data");
+        }
+        if (isAllValid) {
+
+            var data = {
+
+                LocalizationID: $('#LocalizationID').val(),
+                CountryID: $('#CountryID').val(),
+                RegionID: $('#RegionID').val(),
+                LocalizationCode: $('#LocalizationCode').val().trim(),
+                TownID: $('#TownID').val().trim(),
+                LocalizationLabel: $('#LocalizationLabel').val(),
+                LocalizationDescription: $('#LocalizationDescription').val().trim(),
+                QuarterID: $('#QuarterID').val(),
+                BranchID: $('#BranchID').val(),
+            }
+            $(this).val('Please wait...');
+
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("AddManager", "Location")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        location.reload(true);
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                }
+            });
+        }
+    }
+
+    $(document).on('ready', function () {
+        populateBranches();
+        populateCountry();
+
+        $('#CountryID').on('change', function () {
+            var CountryID = $('#CountryID').val();
+            populateRegion(CountryID);
+        });
+
+        $('#RegionID').on('change', function () {
+            var RegionID = $('#RegionID').val();
+            populateTown(RegionID);
+        });
+
+        $('#TownID').on('change', function () {
+            var TownID = $('#TownID').val();
+            populateQuater(TownID);
+        });
+
+
+        $('#btnCancel').on('click', function () {
+            clearForm();
+        });
+
+
+        $('#mainTable').DataTable();
+
+        $('#btnSubmit').on('click', function () {
+            ValideProduct();
+        });
+    });
+    //supression commande en attente
+    function DeleteItem(obj) {
+        if (confirm("Do you want to Delete ?")) {
+            var globalID = $(obj).parent().siblings(":first").text();
+            //post to the server
+            $(this).val('Please wait...');
+            var data = {
+                LocalizationID: parseInt(globalID)
+            }
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("DeleteLocation", "Location")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        location.reload(true);
+                        //ClearForm();
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                }
+            });
+        }
+
+    }
+
+</script>
+
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 3px;
+        margin-left: 1px;
+    }
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin: 0;
+        min-width: 0;
+        padding: 10px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 300px;
+    }
+
+    .panel-body1 {
+        height: 200px;
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+</style>

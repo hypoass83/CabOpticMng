@@ -1,0 +1,36 @@
+﻿@using FatSod.Ressources;
+@{
+    var X = Html.X();   
+}
+
+@* Fenêtre de modification de mot de passe *@
+@(
+    X.Window()
+        .ID("WindowConfig")
+        .Title("Resources.Configuration_of_new_system")
+        .TitleAlign(TitleAlign.Left)
+        .Resizable(false)
+        .Closable(true)
+        .Height(500)
+        .Width(700)
+        .Icon(Icon.BuildingAdd)
+        .Draggable(true)
+        .Layout(LayoutType.Fit)
+        .AutoRender(false)
+        .Modal(true)
+        .Hidden(true)
+        .DirectEvents(l => {
+            l.Close.Action = "Rachaichir_societe";
+        })
+        .Loader(
+            X.ComponentLoader()
+                .AutoLoad(true)
+                .Url(Url.Action("Index", "Nouveau_systeme"))
+                .Mode(LoadMode.Frame)
+                .LoadMask(l =>
+                {
+                    l.Msg = "Resources.Loading" + "...";
+                    l.ShowMask = true;
+                })
+        )
+)

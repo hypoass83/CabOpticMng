@@ -1,0 +1,457 @@
+﻿@using FatSod.Ressources;
+@using FatSod.Supply.Entities;
+@using FatSod.DataContext.Initializer;
+@using CABOPMANAGEMENT.Tools;
+
+@{
+    ViewBag.Title = @Resources.RDV;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+    var UserProfile = db.Profiles.Find(profile);
+
+}
+<div class="box box-primary box-body">
+    @*<div class="row" >*@
+        @*<div class="col-sm-12">
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <fieldset>
+                        <legend>@Resources.SearchCriteria</legend>
+
+                        <div class="row ipt" style="margin-top:5px;">
+                            <div class="col-sm-2">@Resources.RendezVousIn</div>
+                            <div class="col-sm-1" style="margin-left:-15px;width:11%;">
+                                <input class="form-control" id="NbreJours" type="number" value="15"> 
+                                <input class="form-control" id="ServerDate" type="hidden" value="@ViewBag.CurrentDate"> 
+                            </div>
+                            <div class="col-sm-2" style="margin-left:-25px;">
+                                @Resources.days
+                            </div>
+                            <div class="col-sm-2">
+                                <button type="button" class="btn btn-primary" id="btnSearch">@Resources.Search</button>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+        </div>*@
+    <div class="row">
+        <div class="col-sm-5">
+            <div class="panel panel-default">
+                <div class="panel-body1">
+                    <fieldset>
+                        <legend>@Resources.RdvInfo</legend>
+                        <input type="hidden" id="RendezVousID" />
+                        <input type="hidden" id="CustomerID" />
+                        <input type="hidden" id="SaleID" />
+                        <input class="form-control" id="ServerDate" type="hidden" value="@ViewBag.CurrentDate">
+
+                        <div class="row ipt">
+                            <!-- client -->
+                            <div class="col-sm-3">@Resources.Customer</div>
+                            <div class="col-sm-8">
+                                <input type="text" id="CustomerName" class="input-sm form-control" readonly />
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <!-- Telephone -->
+                            <div class="col-sm-3">@Resources.PhoneNumber</div>
+                            <div class="col-sm-8">
+                                <input type="text" id="Telephone" class="input-sm form-control" readonly />
+                            </div>
+                        </div>
+
+                        <div class="row ipt">
+                            <!-- SaleReference -->
+                            <div class="col-sm-3">@Resources.SaleReference</div>
+                            <div class="col-sm-8">
+                                <input type="text" id="SaleRef" class="input-sm form-control" readonly />
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+        </div>
+        <!-- Right Side Begins Here -->
+        <div class="col-sm-7">
+            <div class="panel panel-default">
+                <div class="panel-body1">
+                    <fieldset>
+                        <legend>@Resources.InfoToModify</legend>
+                        <div class="row ipt">
+                            <div class="col-sm-2"> </div>
+                            <div class="col-sm-10">
+                                <input type="text" style="font-size:0.7em;" class="input-sm form-control" id="label1" readonly />
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-2">@Resources.prescription</div>
+                            <div class="col-sm-10">
+                                <input type="text" style="font-size:0.7em;" class="input-sm form-control" id="label2" readonly />
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-2"> </div>
+                            <div class="col-sm-10">
+                                <input type="text" style="font-size:0.7em;" class="input-sm form-control" id="label3" readonly />
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <!-- DateRdv -->
+                            <div class="col-sm-2">@Resources.DateRdv</div>
+                            <div class="col-sm-10">
+                                <input type="text" id="DateRdv" class="input-sm form-control datepicker" />
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <!-- RaisonRdv -->
+                            <div class="col-sm-2">@Resources.RaisonRdv</div>
+                            <div class="col-sm-10">
+                                <textarea type="text" id="RaisonRdv" class="input-sm form-control"></textarea>
+                            </div>
+                        </div>
+
+
+                    </fieldset>
+                </div>
+            </div>
+        </div>
+        <div class="row" style="margin-left:10%;margin-top:-10px;">
+            <div class="col-sm-2">
+                <button id="btnCancel" class="btn btn-primary btn-danger">@Resources.ResetButton</button>
+            </div>
+            <div class="col-sm-2">
+                <button id="btnSubmit" class="btn btn-primary btn-success">@Resources.ValidateButton</button>
+            </div>
+        </div>
+        <div class="col-md-12">
+            <fieldset>
+                <div class="panel panel-default">
+                    <div class="panel-body2">
+                        <div class="row ipt">
+
+                        </div>
+                        <table class="table" id="mainTable">
+                            <thead>
+                                <tr class="dataTableHead">
+                                    <th>ID</th>
+                                    <th>@Resources.Customer</th>
+                                    <th>@Resources.PhoneNumber</th>
+                                    <th>@Resources.DateRdv</th>
+                                    <th>@Resources.RaisonRdv</th>
+                                    <th>@Resources.SaleReference</th>
+                                    <th>@Resources.SellingDate</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+    
+</div>
+
+<!-- Css Begins Here -->
+
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 6px;
+    }
+
+    #img-upload {
+        width: 100%;
+    }
+
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin-left: 10px;
+        min-width: 0;
+        padding: 0px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 100px;
+        margin-top:-5px;
+    }
+
+    .panel-body1 {
+        height: 210px;
+        margin-top: -10px;
+        /*margin-left: 15%;*/
+    }
+
+    .panel-body2 {
+        height: 225px;
+        margin-top: 10px;
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+
+    .panel-body3 {
+        height: 75px;
+        margin-top: 5px;
+        /*margin-left: 15%;*/
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+</style>
+
+<script>
+    $(document).on('ready', function () {
+
+        var todaysDate = $('#ServerDate').val();
+        $(function () {
+            $(".datepicker").datepicker({
+                format: 'yyyy-mm-dd',
+                showButtonPanel: true,
+                minDate: todaysDate
+            });
+        });
+
+        var NbreJours = 0;
+        var ServerDate = $("#ServerDate").val();
+        GetReturnRdv(false, NbreJours, ServerDate);
+        //$('#btnSearch').on('click', function () {
+        //    NbreJours = $("#NbreJours").val();
+        //    ServerDate = $("#ServerDate").val();
+        //    GetReturnRdv(true, NbreJours, ServerDate);
+        //});
+
+        $('#btnSubmit').on('click', function () {
+            UpdateRdv();
+        });
+
+        $('#btnCancel').on('click', function () {
+            location.reload(true);
+        });
+    });
+
+    function UpdateRdv() {
+        var isAllValid = true;
+
+        if ($('#RendezVousID').val().trim() == '') {
+            isAllValid = false;
+        }
+
+        if ($('#CustomerID').val().trim() == '') {
+            isAllValid = false;
+        }
+        if ($('#SaleID').val().trim() == '') {
+            isAllValid = false;
+        }
+
+        if ($('#CustomerName').val().trim() == '') {
+            isAllValid = false;
+            $('#CustomerName').addClass("invalid-data");
+        }
+        else {
+            $('#CustomerName').addClass("valid-data");
+        }
+
+        if ($('#DateRdv').val().trim() == '') {
+            isAllValid = false;
+            $('#DateRdv').addClass("invalid-data");
+        }
+        else {
+            $('#DateRdv').addClass("valid-data");
+        }
+
+        if ($('#RaisonRdv').val() == '') {
+            isAllValid = false;
+            $('#RaisonRdv').addClass("invalid-data");
+        }
+        else {
+            $('#RaisonRdv').addClass("valid-data");
+        }
+
+        if (isAllValid) {
+            var data = {
+                RendezVousID: $('#RendezVousID').val(),
+                CustomerID: $('#CustomerID').val(),
+                CustomerName: $('#CustomerName').val(),
+                DateRdv: $('#DateRdv').val(),
+                RaisonRdv: $('#RaisonRdv').val(),
+                SaleID: $('#SaleID').val(),
+                SaleRef: $('#SaleRef').val()
+            }
+            $(this).val('Please wait...');
+
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("EditLine", "RendezVous")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        //clear form
+                        clearForm();
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                    $('#btnSubmit').val('@Resources.ValidateButton');
+                },
+                error: function () {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').val('@Resources.ValidateButton');
+                }
+            });
+        }
+    }
+    function GetReturnRdv(test, NbreJours, ServerDate) {
+        if (test) {
+            $('#mainTable').dataTable().fnDestroy();
+        }
+        var oTable = $('#mainTable');
+        oTable = $('#mainTable').dataTable({
+            fixedColumns: true,
+            "paging": true,
+            "pageLength": 20,
+            "lengthMenu": [[20, 40, 60, -1], [20, 40, 60, "All"]],
+            "searching": true,
+            "ordering": true,
+            "pagingType": "full_numbers",
+            /*"columnDefs": [
+                    { "visible": false, "targets": 0 }
+            ],*/
+            "order": [[3, 'asc']],
+            // Ajax call
+            "ajax": {
+                "url": "@Url.Action("GetAllRDV", "RendezVous")",
+                "type": "GET",
+                "datatype": "json",
+                "data": { NbreJours: NbreJours, ServerDate: ServerDate }
+            },
+            "columns": [
+                { "data": "RendezVousID", "width": "1%" },
+                { "data": "CustomerName", "width": "30%" },
+                { "data": "Telephone", "width": "10%" },
+                { "data": "DateRdv", "width": "10%" },
+                { "data": "RaisonRdv", "width": "30%" },
+                //{ "data": "ProductLocalizationStockQuantity", "width": "10%", "className": "editable" },
+                { "data": "SaleRef", "width": "15%" },
+                { "data": "SaleDate", "width": "10%" },
+                {// this is Actions Column
+                    mRender: function (data, type, row) {
+
+                        var updateOption = '@LoadAction.IsMenuActionAble(MenuAction.UPDATE, @profile, CodeValue.CRM.RendezVous.CODE, db)';
+                        var T_updateOption = (updateOption == 'False') ? '<a href="#" class="editor_remove" onclick="UpdateItem(' + row.RendezVousID + ')"><span class="glyphicon glyphicon-edit"></a>' : '';
+
+                        return T_updateOption;
+                    }
+                }
+            ],
+            dom: 'Bfrtip',
+            buttons: [
+                'copy', 'csv', 'excel'
+            ]
+
+        });
+        //$('#mainTable').on('click', 'tbody td.editable', function () {
+        //    if ($(this).attr("contentEditable") == true) {
+        //        $(this).attr("contentEditable", "false");
+        //    } else {
+        //        $(this).attr("contentEditable", "true");
+        //    }
+        //});
+        //CustomSearch();
+    }
+
+    function UpdateItem(obj) {
+        var globalID = obj;//$(obj).parent().siblings(":first").text();
+        clearFormSansReload();
+
+        $.get('@Url.Action("InitializePurchaseFields", "RendezVous")', { ID: globalID }, function (data) {
+            $.each(data, function (key, value) {
+                $('#RendezVousID').val(value.RendezVousID);
+                $('#CustomerID').val(value.CustomerID);
+                $('#CustomerName').val(value.CustomerName);
+                $('#DateRdv').val(value.DateRdv);
+                $('#RaisonRdv').val(value.RaisonRdv);
+                $('#SaleID').val(value.SaleID);
+
+                $('#SaleRef').val(value.SaleRef);
+                $('#Telephone').val(value.Telephone);
+
+                $('#label1').val(value.label1);
+                $('#label2').val(value.label2);
+                $('#label3').val(value.label3);
+                
+            });
+
+        }, 'json');
+
+    }
+    function clearFormSansReload() {
+        $('#RendezVousID').val('');
+        $('#CustomerID').val('');
+        $('#SaleID').val('');
+        $('#CustomerName').val('');
+        $('#DateRdv').val('');
+        $('#RaisonRdv').val('');
+        $('#SaleRef').val('');
+        $('#Telephone').val('');
+    }
+
+    function clearForm() {
+        $('#RendezVousID').val('');
+        $('#CustomerID').val('');
+        $('#SaleID').val('');
+        $('#CustomerName').val('');
+        $('#DateRdv').val('');
+        $('#RaisonRdv').val('');
+        $('#SaleRef').val('');
+        $('#Telephone').val('');
+        
+        $('#label1').val('');
+        $('#label2').val('');
+        $('#label3').val('');
+        //var NbreJours = $("#NbreJours").val();
+        //var ServerDate = $("#ServerDate").val();
+        var NbreJours = 0;
+        var ServerDate = $("#ServerDate").val();
+        GetReturnRdv(true, NbreJours, ServerDate);
+    }
+</script>

@@ -1,0 +1,135 @@
+﻿@using FatSod.Ressources;
+
+@model IEnumerable<FatSod.Report.WrapReports.RptInventoryDirectory>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+}
+
+@if (Model != null && Model.Count() > 0)
+{
+    <section class="invoice" style="font-size:0.85em">
+        <!-- title row -->
+        <div class="row">
+            <div class="col-xs-3" style="text-align:left;padding:0px;margin-top:-10px;">
+                <img id='img-upload' src="~/User/File?id=@ViewBag.CompanyLogoID" style="height:90px; width:250px;" />
+            </div>
+            <div class="col-xs-5" style="text-align:left; margin-left:5px;padding:0px;margin-top:5px;">
+                <strong>@Model.FirstOrDefault().CompanyName</strong><br />
+                @Model.FirstOrDefault().CompanyAdress<br />
+                @Model.FirstOrDefault().CompanyTel<br />
+                @Model.FirstOrDefault().CompanyCNI<br />
+            </div>
+            @*<div class="col-xs-2">
+                </div>*@
+            <div class="col-xs-4" style="text-align:left; margin-left:-10px;padding:0px;margin-top:5px;">
+                <strong>@Model.FirstOrDefault().BranchName</strong><br />
+                @Model.FirstOrDefault().BranchAdress<br />
+                @Model.FirstOrDefault().BranchTel<br />
+            </div>
+            <!-- /.col -->
+        </div>
+        <!-- info row -->
+        <div class="row">
+            <div class="col-xs-12 invoice-title" style="margin-left:40%;margin-top:-10px;">
+                <strong><u> @Resources.ListOfStockInput  / @Model.FirstOrDefault().TransfertDate.ToString("yyyy-MM-dd")</u></strong>
+            </div>
+        </div>
+        @*<div class="row invoice-info">
+                <div class="col-xs-6">
+                    @Resources.SendingBranch: @Model.FirstOrDefault().SendindBranchCode  -  @Model.FirstOrDefault().SendindBranchName
+                </div>
+                <div class="col-xs-6">
+                    @Resources.TransfertDate: @Model.FirstOrDefault().TransfertDate.ToString("dd/MM/yyyy")
+                </div>
+            </div>
+            <div class="row invoice-info">
+                <!-- /.col -->
+                <div class="col-xs-6">
+                    @Resources.ReceivingBranch: @Model.FirstOrDefault().ReceivingBranchCode  -  @Model.FirstOrDefault().ReceivingBranchName
+                </div>
+                <div class="col-xs-6">
+                    @Resources.Reference: @Model.FirstOrDefault().Ref
+                </div>
+            </div>*@
+
+        <!-- /.row -->
+        <!-- Table row -->
+        <div class="row">
+            <div class="col-xs-12 table-responsive">
+                <table class="table table-striped" border="1">
+                    <thead style="text-align:center;">
+                        <tr style="border:1px solid;">
+                            <th style="border:1px solid;text-align:center;padding:3px;">#</th>
+                            <th style="border:1px solid;text-align:center;padding:3px;">@Resources.Product</th>
+                            <th style="border:1px solid;text-align:center;padding:3px;">@Resources.OldStock</th>
+                            <th style="border:1px solid;text-align:center;padding:3px;">@Resources.AddedStock</th>
+                            <th style="border:1px solid;text-align:center;padding:3px;">@Resources.NewQty</th>
+                        </tr>
+                    </thead>
+
+                    <tbody style="border:1px solid">
+
+                        @foreach (var item in Model)
+                        {
+                            <tr style="border:1px dashed;">
+                                <td style="border:1px solid;text-align:center;padding:3px;width:5%;">
+                                    @item.RptInventoryDirectoryID
+                                </td>
+                                <td style="border:1px solid;padding:3px;width:50%;">
+                                    @item.ProductRef
+                                </td>
+                                <td style="border:1px solid;text-align:center;padding:3px;width:10%;">
+                                    @item.OldStockQuantity
+                                </td>
+                                <td style="border:1px solid;text-align:center;padding:3px;width:15%;">
+                                    @item.NewStockQuantity
+                                </td>
+                                <td style="border:1px solid;text-align:center;padding:3px; width:15%;">
+                                    @item.StockDifference
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <!-- /.col -->
+        </div>
+        <!-- /.row -->
+
+
+        <div class="row">
+            <div class="col-md-12" style="text-align:right">
+                <div class="col-xs-6">
+                    @Model.FirstOrDefault().Operator <br />
+                    @Resources.OperatorSignarture
+                </div>
+            </div>
+        </div>
+
+        <!-- /.row -->
+        <!-- this row will not appear when printing -->
+        <div class="row no-print">
+            <div class="col-xs-12">
+                <a href="#" onclick="window.focus(); window.print(); window.close();" target="_blank" class="btn btn-primary"><i class="fa fa-print"></i> Imprimer</a>
+                <a href="@Request.UrlReferrer" class="btn btn-warning"><i class="fa fa-angle-left"></i>@Resources.previous</a>
+            </div>
+        </div>
+    </section>
+
+    <style>
+        .invoice {
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        }
+    </style>
+}
+else
+{
+    <script type="text/javascript">
+        alert("Sorry !!! There is no ligne inside this inventory");
+    </script>
+}
+
+
+
+

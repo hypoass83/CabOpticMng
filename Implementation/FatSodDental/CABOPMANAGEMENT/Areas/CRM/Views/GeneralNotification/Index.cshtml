@@ -1,0 +1,268 @@
+﻿@using FatSod.Ressources;
+@using CABOPMANAGEMENT.Tools;
+@using FatSod.DataContext.Initializer;
+
+@{
+    ViewBag.Title = @Resources.GeneralNotification;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+<div class="box box-primary box-body">
+    
+    <div class="row">
+        <div class="col-sm-8">
+            <div class="panel panel-default">
+                <div class="panel-body1">
+                    <fieldset style="border-left: 2px solid black">
+                        <legend>
+                            <span style="margin-right: 0px; margin-left: 0px;" class="row">
+                                <span class="col-sm-offset-4 col-sm-6">
+                                    @Resources.InfoSMS
+                                </span>
+                            </span>
+                        </legend>
+                        <div style="margin-top: 10px" class="row">
+                            <div class="col-sm-6">
+                                <div class="row ipt">
+                                    <div class="col-sm-offset-3 col-sm-6">@Resources.EnglishVersion</div>
+                                    <div class="col-sm-12">
+                                        <textarea style="height:100px;width:800px;" type="text" id="smsEnvoyeEN" class="input-sm form-control" maxlength="160"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="row ipt">
+                                    <div class="col-sm-offset-3 col-sm-6">@Resources.FrenchVersion</div>
+                                    <div class="col-sm-12">
+                                        <textarea style="height:100px;width:800px;" type="text" id="smsEnvoyeFR" class="input-sm form-control" maxlength="160"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div style="margin-top: 5px;" class="row">
+        <div class="col-sm-12">
+            <div class="col-sm-4"></div>
+            <div class="col-sm-2">
+                <button id="btnCancel" class="btn btn-primary btn-danger">@Resources.ResetButton</button>
+            </div>
+
+            <div class="col-sm-2">
+                <button id="btnSubmit" class="btn btn-primary btn-success">@Resources.Send</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Css Begins Here -->
+
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 6px;
+    }
+
+    #img-upload {
+        width: 100%;
+    }
+
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin-left: 10px;
+        min-width: 0;
+        padding: 0px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 100px;
+        margin-top: -5px;
+    }
+
+    .panel-body1 {
+        height: 120px;
+        margin-top: -15px;
+        margin-bottom: 3%;
+    }
+
+    .panel-body2 {
+        height: 225px;
+        margin-top: 10px;
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+
+    .panel-body3 {
+        height: 75px;
+        margin-top: 5px;
+        /*margin-left: 15%;*/
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+</style>
+
+<script>
+        var selectedSales = [];
+        var defaultDays = 2;
+        var defaultFR = "{civility} {name}, merci d'avoir choisi Valdoz Optic pour l'achat de vos lunettes médicales, nous travaillons sans relâche pour une satisfaction totale. N'hésitez pas à nous contacter en cas de soucis.";
+        var defaultEN = "{civility} {name}, thanks for choosing Valdoz optic sarl, we are working relentlessly to give you total satisfaction. Please don't hesitate to come back in case of any problem.";
+        $(document).on('ready', function () {
+            setMessages();
+            $(function () {
+                $(".datepicker").datepicker({
+                    format: 'yyyy-mm-dd'
+                });
+            });
+
+            $('#smsEnvoyeFR').val(smsEnvoyeFR);
+            $('#smsEnvoyeEN').val(smsEnvoyeEN);
+
+            getSales(true);
+
+            $('#btnSearch').on('click', function () {
+                getSales(false);
+            });
+
+            $('#btnSubmit').on('click', function () {
+                submit();
+            });
+
+            $('#btnCancel').on('click', function () {
+                clearForm();
+            });
+
+            $("#selectall").click(function () {
+
+                /*var checked = $("#mainTable tbody input:checkbox:checked").length;
+                var unchecked = $("#mainTable tbody input:checkbox:not(:checked)").length;
+                console.log("checked => ", checked, "unchecked => ", unchecked, "this.checked => ", this.checked);
+                if (checked > 0 && unchecked > 0 && this.checked == true) {
+                    $('#mainTable tbody input:checkbox:not(:checked)').trigger('click');
+                }
+                else {
+                    $('#mainTable tbody input:checkbox').trigger('click');
+                }*/
+
+                $('#mainTable tbody input:checkbox').trigger('click');
+
+                if (this.checked == true) {
+                    $('#mainTable tbody input:checkbox:not(:checked)').trigger('click');
+                } else {
+                    $('#mainTable tbody input:checkbox:checked').trigger('click');
+                }
+
+            });
+
+        });
+
+        function setMessages() {
+            console.log("Selected notif setting ");
+            $.get('@Url.Action("getNotificationSetting", "GeneralNotification")', { type: 2 }, function (data) {
+                console.log("Selected notif setting ", data);
+                smsEnvoyeFR = data.FrenchMessage;
+                smsEnvoyeEN = data.EnglishMessage;
+
+                if (smsEnvoyeFR == "") {
+                    smsEnvoyeFR = defaultFR;
+                }
+
+                if (smsEnvoyeEN == "") {
+                    smsEnvoyeEN = defaultEN;
+                }
+            }).fail(function (jqXHR, textStatus) {
+                smsEnvoyeFR = defaultFR;
+                smsEnvoyeEN = defaultEN;
+                console.log("error message", jqXHR, textStatus);
+            }).always(function () {
+                $('#smsEnvoyeFR').val(smsEnvoyeFR);
+                $('#smsEnvoyeEN').val(smsEnvoyeEN);
+            });
+        }
+
+        
+
+
+        function clearForm() {
+            $('#btnSubmit').prop('disabled', false);
+            $('#days').val(defaultDays);
+            $('#smsEnvoyeFR').val(smsEnvoyeFR);
+            $('#smsEnvoyeEN').val(smsEnvoyeEN);
+            selectedSales = [];
+            getSales(false);
+        }
+        
+
+        function submit() {
+
+            var data = {
+                smsEnvoyeFR: $("#smsEnvoyeFR").val(),
+                smsEnvoyeEN: $("#smsEnvoyeEN").val(),
+                TypeSms: "DELIVERY"
+            };
+            console.log("Submit data ", JSON.stringify(data));
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("SendSMS", "GeneralNotification")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json; charset=utf-8",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        // location.reload(true);
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    console.error("xhr", xhr);
+                    console.error("ajaxOptions", ajaxOptions);
+                    console.error("thrownError", thrownError);
+                    alert('Error. Please try again.');
+                }
+            });
+        }
+
+</script>

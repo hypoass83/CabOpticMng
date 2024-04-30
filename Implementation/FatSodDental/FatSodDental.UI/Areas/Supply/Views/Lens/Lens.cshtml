@@ -1,0 +1,59 @@
+@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Supply.Entities;
+@using FatSod.DataContext.Initializer;
+@using FatSod.Ressources;
+
+@model FatSodDental.UI.Areas.Supply.ViewModel.ProductModel
+
+@{
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+
+    //ViewBag.Title = FatSod.Ressources.Resources.Product;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+    var X = Html.X();
+    var addAction = "AddProduct";
+    if (Model.ProductID > 0)
+    {
+        addAction = "UpdateProduct";
+    }
+
+}
+@section content
+{
+    @(X.TabPanel()
+            .ID("Lens")
+            .ActiveTabIndex(1)
+            .MinHeight(600)
+            //.Height(250)
+            //.Plain(true)
+            .Items(
+                X.Panel()
+                    .ID("OneByOne")
+                    .Title("Create Lenses One By One")
+                    .BodyPadding(6)
+                    .AutoScroll(true)
+                    .Loader(X.ComponentLoader()
+                        .Url(Url.Action("OneByOne"))
+                        .LoadMask(m => m.ShowMask = true)
+                        //.Params(new Parameter("containerId", "Tab3"))
+                        .Mode(LoadMode.Frame)
+                    ),
+                    X.Panel()
+                    .ID("ByRange")
+                    .Title("Create Lenses By Range")
+                    .BodyPadding(6)
+                    .AutoScroll(true)
+                    .Loader(X.ComponentLoader()
+                        .Url(Url.Action("ByRange"))
+                        .LoadMask(m => m.ShowMask = true)
+                        //.Params(new Parameter("containerId", "Tab3"))
+                        .Mode(LoadMode.Frame)
+                    )
+               )//Fermeture des items du TabPanel
+            )@*Fermeture de l'élément razor*@
+}

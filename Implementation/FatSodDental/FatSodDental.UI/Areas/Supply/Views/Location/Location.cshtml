@@ -1,0 +1,435 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Supply.Entities;
+@using FatSod.DataContext.Initializer;
+@using FatSod.Ressources;
+@model System.Collections.IEnumerable
+
+@{
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+
+    //ViewBag.Title = FatSod.Ressources.Resources.Location;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+    var X = Html.X();    
+
+}
+
+@section content
+{
+    <h1>@FatSod.Ressources.Resources.LocalizationFormTitle</h1>
+
+    <p>
+        @FatSod.Ressources.Resources.RequireField <code>(*)</code>.
+    </p>
+
+    @(@*Fin de la zone de code contenant le formulaire*@
+        //Début du FormPanel
+            X.FormPanel()
+        //paramétrages du formpanel
+                .ID("LocalizationForm")
+                .Collapsible(true)
+                .Title(FatSod.Ressources.Resources.LocalizationAddTitle)
+                .Frame(true)
+                .MarginSpec("0 20 20 20")
+                .BodyPadding(10)
+                .FieldDefaults(fd => { fd.LabelWidth = 100; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; fd.LabelSeparator = "<span style = \"color : #ff0000; font-size: 1em;\"> * </span> : "; })
+        //buttons enregistrer et Réinitialiser
+                .Buttons(
+        //buttons enregistrer
+                    X.Button()
+                        .ID("btnSave")
+                        .Text(FatSod.Ressources.Resources.SaveButton)
+                        .Disabled(true)
+                        .Icon(Icon.Disk)
+                        .Margin(10)
+                        .DirectEvents(
+                            de =>
+                            {
+                                de.Click.Url = Url.Action("AddManager");
+                                de.Click.EventMask.ShowMask = true;
+                                de.Click.EventMask.Msg = FatSod.Ressources.Resources.EventMaskMsg;
+                            }
+                        ),
+                        //buttons Réinitialiser
+                        X.Button()
+                            .ID("btnReset")
+                            .Text(FatSod.Ressources.Resources.ResetButton)
+                            .Icon(Icon.ArrowRefresh)
+                            .MarginSpec("0 20 10 10")
+                            .DirectEvents(
+                                    de =>
+                                    {
+                                        de.Click.Url = Url.Action("Reset");
+                                        de.Click.EventMask.ShowMask = true;
+                                        de.Click.EventMask.Msg = FatSod.Ressources.Resources.EventMaskMsg;
+                                    }
+                            )
+                    )
+                    //listeners du formpanel
+                    .Listeners(
+                        ls =>
+                        {
+                            ls.FieldChange.Handler = "if(App.LocalizationForm.isValid()){App.btnSave.setDisabled(false);}else{App.btnSave.setDisabled(true);}";
+                            ls.AfterRender.Handler = "if(App.LocalizationForm.isValid()){App.btnSave.setDisabled(false);}else{App.btnSave.setDisabled(true);}";
+                        }
+                     )
+                     .Items(//les champs de saisie du formulaire
+                        X.Container()
+                            .Layout(LayoutType.HBox)
+                            .MarginSpec("0 0 10")
+                            .Items(
+                                X.FieldSet()
+                                    .Flex(1)
+                                    .Title("Informations Générales")
+                                    .Layout(LayoutType.Anchor)
+                                    .Height(220)
+                                   //.DefaultAnchor("100%")
+                                    .Items(
+                                        //identifiant
+                                        X.TextField()
+                                            .Name("LocalizationID")
+                                            .ID("LocalizationID")
+                                            .Hidden(true),
+                                        //code
+                                        X.TextField()
+                                            .ID("LocalizationCode")
+                                            .Name("LocalizationCode")
+                                            .FieldLabel(FatSod.Ressources.Resources.Code)
+                                            .MsgTarget(MessageTarget.Side)//le lieu d'affichage du message d'erreur lié à un défaut de validation
+                                            .BlankText(FatSod.Ressources.Resources.InputBlankTextMessage)//message qui sera afficher si le champ reste vide
+                                            .AllowBlank(false)//dit si oui ou non le champ peut etre vide
+                                            .MinLength(4),
+                                        //label
+                                        X.TextField()
+                                            .ID("LocalizationLabel")
+                                            .Name("LocalizationLabel")
+                                            .FieldLabel(FatSod.Ressources.Resources.Label)
+                                            .MsgTarget(MessageTarget.Side)//le lieu d'affichage du message d'erreur lié à un défaut de validation
+                                            .BlankText(FatSod.Ressources.Resources.InputBlankTextMessage)//message qui sera afficher si le champ reste vide
+                                            .AllowBlank(false),//dit si oui ou non le champ peut etre vide
+                                        //description
+                                        X.TextArea()
+                                        .ID("LocalizationDescription")
+                                        .Name("LocalizationDescription")
+                                        .FieldLabel(FatSod.Ressources.Resources.Description),
+                                    //branch
+                                    X.ComboBox()
+                                        .ID("BranchID")
+                                        .Name("BranchID")
+                                        .FieldLabel(FatSod.Ressources.Resources.Branches)
+                                        .Items(LoadComponent.getAllBranches())
+                                        .AllowBlank(false)
+                                        .ForceSelection(true)//cette propriété empeche à l'utilisateur de soumettre le formulaire avec un contenu différent de ce qui est dans la liste déroulante
+                                        .EmptyText(FatSod.Ressources.Resources.Choice)
+                                        .DirectEvents(de =>
+                                        {
+                                            de.Change.Url = Url.Action("ChangeBusDay");
+                                            de.Change.ExtraParams.Add(new Parameter("BranchID", "this.getValue()", ParameterMode.Raw));
+                                            de.Change.EventMask.ShowMask = true;
+                                            de.Change.EventMask.Msg = Resources.EventMaskMsg;
+                                        }),
+                                        X.Checkbox().Name("AssigningToWareHouseMen")
+                                            .FieldLabel("Assign To WareHouseMen ?").InputValue("true")
+                                            .ID("AssigningToWareHouseMen")
+                                            .Listeners(
+                                                ls =>
+                                                {
+                                                    ls.Change.Handler = "WareHouseManManagement();";
+                                                }
+                                                )
+                                    ), @*fin du box(items) contenant code, libellé et description*@
+                                    
+                                X.Component().Width(20),//création de l'espace entre les deux fieldsets
+
+                                X.FieldSet()
+                                .Flex(1)
+                                .Title("Identification du quartier")
+                                        .Layout(LayoutType.Anchor)
+                                .Height(220)
+                                .Items(
+                                    //pays
+                                    X.ComboBox()
+                                        .ID("CountryID")
+                                        .Name("CountryID")
+                                        .FieldLabel(FatSod.Ressources.Resources.AdressCountry)
+                                        .Items(LoadComponent.Countries)
+                                        .ValueField("CountryID")
+                                        .AllowBlank(false)
+                                        .EmptyText(FatSod.Ressources.Resources.Choice)
+                                        .Listeners(ls =>
+                                        {
+                                            ls.Select.Handler = "App.RegionID.setDisabled(false);App.TownID.setDisabled(true);App.QuarterID.setDisabled(true);App.RegionID.clearValue();App.TownID.clearValue();App.QuarterID.clearValue();App.RegionID.getStore().load();/*alert('CountryID = ' + App.CountryID.getValue());*/";
+                                            //ls.Change.Handler = "App.RegionID.setDisabled(false);App.TownID.setDisabled(true);App.QuarterID.setDisabled(true);App.RegionID.clearValue();App.TownID.clearValue();App.QuarterID.clearValue();App.RegionID.getStore().load();/*alert('CountryID = ' + App.CountryID.getValue());*/";
+                                        }
+                                            ),
+                                    //région
+                                    X.ComboBox()
+                                        .ID("RegionID")
+                                        .Name("RegionID")
+                                        .FieldLabel(FatSod.Ressources.Resources.AdressRegion)
+                                        .ValueField("RegionID")
+                                        .AllowBlank(false).ForceSelection(true)
+                                        .Disabled(true)
+                                        .DisplayField("RegionLabel")
+                                        .EmptyText(FatSod.Ressources.Resources.Choice)
+                                        .Store(
+                                            X.Store()
+                                                .AutoLoad(false)
+                                                .Model(
+                                                    X.Model()
+                                                        .IDProperty("RegionID")
+                                                        .Fields(
+                                                            new ModelField("RegionID", ModelFieldType.String) { Mapping = "RegionID" },
+                                                            new ModelField("RegionLabel", ModelFieldType.String) { Mapping = "RegionLabel" }
+                                                        )
+                                                )
+
+                                                .Proxy(
+                                                    X.AjaxProxy()
+                                                        .Url(Url.Action("Regions"))
+                                                        .Reader(X.JsonReader().RootProperty("data"))
+                                                 )
+                                                .Parameters(ps =>
+                                                    ps.Add(new StoreParameter("CountryID", "App.CountryID.getValue()", ParameterMode.Raw))
+                                                )
+
+                                         )//fin du store
+                                         .Listeners(ls =>
+                                         {
+                                             //ls.Change.Handler = "App.TownID.setDisabled(false);App.QuarterID.setDisabled(true);App.TownID.clearValue();App.QuarterID.clearValue();App.TownID.getStore().load();/*alert('RegionID = ' + App.RegionID.getValue());*/";
+                                             ls.Select.Handler = "App.TownID.setDisabled(false);App.QuarterID.setDisabled(true);App.TownID.clearValue();App.QuarterID.clearValue();App.TownID.getStore().load();/*alert('RegionID = ' + App.RegionID.getValue());*/";
+                                         }
+                                                ),
+                                    //ville
+                                    X.ComboBox()
+                                        .ID("TownID")
+                                        .Name("TownID")
+                                        .FieldLabel(FatSod.Ressources.Resources.AdressTown)
+                                        .ValueField("TownID")
+                                        .DisplayField("TownLabel")
+                                        .AllowBlank(false)
+                                        .Disabled(true).ForceSelection(true)
+                                        .EmptyText(FatSod.Ressources.Resources.Choice)
+                                        .Store(
+                                            X.Store()
+                                                .AutoLoad(false)
+                                                .Model(
+                                                    X.Model()
+                                                        .IDProperty("TownID")
+                                                        .Fields(
+                                                            new ModelField("TownID", ModelFieldType.String) { Mapping = "TownID" },
+                                                            new ModelField("TownLabel", ModelFieldType.String) { Mapping = "TownLabel" }
+                                                        )
+                                                )
+
+                                                .Proxy(
+                                                    X.AjaxProxy()
+                                                        .Url(Url.Action("Towns"))
+                                                        .Reader(X.JsonReader().RootProperty("data"))
+                                                    )
+                                                .Parameters(ps =>
+                                                    ps.Add(new StoreParameter("RegionID", "App.RegionID.getValue()", ParameterMode.Raw))
+                                                )
+
+                                            )//fin du store
+                                            .Listeners(ls =>
+                                            {
+                                                //ls.Change.Handler = "App.QuarterID.setDisabled(false);App.QuarterID.clearValue();App.QuarterID.getStore().load();/*alert('TownID = ' + App.TownID.getValue());*/";
+                                                ls.Select.Handler = "App.QuarterID.setDisabled(false);App.QuarterID.clearValue();App.QuarterID.getStore().load();/*alert('TownID = ' + App.TownID.getValue());*/";
+                                            }
+                                             ),
+                                    //quartier
+                                    X.ComboBox()
+                                        .ID("QuarterID")
+                                        .Name("QuarterID")
+                                        .FieldLabel(FatSod.Ressources.Resources.QTER)
+                                        .ValueField("QuarterID")
+                                        .AllowBlank(false)
+                                        .DisplayField("QuarterLabel")
+                                        .Disabled(true).ForceSelection(true)
+                                        .EmptyText(FatSod.Ressources.Resources.Choice)
+                                        .Listeners(ls =>
+                                            {
+                                                ls.Change.Handler = "/*alert('QuarterID = ' + App.QuarterID.getValue());*/";
+                                                ls.Select.Handler = "/*alert('QuarterID = ' + App.QuarterID.getValue());*/";
+                                            }
+                                             )
+                                        .Store(
+                                            X.Store()
+                                                .AutoLoad(false)
+                                                .Model(
+                                                    X.Model()
+                                                        .IDProperty("QuarterID")
+                                                        .Fields(
+                                                            new ModelField("QuarterID", ModelFieldType.String) { Mapping = "QuarterID" },
+                                                            new ModelField("QuarterLabel", ModelFieldType.String) { Mapping = "QuarterLabel" }
+                                                        )
+                                                )
+                                                .Proxy(
+                                                    X.AjaxProxy()
+                                                        .Url(Url.Action("Quarters"))
+                                                        .Reader(X.JsonReader().RootProperty("data"))
+                                                    )
+                                                .Parameters(ps =>
+                                                    ps.Add(new StoreParameter("TownID", "App.TownID.getValue()", ParameterMode.Raw))
+                                                )
+
+                                                )//fin du store
+                            )
+                                ,//fin des items du container contenant les champs de saisie du formulaire
+
+                                X.Component().Width(20),//création de l'espace entre les deux fieldsets
+
+                                X.FieldSet()
+                                .Hidden(true)
+                                .ID("WareHouseManManagement")
+                                .Flex(1)
+                                .Title("WareHouseMan Management")
+                                .Layout(LayoutType.Anchor)
+                                .Height(220)
+                                .Items(
+                                     X.DateField().FieldLabel("Date")
+                                        .AllowBlank(true)
+                                        .Name("AssigningDate")
+                                        .ID("AssigningDate")
+                                        .InputType(Ext.Net.InputType.DateTime)
+                                        .ReadOnly(true),
+                                    X.ComboBox()
+                                        .ID("PrincipalWareHouseManID")
+                                        .Name("PrincipalWareHouseManID")
+                                        .FieldLabel("Principal WareHouseMan")
+                                        .Items(LoadComponent.Employees)
+                                        .AllowBlank(true).ForceSelection(true)
+                                        .BlankText(Resources.RequiredField)
+                                        .EmptyText(Resources.Select),
+                                    X.MultiCombo().Name("WareHouseMen")
+                                        .FieldLabel("WareHouseMen")
+                                        .AutoSelect(true)
+                                        .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                        .Items(LoadComponent.Employees)
+                                        .ForceSelection(true)
+                                        .ID("WareHouseMen")
+                                        .AllowBlank(true)
+                                        .BlankText(Resources.RequiredField)
+
+                                )
+                            
+                            )//fin des items du FormPanel
+                      ) @*fin du box contenant stock de sécurité, catégorie et numéro de compte*@
+
+) @*Fin de la zone de code contenant le formulaire*@
+    
+    @*Début du tableau*@
+    @(Html.X().GridPanel()
+        .Title(FatSod.Ressources.Resources.LocalizationList)
+        .ID("ProductList")
+        .Layout(LayoutType.Fit)
+        .Padding(10)
+        .Frame(true)
+        .Collapsible(true)
+        .Store(
+            Html.X().Store()
+                .DataSource(Model)
+                .ID("LocationListStore")
+                .AutoLoad(true)
+                .PageSize(10)
+                .GroupField("Light")
+                .Model(Html.X().Model()
+                    .Fields(
+                        new ModelField() { Name = "LocalizationID", Type = ModelFieldType.Int },
+                        new ModelField() { Name = "LocalizationCode", Type = ModelFieldType.String },
+                        new ModelField() { Name = "LocalizationLabel", Type = ModelFieldType.String },
+                        new ModelField() { Name = "BranchName", Type = ModelFieldType.String },
+                        new ModelField() { Name = "QuarterLabel", Type = ModelFieldType.String },
+                        new ModelField() { Name = "LocalizationDescription", Type = ModelFieldType.String },
+                        new ModelField() { Name = "PrincipalWareHouseMan", Type = ModelFieldType.String }
+                       
+            )
+                )
+                        .Proxy(X.AjaxProxy()
+                            .Url(Url.Action("GetAllLocalizations"))
+                            .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                            .Reader(X.JsonReader().RootProperty("data"))
+                        )
+            )
+
+        .ColumnModel(
+            Html.X().Column()
+                    .Text(FatSod.Ressources.Resources.Code)
+                            .DataIndex("LocalizationCode")
+                    .Flex(1),
+            Html.X().Column()
+                .Text(FatSod.Ressources.Resources.Label)
+                .DataIndex("LocalizationLabel")
+                .Flex(1),
+            Html.X().Column()
+                .Text(FatSod.Ressources.Resources.UserBranch)
+                .DataIndex("BranchName")
+                .Flex(1),
+            Html.X().Column()
+                .Text(FatSod.Ressources.Resources.QTER)
+                .DataIndex("QuarterLabel")
+                .Flex(1),
+            Html.X().Column()
+                .Text(FatSod.Ressources.Resources.Description)
+                .DataIndex("LocalizationDescription")
+                .Flex(1),
+            Html.X().Column()
+                .Text("Principal WareHouseMan")
+                .DataIndex("PrincipalWareHouseMan")
+                .Flex(1),
+                
+            Html.X().ImageCommandColumn()
+                .Width(30)
+                .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.DELETE, profile, CodeValue.Supply.Location_SM.CODE,db))
+                .Commands(
+                    Html.X().ImageCommand()
+                        .CommandName("Delete")
+                        .IconCls("icon-delete")
+                        .ToolTip(tt =>
+                            {
+                                tt.Text = FatSod.Ressources.Resources.ConfirmDeleteMessage;
+                                tt.Title = "Supression";
+                            }
+                            )
+                )
+                .DirectEvents(de =>
+                {
+                    de.Command.Action = "DeleteLocation";
+                    de.Command.Method = HttpMethod.POST;
+                    de.Command.Confirmation.ConfirmRequest = true;
+                    de.Command.Confirmation.Message = FatSod.Ressources.Resources.ConfirmDeleteMessage;
+                    de.Command.Confirmation.Title = FatSod.Ressources.Resources.ConfirmDeleteTitle;
+                    de.Command.ExtraParams.Add(new Parameter("LocalizationID", "record.data.LocalizationID", ParameterMode.Raw));
+                    de.Command.EventMask.ShowMask = true;
+                    de.Command.EventMask.Msg = FatSod.Ressources.Resources.EventMaskMsg;
+                }),
+            Html.X().ImageCommandColumn()
+                .Width(30)
+                .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, profile, CodeValue.Supply.Location_SM.CODE,db))
+                .Commands(
+                Html.X().ImageCommand()
+                        .CommandName("Edit")
+                        .IconCls("icon-edit")
+                        .ToolTip(tt => tt.Text = "Modifier ?")
+                )
+
+                .DirectEvents(de =>
+                {
+                    de.Command.Action = "UpdateLocalization";
+                    de.Command.Method = HttpMethod.GET;
+                    de.Command.ExtraParams.Add(new Parameter("LocalizationID", "record.data.LocalizationID", ParameterMode.Raw));
+                    de.Command.EventMask.ShowMask = true;
+                    de.Command.EventMask.Msg = FatSod.Ressources.Resources.EventMaskUpdate;
+                })
+            )
+            .BottomBar(
+                 Html.X().PagingToolbar()
+            )
+    )
+    @*Fin du tableau*@
+}

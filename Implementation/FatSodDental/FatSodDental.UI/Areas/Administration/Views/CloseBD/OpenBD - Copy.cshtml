@@ -1,0 +1,254 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSod.Security.Entities;
+
+@{
+    ViewBag.Title = FatSod.DataContext.Initializer.CodeValue.Supply.OpenBD_SM.PATH;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    List<BusinessDay> BusDays = (List<BusinessDay>)TempData["BusDays"];
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    var check = new CheckboxSelectionModel();
+    check.CheckOnly=true;
+    check.InjectCheckbox="last";
+    check.ID="check";
+    
+}
+
+@section header
+{
+    <script>
+    /* A header Checkbox of CheckboxSelectionModel deals with the current page only.
+       This override demonstrates how to take into account all the pages.
+       It works with local paging only. It is not going to work with remote paging.
+    */
+
+        
+    Ext.selection.CheckboxModel.override({
+        selectAll: function (suppressEvent) {
+            var me = this,
+                selections = me.store.getAllRange(), // instead of the getRange call
+                i = 0,
+                len = selections.length,
+                start = me.getSelection().length;
+
+            me.suspendChanges();
+
+            for (; i < len; i++) {
+                me.doSelect(selections[i], true, suppressEvent);
+            }
+
+            me.resumeChanges();
+            if (!suppressEvent) {
+                me.maybeFireSelectionChange(me.getSelection().length !== start);
+            }
+        },
+
+        deselectAll: Ext.Function.createSequence(Ext.selection.CheckboxModel.prototype.deselectAll, function () {
+            this.view.panel.getSelectionMemory().clearMemory();
+        }),
+
+        updateHeaderState: function () {
+            var me = this,
+                store = me.store,
+                storeCount = store.getTotalCount(),
+                views = me.views,
+                hdSelectStatus = false,
+                selectedCount = 0,
+                selected, len, i;
+
+            if (!store.buffered && storeCount > 0) {
+                selected = me.view.panel.getSelectionMemory().selectedIds;
+                hdSelectStatus = true;
+                for (s in selected) {
+                    ++selectedCount;
+                }
+
+                hdSelectStatus = storeCount === selectedCount;
+            }
+
+            if (views && views.length) {
+                me.toggleUiHeader(hdSelectStatus);
+            }
+        }
+    });
+
+    Ext.grid.plugin.SelectionMemory.override({
+        memoryRestoreState: function (records) {
+            if (this.store !== null && !this.store.buffered && !this.grid.view.bufferedRenderer) {
+                var i = 0,
+                    ind,
+                    sel = [],
+                    len,
+                    all = true,
+                    cm = this.headerCt;
+
+                if (!records) {
+                    records = this.store.getAllRange(); // instead of getRange
+                }
+
+                if (!Ext.isArray(records)) {
+                    records = [records];
+                }
+
+                if (this.selModel.isLocked()) {
+                    this.wasLocked = true;
+                    this.selModel.setLocked(false);
+                }
+
+                if (this.selModel instanceof Ext.selection.RowModel) {
+                    for (ind = 0, len = records.length; ind < len; ind++) {
+                        var rec = records[ind],
+                            id = rec.getId();
+
+                        if ((id || id === 0) && !Ext.isEmpty(this.selectedIds[id])) {
+                            sel.push(rec);
+                        } else {
+                            all = false;
+                        }
+
+                        ++i;
+                    }
+
+                    if (sel.length > 0) {
+                        this.surpressDeselection = true;
+                        this.selModel.select(sel, false, !this.grid.selectionMemoryEvents);
+                        this.surpressDeselection = false;
+                    }
+                } else {
+                    for (ind = 0, len = records.length; ind < len; ind++) {
+                        var rec = records[ind],
+                            id = rec.getId();
+
+                        if ((id || id === 0) && !Ext.isEmpty(this.selectedIds[id])) {
+                            if (this.selectedIds[id].dataIndex) {
+                                var colIndex = cm.getHeaderIndex(cm.down('gridcolumn[dataIndex=' + this.selectedIds[id].dataIndex + ']'))
+                                this.selModel.setCurrentPosition({
+                                    row: i,
+                                    column: colIndex
+                                });
+                            }
+                            return false;
+                        }
+
+                        ++i;
+                    }
+                }
+
+                if (this.selModel instanceof Ext.selection.CheckboxModel) {
+                    if (all) {
+                        this.selModel.toggleUiHeader(true);
+                    } else {
+                        this.selModel.toggleUiHeader(false);
+                    }
+                }
+
+                if (this.wasLocked) {
+                    this.selModel.setLocked(true);
+                }
+            }
+        }
+    });
+</script>
+
+<script>
+
+    var prepareBranchCode = function (value, record) {
+        return record.get('Branch').BranchCode;
+    };
+
+    var template = '<span style="color:{0};">{1}</span>';
+
+    var change = function (value) {
+        return Ext.String.format(template, (value > 0) ? "green" : "red", value);
+    };
+
+    var pctChange = function (value) {
+        return Ext.String.format(template, (value > 0) ? "green" : "red", value + "%");
+    };
+</script>
+
+}
+
+@section content
+{
+    @(X.GridPanel()
+        .ID("GridPanel1")
+        .Title("Company List")
+        .Collapsible(true)
+        .Width(600)
+        .Store(X.Store()
+            .PageSize(10)
+            .Model(X.Model()
+                .IDProperty("ID")
+                .Fields(
+                    //new ModelField() { Name = "Branch", Type = ModelFieldType.Object },    
+                    //new ModelField() { Name = "BranchCode", Convert = { Fn = "prepareBranchCode" } },
+                    new ModelField() { Name = "BusinessDayID", Type = ModelFieldType.Int },
+                    new ModelField() { Name = "BranchID", Type = ModelFieldType.Int },                    
+                    new ModelField() { Name = "BDDateOperation", Type = ModelFieldType.Date, DateFormat = "dd/mm/yyy" , },
+                    new ModelField() { Name = "ClosingDayStarted", Type = ModelFieldType.Boolean },
+                    new ModelField() { Name = "BDStatut", Type = ModelFieldType.Boolean }
+                    
+                )
+            )
+            .DataSource(BusDays)
+        )
+        .ColumnModel(
+            X.Column()
+                .Text("BranchID")
+                .DataIndex("BranchID")
+                //.Resizable(false)
+                //.MenuDisabled(true)
+                 .Flex(1),
+
+                X.DateColumn()
+                .Text("BDDateOperation")
+                //.Width(75)
+                .DataIndex("BDDateOperation"),
+                //.Renderer(RendererFormat.UsMoney),
+
+             X.BooleanColumn()
+                .Text("ClosingDayStarted")
+                //.Width(75)
+                .DataIndex("ClosingDayStarted"),
+                //.Renderer("change"),
+
+            X.BooleanColumn()
+                .Text("BDStatut")
+                //.Width(75)
+                .DataIndex("BDStatut")
+                    //.Renderer("pctChange")
+        )
+        .BottomBar(X.PagingToolbar()
+            .DisplayInfo(false)
+            .Items(
+                X.Button()
+                    .Text("Submit Selected Records")
+                    .DirectEvents(de =>
+                    {
+                        de.Click.Action = "Submit";
+                        de.Click.EventMask.ShowMask = true;
+                        de.Click.ExtraParams.Add(new Parameter()
+                        {
+                            Name = "selection",
+                            Value = "App.GridPanel1.getSelectionSubmit().getSelectionModelField().getValue()",
+                            Mode = ParameterMode.Raw
+                        });
+                    })
+            )
+        )
+        .SelectionModel(
+            //X.CheckboxSelectionModel()
+            //.Mode(SelectionMode.Multi),
+            //.c
+                check
+            )
+)
+
+<div style="width: 590px; border: 1px solid gray; padding: 5px;">
+    @X.Label().ID("Label1")
+</div>
+}

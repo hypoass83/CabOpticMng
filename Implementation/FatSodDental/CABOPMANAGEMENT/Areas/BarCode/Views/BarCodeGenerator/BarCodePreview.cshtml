@@ -1,0 +1,109 @@
+﻿@using FatSod.Ressources;
+@using FatSod.Supply.Entities;
+
+@model List<BarCodePayload>
+@{
+    ViewBag.Title = Resources.BarCodePreview;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<section class="" style="font-size:7px; margin-top:15px; ">
+
+    <div class="">
+
+        @foreach (var payload in Model)
+        {
+            for (int i = 0; i < payload.Quantity; i++)
+            {
+                <div class="barcode">
+                    <div class="left">
+                        <div class="" >
+                            <img id="barcode-img" style="width:94px;" src="@payload.BarCodeImage" />
+                        </div>
+                        <div class="barcode-txt">
+                            <span>@payload.BarCode</span>
+                        </div>
+                    </div>
+                    <div class="middle"></div>
+                    <div class="right" >
+                        <div class="">
+                            <span>@payload.NumeroSerie</span>
+                        </div>
+                        <div class="">
+                            <span>@payload.Marque</span>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+
+    </div>
+    <br />
+
+    <div class="row no-print">
+        <div class="col-xs-12">
+            <a href="#" onclick="window.focus(); window.print(); window.close();" target="_blank" class="btn btn-primary">
+                <i class="fa fa-print"></i> Imprimer
+            </a>
+            <a href="@Request.UrlReferrer" class="btn btn-warning">
+                <i class="fa fa-angle-left">
+                </i>@Resources.previous
+            </a>
+        </div>
+    </div>
+</section>
+
+<style>
+    .invoice {
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+
+    .barcode {
+        width: 69mm;
+        height: 19mm;
+    }
+    .barcode-txt {
+        margin-left: 20px;
+        margin-top: 2px;
+    }
+    .barcode-img img {
+        max-width: 94px;
+    }
+    .left, .right {
+        display: inline-block;
+        margin-top: 20px;
+    }
+    .middle {
+        display: inline-block;
+        min-width: 42px;
+    }
+    .right {
+        position: absolute;
+        width: 109px;
+        margin-left: 10px;
+    }
+    .barcode-info {
+        display: inline-block;
+    }
+
+    .barcode-info-right {
+        position: absolute;
+        right: 2px;
+    }
+    #barcode-img {
+        height: 10px;
+        margin-top: 7.66px;
+    }
+    @@page {
+        margin: 0;
+        height: 19mm;
+        width: 69mm;
+    }
+
+    @@media print {
+        @@page {
+            size: landscape;
+        }
+        
+    }
+</style>

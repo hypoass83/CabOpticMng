@@ -1,0 +1,45 @@
+﻿@using FatSod.Ressources;
+@{
+    var X = Html.X();
+}
+
+@* Menu pour gerer la deconnexion et le verouillage de la session *@
+@(
+	X.Menu()
+		.ID("Mn_Bt_PayRoll")
+		.Items(     
+            X.CheckMenuItem().ID("Default")
+                .Group("App_theme")
+                .Text("Resources.Default")
+                .DirectEvents(a =>
+                {
+                    a.Click.Url = Url.Action("Change_Theme", "Session");
+                    a.Click.ExtraParams.Add(new Parameter("val", "Default", ParameterMode.Value));
+                }),
+            X.CheckMenuItem().ID("Gray")
+                .Group("App_theme")
+                .Text("Resources.Gray")
+                .DirectEvents(a =>
+                {
+                    a.Click.Url = Url.Action("Change_Theme", "Session");
+                    a.Click.ExtraParams.Add(new Parameter("val", "Gray", ParameterMode.Value));
+                }),
+            X.CheckMenuItem().ID("Access")
+                .Group("App_theme")
+                .Text("Access")
+                .DirectEvents(a =>
+                {
+                    a.Click.Url = Url.Action("Change_Theme", "Session");
+                    a.Click.ExtraParams.Add(new Parameter("val", "Access", ParameterMode.Value));
+                }),
+            X.CheckMenuItem().ID("Neptune")
+                .Group("App_theme")
+                .Text("Neptune")
+                .DirectEvents(a =>
+                {
+                    a.Click.Url = Url.Action("Change_Theme", "Session");
+                    a.Click.ExtraParams.Add(new Parameter("val", "Neptune", ParameterMode.Value));
+                })              
+		)
+)
+@* ------------------------------------------------------------ *@

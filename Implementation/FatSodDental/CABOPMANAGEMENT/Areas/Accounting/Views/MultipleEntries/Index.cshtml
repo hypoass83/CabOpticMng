@@ -1,0 +1,665 @@
+﻿@using FatSod.Ressources;
+@using CABOPMANAGEMENT.Tools;
+@using FatSod.DataContext.Initializer;
+
+@*@model IEnumerable<FatSod.Supply.Entities.Piece>*@
+
+@{
+    ViewBag.Title = @Resources.submnuAcct2;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var profile = (Session["UserProfile"] == null) ? 0 : (int)Session["UserProfile"];
+    var user = (Session["UserID"] == null) ? 0 : (int)Session["UserID"];
+
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+<div class="box box-primary box-body">
+    <!--<form id="FormAccountingSection">-->
+    @****************************@
+    @Html.AntiForgeryToken()
+
+    <h6>@Resources.RequireField<code>(*)</code>.</h6>
+
+    <div class="box box-primary box-body">
+        <div class="row">
+            <!-- Left Side Begins Here -->
+            <div class="col-sm-6">
+                @*<div class="panel panel-default">*@
+                <div class="panel-body1">
+                    <fieldset>
+                        <input type="hidden" id="PieceID" />
+                        <div class="row ipt">
+                            <!-- Branche -->
+                            <div class="col-sm-4">@Resources.Branches<code>(*)</code></div>
+                            <div class="col-sm-8">
+                                <input type="hidden" id="DefaultBranchID" value="@ViewBag.CurrentBranch" />
+                                <select id="BranchID" class="input-sm form-control"></select>
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <!--DeviseID -->
+                            <div class="col-sm-4">@Resources.UIDevise<code>(*)</code></div>
+                            <div class="col-sm-8">
+                                <input type="hidden" id="DeviseID" value="@ViewBag.DefaultDeviseID" />
+                                <input type="text" id="DefaultDevise" value="@ViewBag.DefaultDevise" readonly />
+                            </div>
+                        </div>
+
+                        <div class="row ipt">
+                            <!-- Date Operation -->
+                            <div class="col-sm-4">@Resources.UIDateOperation<code>(*)</code></div>
+                            <div class="col-sm-8">
+                                <input type="text" id="DateOperation" class="input-sm form-control" readonly />
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <!-- Journal -->
+                            <div class="col-sm-4">@Resources.UIOperation<code>(*)</code></div>
+                            <div class="col-sm-8">
+                                <input type="text" id="Journal" class="input-sm form-control" readonly />
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <!-- Reference -->
+                            <div class="col-sm-4">@Resources.Reference<code>(*)</code></div>
+                            <div class="col-sm-8">
+                                <input type="text" id="Reference" class="input-sm form-control">
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+                @*</div>*@
+            </div>
+            <!-- Right Side Begins Here -->
+            <div class="col-sm-6">
+                @*<div class="panel panel-default">*@
+                <div class="panel-body1">
+                    <fieldset>
+
+                        <div class="row ipt">
+                            <!-- Description -->
+                            <div class="col-sm-4">@Resources.Description<code>(*)</code></div>
+                            <div class="col-sm-8">
+                                <textarea id="Description" class="input-sm form-control"></textarea>
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-4">@Resources.TotalDebit</div>
+                            <div class="col-sm-8">
+                                <input type="number" id="TotalDebit" class="input-sm form-control" readonly />
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-4">@Resources.TotalCredit</div>
+
+                            <div class="col-sm-8">
+                                <input type="number" id="TotalCredit" class="input-sm form-control" readonly />
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-4">@Resources.Solde</div>
+                            <div class="col-sm-8">
+                                <input type="number" id="Solde" class="input-sm form-control" readonly />
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            @*<div class="col-sm-4">@Resources.TransactionCode</div>*@
+                            <div class="col-sm-8">
+                                <input type="hidden" id="CodeTransaction" class="input-sm form-control" readonly />
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+                @*</div>*@
+            </div>
+        </div>
+    </div>
+    <div class="box box-primary box-body">
+        <div class="row">
+            <div class="col-sm-5">
+                <fieldset>
+                    <div class="row ipt">
+                        <!-- cpte a debiter -->
+                        <div class="col-sm-5">@Resources.UIAccount<code>(*)</code></div>
+                        <div class="col-sm-7">
+                            <select id="AccountID" class="input-sm form-control"></select>
+                        </div>
+                    </div>
+                    <div class="row ipt">
+                        <!--DeviseID -->
+                        <div class="col-sm-5">@Resources.UIAccountingTaskSens<code>(*)</code></div>
+                        <div class="col-sm-7">
+                            <select id="AccountSens" class="input-sm form-control"></select>
+                        </div>
+                    </div>
+                    <div class="row ipt">
+                        <div class="col-sm-5">@Resources.UIAmount</div>
+                        <div class="col-sm-7">
+                            <input type="number" id="Amount" class="input-sm form-control" />
+                        </div>
+                    </div>
+                    <div class="row ipt">
+                        <div class="col-sm-2"></div>
+                        <div class="col-sm-4">
+                            <button type="button" id="AddToGrid" class="btn btn-bitbucket">@Resources.UIAddVoucher</button>
+                        </div>
+                        <div class="col-sm-4">
+                            <button type="button" class="btn btn-group" id="CancelGrid">@Resources.ResetButton</button>
+                        </div>
+
+
+                    </div>
+                </fieldset>
+            </div>
+            <div class="col-sm-7">
+                <fieldset>
+                    <legend>@Resources.UIVoucherList</legend>
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <table class="table" id="mainTable">
+                                <thead>
+                                    <tr class="dataTableHead">
+                                        <th>
+                                            ID
+                                        </th>
+                                        <th>
+                                            @Resources.Code
+                                        </th>
+                                        <th>
+                                            @Resources.UIAccount
+                                        </th>
+                                        <th>
+                                            @Resources.UIdebit
+                                        </th>
+                                        <th>
+                                            @Resources.UIcredit
+                                        </th>
+                                        <th>
+                                            Action
+                                        </th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+    </div>
+    <div class="box box-primary box-body">
+        <div class="row ipt">
+            <div class="col-sm-4">
+                <button type="button" id="btnCancel" class="btn btn-primary">@Resources.ResetButton</button>
+            </div>
+            <div class="col-sm-8">
+                <button type="submit" class="btn btn-primary" id="btnSubmit">@Resources.SaveButton</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 3px;
+        margin-left: 1px;
+    }
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin: 0;
+        min-width: 0;
+        padding: 10px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #F1F1F1; /*#99bce8; */
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 170px;
+    }
+
+    .panel-body1 {
+        height: 165px;
+        margin-bottom: 2%;
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+</style>
+
+<!--********** JavaScripts **********-->
+<script>
+    // Get the Branch List
+    function populateBranch() {
+        $.get('@Url.Action("GetOpenedBranches", "MultipleEntries")', {}, function (data) {
+            $('#BranchID').empty();
+            $('#BranchID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#BranchID').append($("<option></option>").val(value.BranchID).html(value.BranchName));
+            });
+
+            var _DefaultId = $('#DefaultBranchID').val();
+            $('#BranchID').val(_DefaultId);
+            LoadServerdate(_DefaultId);
+
+        }, 'json');
+    }
+
+    // Get the DB Account List
+    function populateAccount() {
+        $.get('@Url.Action("GetManualPostingAccountNames", "MultipleEntries")', {}, function (data) {
+            $('#AccountID').empty();
+            $('#AccountID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#AccountID').append($("<option></option>").val(value.AccountID).html(value.AccountNumber));
+            });
+        }, 'json');
+    }
+    // Get the CR Account List
+    function populateAccountSens() {
+        $.get('@Url.Action("GetAccountSenss", "MultipleEntries")', {}, function (data) {
+            $('#AccountSens').empty();
+            $('#AccountSens').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#AccountSens').append($("<option></option>").val(value.AccountSens).html(value.AccountSens));
+            });
+        }, 'json');
+    }
+    function LoadServerdate(Branch) {
+        $.get('@Url.Action("LoadServerdate", "MultipleEntries")', { BranchID: Branch }, function (data) {
+            $('#DateOperation').empty();
+            $.each(data, function (key, value) {
+                $('#DateOperation').val(value.DateOperation);
+                $('#CodeTransaction').val(value.CodeTransaction);
+                $('#Journal').val(value.Journal);
+            });
+        }, 'json');
+    }
+
+    function InitTotaux() {
+        $('#TotalDebit').val('0');
+        $('#TotalCredit').val('0');
+        $('#Solde').val('0');
+    }
+    //chargement des elemts de totaux apres le click sur afficher
+    function loadTotaux(BranchID, DeviseID, CodeTransaction) {
+        //chargement detail
+        $.get('@Url.Action("chargeSolde", "MultipleEntries")', { BranchID: BranchID, DeviseID: DeviseID, CodeTransaction: CodeTransaction }, function (data) {
+            $.each(data, function (key, value) {
+                $('#TotalDebit').val(value.TotalDebit);
+                $('#TotalCredit').val(value.TotalCredit);
+                $('#Solde').val(value.Solde);
+            });
+        }, 'json');
+    }
+
+    //chargement du tableau apres le click sur le bouton afficher
+    function LoadGrid(test, BranchID, DeviseID, CodeTransaction) {
+        if (test) {
+            $('#mainTable').dataTable().fnDestroy();
+        }
+        var oTable = $('#mainTable');
+        oTable = $('#mainTable').dataTable({
+            "paging": true,
+            "pageLength": 4,
+            "lengthMenu": [[4, 8, 12, -1], [4, 8, 12, "All"]],
+            "searching": false,
+            "ordering": true,
+            "pagingType": "full_numbers",
+            //"columnDefs": [
+            //        { "visible": false, "targets": 0 }
+            //],
+            //"order": [[0, 'asc']],
+            // Ajax call
+            "ajax": {
+                "url": "@Url.Action("GetList", "MultipleEntries")",
+                "type": "GET",
+                "datatype": "json",
+                "data": { BranchID: BranchID, DeviseID: DeviseID, CodeTransaction: CodeTransaction }
+            },
+
+            "columns": [
+                { "data": "PieceID" },
+                { "data": "CodeTransaction" },
+                { "data": "AccountNumber" },
+                { "data": "Debit" },
+                { "data": "Credit" },
+                {// this is Actions Column
+                    mRender: function (data, type, row) {
+
+                        var deleteOption = '@LoadAction.IsSubMenuActionAble(MenuAction.DELETE, @profile, CodeValue.Accounting.AccountOperation_multiEntries.CODE, db)';
+                        var T_deleteOption = (deleteOption == 'False') ? '<a href=# class="editor_remove" onclick="DeleteItem(' + row.PieceID + ')"><span class="glyphicon glyphicon-trash"></span></a>' : '';
+
+                        var updateOption = '@LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, @profile, CodeValue.Accounting.AccountOperation_multiEntries.CODE, db)';
+                        var T_updateOption = (updateOption == 'False') ? '<a href="#" class="editor_remove" onclick="UpdateItem(' + row.PieceID + ')"><span class="glyphicon glyphicon-edit"></a>' : '';
+
+                        return @*T_updateOption + " | " +*@ T_deleteOption;
+                    }
+                }
+            ]
+            //dom: 'Bfrtip',
+            //buttons: [
+            //    'copy', 'csv', 'excel'
+            //]
+
+        });
+    }
+
+    function DeleteItem(obj) {
+        if (confirm("@Resources.ConfirmDeleteMessage")) {
+            var globalID = obj;
+            //post to the server
+            $(this).val('Please wait...');
+            var data = {
+                ID: parseInt(globalID)
+            }
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("RemoveVoucher", "MultipleEntries")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        //alert(d.Message);
+                        var BranchID = $("#BranchID").val();
+                        var DeviseID = $("#DeviseID").val();
+                        var CodeTransaction = $("#CodeTransaction").val();
+
+                        LoadGrid(true, BranchID, DeviseID, CodeTransaction);
+                        loadTotaux(BranchID, DeviseID, CodeTransaction);
+                        //clear form
+                        clearAcctForm();
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                    $('#AddToGrid').val('@Resources.UIAddVoucher');
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                    $('#AddToGrid').val('@Resources.UIAddVoucher');
+                }
+            });
+        }
+
+    }
+
+    $(document).on('ready', function () {
+        $(function () {
+            $(".datepicker").datepicker({
+                format: 'yyyy-mm-dd'
+            });
+        });
+        InitTotaux();
+        populateBranch();
+
+        //chargement des cptes
+        populateAccount();
+        populateAccountSens();
+
+        var BranchID = '0';
+        var DeviseID = '0';
+        var CodeTransaction = '';
+
+        LoadGrid(false, BranchID, DeviseID, CodeTransaction);
+        loadTotaux(BranchID, DeviseID, CodeTransaction);
+        $("#AddToGrid").on('click', function () {
+            AddToGrid();
+        });
+
+        $("#btnSubmit").on('click', function () {
+            btnSubmit();
+        });
+
+        $('#btnCancel').on('click', function () {
+            location.reload(true);
+        });
+
+        $('#CancelGrid').on('click', function () {
+            clearAcctForm();
+        });
+
+
+    });
+
+    function btnSubmit() {
+        var isAllValid = true;
+        if ($('#BranchID').val() == "0") {
+            isAllValid = false;
+            $("#BranchID").addClass("invalid-data");
+        }
+        else {
+            $("#BranchID").addClass("valid-data");
+        }
+
+        if ($('#DeviseID').val() == "0") {
+            isAllValid = false;
+            $("#DeviseID").addClass("invalid-data");
+        }
+        else {
+            $("#DeviseID").addClass("valid-data");
+        }
+
+        if ($('#Journal').val().trim() == '') {
+            isAllValid = false;
+            $("#Journal").addClass("invalid-data");
+        }
+        else {
+            $("#Journal").addClass("valid-data");
+        }
+
+        if ($('#DateOperation').val().trim() == '') {
+            isAllValid = false;
+            $("#DateOperation").addClass("invalid-data");
+        }
+        else {
+            $("#DateOperation").addClass("valid-data");
+        }
+
+        if ($('#Description').val().trim() == '') {
+            isAllValid = false;
+            $("#Description").addClass("invalid-data");
+        }
+        else {
+            $("#Description").addClass("valid-data");
+        }
+
+        if ($('#Reference').val().trim() == '') {
+            isAllValid = false;
+            $("#Reference").addClass("invalid-data");
+        }
+        else {
+            $("#Reference").addClass("valid-data");
+        }
+
+        if ($('#CodeTransaction').val().trim() == '') {
+            isAllValid = false;
+            Alert('Wrong initialization operation');
+            $("#CodeTransaction").addClass("invalid-data");
+        }
+        else {
+            $("#CodeTransaction").addClass("valid-data");
+        }
+
+        var data = {
+            CodeTransaction: $.trim($('#CodeTransaction').val()),
+        }
+        $(this).val('Please wait...');
+        if (isAllValid) {
+            $.ajax({
+                url: '@Url.Action("AddAccountOperation", "MultipleEntries")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        location.reload(true);
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                },
+                error: function () {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                }
+            });
+        }
+    }
+
+    function AddToGrid() {
+        var isAllValid = true;
+        if ($('#BranchID').val() == "0") {
+            isAllValid = false;
+            $("#BranchID").addClass("invalid-data");
+        }
+        else {
+            $("#BranchID").addClass("valid-data");
+        }
+
+        if ($('#DeviseID').val() == "0") {
+            isAllValid = false;
+            $("#DeviseID").addClass("invalid-data");
+        }
+        else {
+            $("#DeviseID").addClass("valid-data");
+        }
+
+        if ($('#Journal').val().trim() == '') {
+            isAllValid = false;
+            $("#Journal").addClass("invalid-data");
+        }
+        else {
+            $("#Journal").addClass("valid-data");
+        }
+
+        if ($('#DateOperation').val().trim() == '') {
+            isAllValid = false;
+            $("#DateOperation").addClass("invalid-data");
+        }
+        else {
+            $("#DateOperation").addClass("valid-data");
+        }
+
+        if ($('#Description').val().trim() == '') {
+            isAllValid = false;
+            $("#Description").addClass("invalid-data");
+        }
+        else {
+            $("#Description").addClass("valid-data");
+        }
+
+        if ($('#Reference').val().trim() == '') {
+            isAllValid = false;
+            $("#Reference").addClass("invalid-data");
+        }
+        else {
+            $("#Reference").addClass("valid-data");
+        }
+
+        if ($('#CodeTransaction').val().trim() == '') {
+            isAllValid = false;
+            Alert('Wrong initialization operation');
+            $("#CodeTransaction").addClass("invalid-data");
+        }
+        else {
+            $("#CodeTransaction").addClass("valid-data");
+        }
+
+        var data = {
+            BranchID: $('#BranchID').val(),
+            DeviseID: $('#DeviseID').val(),
+            Journal: $.trim($('#Journal').val()),
+            DateOperation: $.trim($('#DateOperation').val()),
+            Description: $.trim($('#Description').val()),
+            Reference: $.trim($('#Reference').val()),
+            CodeTransaction: $.trim($('#CodeTransaction').val()),
+            AccountID: $('#AccountID').val(),
+            AccountSens: $('#AccountSens').val(),
+            Amount: $('#Amount').val()
+        }
+        $(this).val('Please wait...');
+        if (isAllValid) {
+            $.ajax({
+                url: '@Url.Action("AddVoucher", "MultipleEntries")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        var BranchID = $("#BranchID").val();
+                        var DeviseID = $("#DeviseID").val();
+                        var CodeTransaction = $("#CodeTransaction").val();
+
+                        LoadGrid(true, BranchID, DeviseID, CodeTransaction);
+                        loadTotaux(BranchID, DeviseID, CodeTransaction);
+                        //clear form
+                        clearAcctForm();
+                    }
+                    else {
+                        alert('Failed');
+                    }
+                    $('#AddToGrid').val('@Resources.UIAddVoucher');
+                },
+                error: function () {
+                    alert('Error. Please try again.');
+                    $('#AddToGrid').val('@Resources.UIAddVoucher');
+                }
+            });
+        }
+    }
+
+    function clearAcctForm() {
+        $('#AccountID').val('');
+        $('#AccountSens').val('');
+        $('#Amount').val('0');
+    }
+</script>

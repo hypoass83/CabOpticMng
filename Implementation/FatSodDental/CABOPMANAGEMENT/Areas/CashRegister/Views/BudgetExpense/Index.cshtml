@@ -1,0 +1,401 @@
+﻿@using FatSod.Ressources;
+@using FatSod.Supply.Entities;
+@using FatSod.DataContext.Initializer;
+
+@{
+    ViewBag.Title = @Resources.E_BudgetExpense;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+}
+
+<div class="row" style="margin-top:5px;margin-left:25px">
+    @if (TempData["Message"] != null)
+    {
+        @Html.Raw(TempData["Message"])
+    }
+</div>
+<div class="box box-primary box-body" id="BudgetExpenseForm">
+    <div class="row">
+        <input class="form-control input-sm" id="DisplayForm" type="hidden" value="@ViewBag.DisplayForm">
+        <div class="col-md-12">
+            <fieldset>
+                <div class="panel panel-default">
+                    <div class="panel-body2">
+                        <table class="table" id="mainTable">
+                            <thead>
+                                <tr class="dataTableHead">
+                                    <th>ID</th>
+                                    <th>@Resources.UIBudgetAllocated</th>
+                                    <th>@Resources.UIDateOperation</th>
+                                    <th>@Resources.Reference</th>
+                                    <th>@Resources.VoucherAmount</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <fieldset>
+                <legend>@Resources.BudgetConsumTitle</legend>
+                <div class="panel panel-default">
+                    <div class="panel-body1">
+                        <input class="form-control" id="BudgetConsumptionID" name="BudgetConsumptionID" type="hidden">
+                        <input class="form-control" id="BudgetAllocatedID" name="BudgetAllocatedID" type="hidden">
+
+                        <div class="row ipt" style="margin-left:1px;">
+                            <div class="col-sm-1">@Resources.UIBudgetAllocated</div>
+                            <div class="col-sm-3">
+                                <input class="form-control" id="BudgetAllocatedName" type="text" readonly>
+                            </div>
+                            <div class="col-sm-1">@Resources.UIDateOperation</div>
+                            <div class="col-sm-3">
+                                <input class="form-control" id="DateOperation" type="text" readonly>
+                            </div>
+                            <div class="col-sm-1">@Resources.Reference</div>
+                            <div class="col-sm-3">
+                                <input class="form-control" id="Reference" type="text" readonly>
+                            </div>
+                        </div>
+                        <div class="row ipt" style="margin-left:1px;">
+                            <div class="col-sm-1">@Resources.BeneficiaryName</div>
+                            <div class="col-sm-3">
+                                <input class="form-control" id="BeneficiaryName" type="text" readonly>
+                            </div>
+                            <div class="col-sm-1">@Resources.Justification</div>
+                            <div class="col-sm-3">
+                                <textarea class="form-control" id="Justification" type="text" readonly></textarea>
+                            </div>
+                            <div class="col-sm-1">@Resources.UIDevise</div>
+                            <div class="col-sm-3">
+                                <input class="form-control" id="DeviseID" type="hidden" readonly>
+                                <input class="form-control" id="DeviseCode" type="text" readonly>
+                            </div>
+                        </div>
+                        <div class="row ipt" style="margin-left:1px;">
+                            <div class="col-sm-1">@Resources.PaymentMethod</div>
+                            <div class="col-sm-3">
+                                <input class="form-control" id="BuyType" readonly />
+                            </div>
+                            <div class="col-sm-1">@Resources.VoucherAmount</div>
+                            <div class="col-sm-3">
+                                <input class="form-control NumbersAndDecimal" id="VoucherAmount" type="text" />
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </fieldset>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-2" style="margin-left:10%;margin-top:10px;">
+            <button id="btnCancel" class="btn btn-primary btn-danger">@Resources.ResetButton</button>
+        </div>
+        <div class="col-sm-2" style="margin-top:10px;">
+            <button id="btnSubmit" class="btn btn-primary btn-success">@Resources.SaveButton</button>
+        </div>
+        <div class="col-sm-2" style="margin-top:10px;">
+        </div>
+
+    </div>
+</div>
+
+<!-- Css Begins Here -->
+
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 6px;
+    }
+
+    #img-upload {
+        width: 100%;
+    }
+
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin-left: 10px;
+        min-width: 0;
+        padding: 0px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 70px;
+    }
+
+    .panel-body1 {
+        height: 150px;
+        margin-top: 5px;
+        /*margin-left: 15%;*/
+    }
+
+    .panel-body2 {
+        height: 215px;
+        margin-top: 10px;
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+
+    .panel-body3 {
+        height: 75px;
+        margin-top: 5px;
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+</style>
+
+<script>
+
+    //chargement des commandes a valider
+    function GetModel(test) {
+
+        if (test)
+        {
+            $('#mainTable').dataTable().fnDestroy();
+        }
+        var oTable = $('#mainTable');
+
+        oTable = $('#mainTable').dataTable({
+
+            fixedColumns: true,
+            "paging": true,
+            "pageLength": 3,
+            "lengthMenu": [[3, 5, 10, -1], [3, 5, 10, "All"]],
+            "searching": true,
+            "ordering": true,
+            "pagingType": "full_numbers",
+            // Ajax call
+            "ajax": "@Url.Action("GetModel", "BudgetExpense")",
+            "dom": '<"toolbar">frtip',
+        "columns": [
+            { "data": "BudgetConsumptionID", "width": "1%" },
+            { "data": "UIBudgetAllocated" },
+            { "data": "DateOperation" },
+            { "data": "Reference" },
+            { "data": "VoucherAmount" },
+            {// this is Actions Column
+                mRender: function (data, type, row) {
+                    return '<a href="#" class="editor_remove" onclick="UpdateItem(' + row.BudgetConsumptionID + ')"><span class="glyphicon glyphicon-edit"></span></a>'
+                }
+            }
+        ]
+        });
+        var brefresh = '<a href="#" class="btn btn-primary" style="margin-left:40%;" onclick="RefreshGrid()"><span class="fa fa-refresh"></span></a>'
+        $("div.toolbar").html(brefresh);
+    }
+
+    function UpdateItem(obj) {
+        var globalID = obj;
+
+        $.get('@Url.Action("InitializeCommandFields", "BudgetExpense")', { ID: parseInt(globalID) }, function (data) {
+            $.each(data, function (key, value) {
+                $('#BudgetAllocatedName').val(value.BudgetAllocatedName);
+                $('#DateOperation').val(value.DateOperation);
+                $('#Reference').val(value.Reference);
+                $('#BeneficiaryName').val(value.BeneficiaryName);
+                $('#Justification').val(value.Justification);
+                $('#DeviseID').val(value.DeviseID);
+                $('#BuyType').val(value.BuyType);
+                $('#VoucherAmount').val(value.VoucherAmount);
+                $('#BudgetConsumptionID').val(value.BudgetConsumptionID);
+                $('#BudgetAllocatedID').val(value.BudgetAllocatedID);
+                $('#DeviseCode').val(value.DeviseCode);
+            });
+        }, 'json');
+    }
+
+    function RefreshGrid() {
+        clearInitializeCommandFields();
+        GetModel(true);
+    }
+    function clearInitializeCommandFields()
+    {
+        $('#BudgetAllocatedName').val('');
+        $('#DateOperation').val('');
+        $('#Reference').val('');
+        $('#BeneficiaryName').val('');
+        $('#Justification').val('');
+        $('#DeviseID').val('');
+        $('#DeviseCode').val('');
+        $('#BuyType').val('');
+        $('#VoucherAmount').val('');
+        $('#BudgetConsumptionID').val('');
+        $('#BudgetAllocatedID').val('');
+        $('#btnSubmit').prop('disabled', false);
+    }
+    function ValideOperation() {
+
+        var isAllValid = true;
+
+
+        if ($('#BudgetConsumptionID').val().trim() == '') {
+            isAllValid = false;
+        }
+        if ($('#BudgetAllocatedID').val().trim() == '') {
+            isAllValid = false;
+        }
+
+        if ($('#BudgetAllocatedName').val().trim() == '') {
+            isAllValid = false;
+            $("#BudgetAllocatedName").addClass("invalid-data");
+        }
+        else {
+            $("#BudgetAllocatedName").addClass("valid-data");
+        }
+
+        if ($('#DateOperation').val() == '') {
+            isAllValid = false;
+            $("#DateOperation").addClass("invalid-data");
+        }
+        else {
+            $("#DateOperation").addClass("valid-data");
+        }
+        if ($('#Reference').val().trim() == '') {
+            isAllValid = false;
+            $("#Reference").addClass("invalid-data");
+        }
+        else {
+            $("#Reference").addClass("valid-data");
+        }
+
+        if ($('#BuyType').val() == "0") {
+            isAllValid = false;
+            $("#BuyType").addClass("invalid-data");
+        }
+        else {
+            $("#BuyType").addClass("valid-data");
+        }
+        if ($('#BeneficiaryName').val().trim() == '') {
+            isAllValid = false;
+            $("#BeneficiaryName").addClass("invalid-data");
+        }
+        else {
+            $("#BeneficiaryName").addClass("valid-data");
+        }
+
+        if ($('#Justification').val().trim() == '') {
+            isAllValid = false;
+            $("#Justification").addClass("invalid-data");
+        }
+        else {
+            $("#Justification").addClass("valid-data");
+        }
+
+        if (parseInt($('#VoucherAmount').val()) <= 0) {
+            isAllValid = false;
+            $("#VoucherAmount").addClass("invalid-data");
+        }
+        else {
+            $("#VoucherAmount").addClass("valid-data");
+        }
+        if ($('#DeviseID').val().trim() == '') {
+            isAllValid = false;
+            $("#DeviseID").addClass("invalid-data");
+        }
+        else {
+            $("#DeviseID").addClass("valid-data");
+        }
+
+
+        if (isAllValid) {
+
+
+            var data = {
+                BuyType: $('#BuyType').val().trim(),
+                BudgetConsumptionID: $('#BudgetConsumptionID').val().trim(),
+                BudgetAllocatedID: $('#BudgetAllocatedID').val(),
+                BudgetAllocatedName: $('#BudgetAllocatedName').val(),
+                DateOperation: $('#DateOperation').val(),
+                Reference: $('#Reference').val().trim(),
+                BeneficiaryName: $('#BeneficiaryName').val(),
+                Justification: $('#Justification').val().trim(),
+                VoucherAmount: $('#VoucherAmount').val(),
+                DeviseID: $('#DeviseID  ').val()
+            }
+            $(this).val('Please wait...');
+            $('#btnSubmit').prop('disabled', true);
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("BudgetExpenseValidate", "BudgetExpense")',
+                type: "POST",
+                data: JSON.stringify(data), //formData, //formData,//
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        //reinitialisation des champs
+                        clearInitializeCommandFields();
+                        GetModel(true);
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                }
+            });
+        }
+
+    }
+
+    $(document).on('ready', function () {
+        if ($('#DisplayForm').val().trim() == 0) {
+            $("#BudgetExpenseForm").hide();
+        }
+        else {
+            $("#BudgetExpenseForm").show();
+        }
+        GetModel(false);
+
+        $('#btnCancel').on('click', function () {
+            //reinitialisation des champs
+            clearInitializeCommandFields();
+            GetModel(true);
+        });
+        $('#btnSubmit').on('click', function () {
+            ValideOperation();
+        });
+    });
+
+</script>

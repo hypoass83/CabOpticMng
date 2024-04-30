@@ -1,0 +1,294 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+@model System.Collections.IEnumerable
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+@section content
+{
+    @(X.FormPanel()
+        .ID("QuarterForm")
+        .Title(Resources.Quarter)
+        .Items(
+            X.PanelTitle()
+             .ID("PanelTitl555e")
+             .Border(true)
+             .Padding(2)
+             .Content(
+            @<header>
+                <h4>@Resources.Quarter</h4>
+                <h6>@Resources.RequireField <code>(*)</code></h6>
+            </header>
+                                )
+                             )
+                            .Frame(true)
+                            .MarginSpec("-50 20 20 20")
+                            .BodyPadding(10)
+                            .FieldDefaults(fd => { fd.LabelWidth = 120; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+                            .Buttons(
+                                X.Button()
+                                    .ID("btnSave")
+                                    .Text(Resources.SaveButton)
+                                    .Disabled(true)
+                                    .Icon(Icon.Disk)
+                                    .Margin(10)
+                                    .DirectEvents(de =>
+                                    {
+                                        de.Click.Url = Url.Action("AddQuarter", "Parameter");
+                                        de.Click.EventMask.ShowMask = true;
+                                        de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                                        //de.Click.Before = @"if (!#{QuarterForm}.getForm().isValid()) { return false; }";
+                                    }),
+
+                                X.Button()
+                                    .Text(Resources.ResetButton)
+            //.Margin(10)
+                                    .MarginSpec("0 20 10 10")
+                                    .OnClientClick("this.up('form').reset();")
+                            )
+                            .Listeners(
+                                ls =>
+                                {
+                                    ls.FieldChange.Handler = "if(App.QuarterForm.isValid()){App.btnSave.setDisabled(false);}else{App.btnSave.setDisabled(true);}";
+                                }
+                            )
+                            .Items(
+                                X.Container()
+                                    .Layout(LayoutType.HBox)
+                                    .MarginSpec("0 0 10")
+                                    .Items(
+                                        X.FieldSet()
+                                            .Flex(1)
+                                            .Title("Identification du quartier")
+                                            .Layout(LayoutType.Anchor)
+                                            .Height(150)
+                                            .DefaultAnchor("80%")
+                                            .Items(
+                                                X.TextField().Name("QuarterID").ID("QuarterID").Hidden(true),
+                                                X.TextField().FieldLabel(Resources.PersonName)
+                                                             .Name("QuarterLabel")
+                                                             .MsgTarget(MessageTarget.Side)
+                                                             .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                                             .ID("QuarterLabel")
+                                                             .BlankText(Resources.PersonName + " " + Resources.RequiredField)
+                                                             .AllowBlank(false).MinLength(4)
+                                                ,
+                                                X.TextField().FieldLabel("Code")
+                                                    .Name("QuarterCode")
+                                                    .ID("QuarterCode")
+                                                    .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                                    .BlankText("Code " + Resources.RequiredField)
+                                                    .AllowBlank(false)
+                                            )
+                                        ,
+                                       X.Component().Width(20)
+                                       ,
+                                       X.FieldSet()
+                                            .Flex(1)
+                                            .Title(Resources.QuarterList)
+                                            .Layout(LayoutType.Anchor)
+                                            .Height(150)
+                                            .DefaultAnchor("80%")
+                                            .Items(
+
+                                                X.ComboBox().Name("Country").FieldLabel(Resources.AdressCountry)
+                                                            .Items(LoadComponent.Countries)
+                                                            .AllowBlank(false)
+                                                            .BlankText(Resources.AdressCountry + " " + Resources.RequiredField)
+                                                            .ID("Country")
+                                                            .ForceSelection(true)
+                                                            .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                                            .EmptyText(Resources.Select)
+                                                            .Listeners(ls =>
+                                                                                                                            ls.Select.Handler = "App.Region.setDisabled(false);App.Town.setDisabled(true);App.Region.clearValue();App.Town.clearValue();App.Region.getStore().load();"
+                                                            )
+                                                            ,
+                                                X.ComboBox().Name("Region").ID("Region")
+                                                            .FieldLabel(Resources.AdressRegion)
+                                                            .AutoSelect(false)
+                                                            .EmptyText(Resources.Select)
+                                                            .AllowBlank(false).ForceSelection(true)
+                                                            .BlankText(Resources.AdressRegion + " " + Resources.RequiredField)
+                                                            .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                                            .Disabled(true)
+                                                            .Listeners(ls =>
+                                                            {
+                                                                ls.Change.Handler = "App.Town.setDisabled(false);";
+                                                                ls.Select.Handler = "App.Town.setDisabled(false);App.Town.clearValue(); App.Quarter.clearValue(); App.Town.getStore().load();";
+                                                            }
+                                                            )
+                                                            .ValueField("RegionID").ValueNotFoundText("Aucune région trouvée")//.EmptyText("Chargement...")
+                                                            .DisplayField("RegionLabel")
+                                                            .Store(
+                                                                X.Store()
+                                                                 .AutoLoad(false)
+                                                                 .Model(
+                                                                    X.Model()
+                                                                     .IDProperty("RegionID")
+                                                                     .Fields(
+                                                                           new ModelField("RegionID", ModelFieldType.String) { Mapping = "RegionID" },
+                                                                           new ModelField("RegionLabel", ModelFieldType.String) { Mapping = "RegionLabel" }
+                                                                     )
+                                                                 )
+                                                                .Proxy(
+                                                                    X.AjaxProxy()
+                                                                     .Url(Url.Action("Regions"))
+                                                                     .Reader(X.JsonReader().RootProperty("data"))
+                                                                 )
+                                                                .Parameters(ps =>
+                                                                     ps.Add(new StoreParameter("countryID", "App.Country.getValue()", ParameterMode.Raw))
+                                                                )
+
+                                                            )
+                                                            ,
+                                                X.ComboBox().Name("Town").FieldLabel(Resources.AdressTown)
+           
+                                                            .ID("Town")
+                                                            .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                                            .Disabled(true)
+                                                            .AutoSelect(false).ForceSelection(true)
+                                                            .EmptyText(Resources.Select)
+                                                            .AllowBlank(false)
+                                                            .BlankText(Resources.AdressTown + " " + Resources.RequiredField)
+                                                            .DisplayField("TownLabel")
+                                                            .ValueField("TownID")
+                                                            .Store(
+                                                                    X.Store()
+                                                                     .AutoLoad(false)
+                                                                     .Model(
+                                                                         X.Model()
+                                                                          .IDProperty("TownID")
+                                                                          .Fields(
+                                                                               new ModelField("TownID", ModelFieldType.String) { Mapping = "TownID" },
+                                                                               new ModelField("TownLabel", ModelFieldType.String) { Mapping = "TownLabel" }
+                                                                          )
+                                                                      )
+                                                                      .Proxy(
+                                                                          X.AjaxProxy()
+                                                                           .Url(Url.Action("Towns", "User"))
+                                                                           .Reader(X.JsonReader().RootProperty("data"))
+                                                                      )
+                                                                      .Parameters(ps =>
+                                                                           ps.Add(new StoreParameter("regionID", "App.Region.getValue()", ParameterMode.Raw))
+                                                                      )
+            //                                                  .Listeners(ls =>
+            //                                                      ls.Load.Handler = @"var combo = App.Town;
+            //                                                            combo.setValue(records[0].get(combo.valueField));"
+            //                                                  )
+
+                                                             )
+                                            ),
+
+                                       X.Component().Width(20)
+                                    )
+                            )
+    )
+
+    @(Html.X().GridPanel()
+        .Title("Quarters list")
+        .ID("QuarterFormList")
+        .Layout(LayoutType.Fit)
+        .MarginSpec("-20 20 20 20")
+        .Frame(true)
+        .Collapsible(true)
+        .Store(Html.X().Store()
+            .GroupField("Light")
+            .ID("QuarterStore")
+            .ServerProxy(
+               X.AjaxProxy()
+                .Url(Url.Action("GetQuartersList"))
+                .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                .Reader(X.JsonReader().RootProperty("data"))
+            )
+            .AutoLoad(true)
+            .Model(Html.X().Model()
+                .Fields(
+                    new ModelField() { Name = "QuarterID", Type = ModelFieldType.Int },
+                    new ModelField() { Name = "QuarterTown", Type = ModelFieldType.String },
+                    new ModelField() { Name = "QuarterCode", Type = ModelFieldType.String },
+                    new ModelField() { Name = "QuarterLabel", Type = ModelFieldType.String }
+
+
+                )
+            ).DataSource(Model)
+        )
+
+        .ColumnModel(
+            Html.X().Column()
+                    .Text("Identifiant")
+                    .DataIndex("QuarterID")
+                    .Flex(1)
+            ,
+            Html.X().Column()
+                .Text("Code")
+                .DataIndex("QuarterCode")
+                .Flex(1)
+                ,
+            Html.X().Column()
+                .Text(Resources.PersonName)
+                .DataIndex("QuarterLabel")
+                .Flex(1)
+                ,
+            Html.X().Column()
+                .Text(Resources.PersonName)
+                .DataIndex("QuarterTown")
+                .Flex(1)
+                ,                
+            Html.X().ImageCommandColumn()
+                        .Width(30)
+						.Hidden(LoadAction.IsSubMenuActionAble(MenuAction.DELETE, profile, CodeValue.Parameter.QTER,db))
+                        .Commands(
+                            Html.X().ImageCommand()
+                                .CommandName("Delete")
+                                .IconCls("icon-delete")
+            //.ToolTip(tt =>
+            //    {
+            //        tt.Text = "Voulez-vous supprimer ?";
+            //        tt.Title = "Supression";
+            //    }
+            // )
+                        )
+                        .DirectEvents(de =>
+                        {
+                            de.Command.Action = "DeleteQuarter";
+                            de.Command.Confirmation.ConfirmRequest = true;
+                            de.Command.Confirmation.Message = "Voulez vous supprimer ?";
+                            de.Command.Confirmation.Title = "Opération de suppression";
+                            de.Command.ExtraParams.Add(new Parameter("ID", "record.data.QuarterID", ParameterMode.Raw));
+                            de.Command.EventMask.ShowMask = true;
+                            de.Command.EventMask.Msg = "Opération en cours...";
+                        }),
+            Html.X().ImageCommandColumn()
+                    .Width(30)
+                    .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, profile,CodeValue.Parameter.QTER,db))
+                    .Commands(
+                    Html.X().ImageCommand()
+                            .CommandName("Edit")
+                            .IconCls("icon-edit")
+                            .ToolTip(tt => tt.Text = "Modifier ?")
+                    )
+
+                    .DirectEvents(de =>
+                    {
+                        de.Command.Action = "UpdateQuarter";
+                        de.Command.ExtraParams.Add(new Parameter("ID", "record.data.QuarterID", ParameterMode.Raw));
+                        de.Command.EventMask.ShowMask = true;
+                        de.Command.EventMask.Msg = "Chargement des paramètres de modification en cours...";
+                    })
+
+
+            )
+            .BottomBar(
+                 Html.X().PagingToolbar()
+            )
+    )
+}

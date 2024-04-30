@@ -1,0 +1,439 @@
+﻿@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+@using CABOPMANAGEMENT.Tools;
+
+@{
+    ViewBag.Title = @Resources.InsuredReport;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var profile = (Session["UserProfile"] == null) ? 0 : (int)Session["UserProfile"];
+    var user = (Session["UserID"] == null) ? 0 : (int)Session["UserID"];
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+
+@if (TempData["Message"] != null)
+{
+    @Html.Raw(TempData["Message"])
+}
+
+<h4>@Resources.UIInsuredReportTitle</h4>
+<div class="box box-primary box-body" id="SaleValideForm">
+    @*<div class="row">*@
+        <fieldset class="col-md-12">
+            <input class="form-control input-sm" id="DisplayForm" type="hidden" value="@ViewBag.DisplayForm">
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    @*<div class="row">*@
+                    <div class="col-md-4">
+                        <div class="row ipt">
+                            <!-- Branche -->
+                            <div class="col-sm-3">@Resources.Branches</div>
+                            <div class="col-sm-9">
+                                <input type="hidden" id="DefaultBranchID" value="@ViewBag.CurrentBranch" />
+                                <select id="BranchID" class="input-sm form-control"></select>
+                            </div>
+                            <!-- Marketer -->
+                            <div class="col-sm-3">@Resources.Marqueter</div>
+                            <div class="col-sm-9">
+                                <input type="text" id="Marketer" placeholder="@Resources.Select" class="form-control">
+                                <input type="hidden" id="MarketerID" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="row ipt">
+                            <div class="col-sm-3">@Resources.UIBeginDate</div>
+                            <div class="col-sm-9">
+                                <input class="form-control datepicker" id="BeginDate" type="text" placeholder="choose Begin date" value="@ViewBag.BusnessDayDate">
+                            </div>
+                            <div class="col-sm-3">@Resources.UIEndDate</div>
+                            <div class="col-sm-9">
+                                <input class="form-control datepicker checkDateNoGraterThanToday" id="EndDate" type="text" placeholder="choose End date">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="row ipt">
+                            <div class="col-sm-12">
+                                <input type="radio" name="PrintOption" id="PrintSummary" value="1" checked="checked" /> @Resources.PrintSummary<br />
+                                <input type="radio" name="PrintOption" id="PrintDetail" value="2" /> @Resources.PrintDetail
+                            </div>
+                        </div>
+                    </div>
+                    @*</div>*@
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="row ipt">
+                                <div class="col-sm-2" style="margin-left:-20px;margin-top:10px;">
+                                    <button id="btnSave" class="btn btn-primary">@Resources.UIDisplayEntries</button>
+                                </div>
+                                <div class="col-sm-2" style="margin-left:-20px;margin-top:20px;">@Resources.TotalAmount</div>
+                                <div class="col-sm-2" style="margin-left:-60px;margin-top:10px;">
+                                    <input class="form-control input-sm" id="TotMntFacture" type="text" readonly />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+    @*</div>*@
+    <div class="row">
+        <div class="panel-body2" id="tablesummary">
+            <table class="table" id="mainTable">
+                <thead>
+                    <tr class="dataTableHead">
+                        <th>ID</th>
+                        <th>@Resources.PersonName</th>
+                        <th>@Resources.Company</th>
+                        <th>@Resources.InsuredCompany</th>
+                        <th>@Resources.UIDateOperation</th>
+                        <th>@Resources.BillNumber</th>
+                        <th>@Resources.PhoneNumber</th>
+                        <th>@Resources.BillAmount</th>
+                        <th>@Resources.Marqueter</th>
+                        <th>@Resources.NewCustomer ?</th>
+                    </tr>
+                </thead>
+
+            </table>
+        </div>
+        <div class="panel-body2" id="tabledetail">
+            <table class="table" id="mainTabledetail">
+                <thead>
+                    <tr class="dataTableHead">
+                        <th>ID</th>
+                        <th>@Resources.PersonName</th>
+                        <th>@Resources.Company</th>
+                        <th>@Resources.InsuredCompany</th>
+                        <th>@Resources.UIDateOperation</th>
+                        <th>@Resources.BillNumber</th>
+                        @*<th>@Resources.PhoneNumber</th>*@
+                        @*<th>@Resources.BillAmount</th>*@
+                        <th>@Resources.Category</th>
+                        <th>@Resources.prescription</th>
+                        <th>@Resources.Marque</th>
+                        <th>@Resources.Reference</th>
+                        <th>@Resources.Marqueter</th>
+                        <th>@Resources.NewCustomer ?</th>
+                    </tr>
+                </thead>
+
+            </table>
+        </div>
+    </div>
+
+</div>
+<!-- Css Begins Here -->
+
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-top: 3px;
+        margin-bottom: 6px;
+    }
+
+    #img-upload {
+        width: 100%;
+    }
+
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin-left: 10px;
+        min-width: 0;
+        padding: 0px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 85px;
+    }
+
+    .panel-body1 {
+        height: 100px;
+        margin-top: 5px;
+        /*margin-left: 15%;*/
+    }
+
+    .panel-body2 {
+        height: 215px;
+        margin-top: 10px;
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+
+    .panel-body3 {
+        height: 75px;
+        margin-top: 5px;
+        /*margin-left: 15%;*/
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+</style>
+
+<!--********** JavaScripts **********-->
+<script>
+
+    function InitTotaux() {
+        $('#TotMntFacture').val('0');
+    }
+    //chargement des elemts de totaux apres le click sur afficher
+    function loadTotaux(Begindate, EndDate, Marketer) {
+        //chargement detail
+        $.get('@Url.Action("chargeSolde", "InsuredReport")', { Begindate: Begindate, EndDate: EndDate, MarketerID: Marketer }, function (data) {
+            $.each(data, function (key, value) {
+                $('#TotMntFacture').val(value.TotMntFacture);
+            });
+        }, 'json');
+
+    }
+    // Get the Branch List
+    function populateBranch() {
+        $.get('@Url.Action("GetOpenedBranches", "InsuredReport")', {}, function (data) {
+            $('#BranchID').empty();
+            $('#BranchID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#BranchID').append($("<option></option>").val(value.BranchID).html(value.BranchName));
+            });
+            var _DefaultId = $('#DefaultBranchID').val();
+            $('#BranchID').val(_DefaultId);
+
+        }, 'json');
+    }
+
+
+    // Get the Marketer List
+    function populateMarketer() {
+
+        $("#Marketer").autocomplete({
+            minLength: 1, // set minimum of 1 characters before search executes.
+            delay: 100, // wait 0.1 second after keystroke before search executes.
+            source: function (request, response) {
+                $.ajax({
+                    url: '@Url.Action("LoadMarketers", "InsuredReport")',
+                    type: "POST",
+                    dataType: "json",
+                    //cache: false,
+                    data: { filter: request.term },
+                    success: function (data) {
+                        response($.map(data, function (item) {
+                            return { label: item.Name, value: item.Name, id: item.ID };
+                        }))
+                    }
+                })
+            },
+            messages: {
+                noResults: "No results",
+                results: function (count) {
+                    return count + (count == 0 ? ' result' : ' results');
+                }
+            },
+            select: function (event, ui) {
+                $("#MarketerID").val(ui.item.id);
+            }
+        });
+    }
+
+
+
+    //chargement du tableau apres le click sur le bouton afficher
+    function LoadGrid(test,MarketerID,  Begindate, EndDate) {
+        if (test) {
+            $('#mainTable').dataTable().fnDestroy();
+        }
+        var oTable = $('#mainTable');
+        oTable = $('#mainTable').dataTable({
+            fixedColumns: true,
+            "paging": true,
+            "pageLength": 10,
+            "lengthMenu": [[10, 20, 30, -1], [10, 20, 30, "All"]],
+            "searching": true,
+            "ordering": true,
+            "pagingType": "full_numbers",
+            "columnDefs": [
+                    { "visible": false, "targets": 0 }
+            ],
+            "order": [[2, 'asc']],
+            // Ajax call
+            "ajax": {
+                "url": "@Url.Action("ModelBillInsure_Summary", "InsuredReport")",
+                "type": "GET",
+                "datatype": "json",
+                "data": { Begindate: Begindate, EndDate: EndDate, MarketerID: MarketerID }
+            },
+            "columns": [
+                { "data": "CustomerOrderID", "width": "1%" },
+                { "data": "CustomerName", "width": "20%" },
+                { "data": "CompanyName", "width": "12%" },
+                { "data": "InsuredCompany", "width": "12%" },
+                { "data": "CustomerOrderDate", "width": "8%" },
+                { "data": "NumeroFacture", "width": "10%" },
+                { "data": "PhoneNumber", "width": "10%" },
+                { "data": "MntAssureur", "width": "10%" },
+                { "data": "MarketerName", "width": "15%" },
+                { "data": "IsNewCustomer", "width": "5%" }
+            ],
+            dom: 'Bfrtip',
+            buttons: [
+                'copy', 'csv', 'excel'
+            ]
+
+        });
+
+    }
+
+    //chargement du tableau apres le click sur le bouton afficher
+    function LoadGridDetail(test,MarketerID,  Begindate, EndDate) {
+        if (test) {
+            $('#mainTabledetail').dataTable().fnDestroy();
+        }
+        var oTable = $('#mainTabledetail');
+        oTable = $('#mainTabledetail').dataTable({
+            fixedColumns: true,
+            "paging": true,
+            "pageLength": 10,
+            "lengthMenu": [[10, 20, 30, -1], [10, 20, 30, "All"]],
+            "searching": true,
+            "ordering": true,
+            "pagingType": "full_numbers",
+            "columnDefs": [
+                    { "visible": false, "targets": 0 }
+            ],
+            "order": [[2, 'asc']],
+            // Ajax call
+            "ajax": {
+                "url": "@Url.Action("ModelBillInsure_Detail", "InsuredReport")",
+            "type": "GET",
+            "datatype": "json",
+            "data": { Begindate: Begindate, EndDate: EndDate, MarketerID: MarketerID }
+        },
+            "columns": [
+                { "data": "CustomerOrderID", "width": "1%" },
+                { "data": "CustomerName", "width": "13%" },
+                { "data": "CompanyName", "width": "11%" },
+                { "data": "InsuredCompany", "width": "11%" },
+                { "data": "CustomerOrderDate", "width": "8%" },
+                { "data": "NumeroFacture", "width": "8%" },
+                //{ "data": "PhoneNumber", "width": "8%" },
+                //{ "data": "MntAssureur", "width": "9%" },
+
+                { "data": "CategoryCode", "width": "16%" },
+                { "data": "Prescription", "width": "12%" },
+                { "data": "marque", "width": "7%" },
+                { "data": "reference", "width": "8%" },
+
+                { "data": "MarketerName", "width": "10%" },
+                { "data": "IsNewCustomer", "width": "5%" }
+            ],
+        dom: 'Bfrtip',
+        buttons: [
+            'copy', 'csv', 'excel'
+        ]
+
+    });
+
+    }
+
+
+    $(document).on('ready', function () {
+        if ($('#DisplayForm').val().trim() == 0) {
+            $("#SaleValideForm").hide();
+        }
+        else {
+            $("#SaleValideForm").show();
+        }
+
+
+        $(function () {
+            $(".datepicker").datepicker({
+                format: 'yyyy-mm-dd'
+            });
+        });
+        InitTotaux();
+        populateBranch();
+        populateMarketer();
+
+        var BeginDate = '1900-01-01';
+        var EndDate = '1900-01-01';
+        var MarketerID = '0'
+        $('#tablesummary').show();
+        $('#tabledetail').hide();
+        LoadGrid(false, MarketerID, BeginDate, EndDate);
+
+        LoadGridDetail(false, MarketerID, BeginDate, EndDate);
+
+        $('input[type=radio][name="PrintOption"]').change(function ()
+        {
+            if (this.value == '1') {
+                $('#tablesummary').show();
+                $('#tabledetail').hide();
+                LoadGrid(true, MarketerID, BeginDate, EndDate);
+            }
+            else if (this.value == '2') {
+                $('#tablesummary').hide();
+                $('#tabledetail').show();
+                LoadGridDetail(true, MarketerID, BeginDate, EndDate);
+            }
+
+        });
+
+
+
+        $("#btnSave").on('click', function () {
+            BeginDate = $("#BeginDate").val();
+            EndDate = $("#EndDate").val();
+            MarketerID = $("#MarketerID").val();
+
+            var radioValue = parseInt($("input[name='PrintOption']:checked").val());
+
+            if (radioValue == 1) {
+                $('#tablesummary').show();
+                $('#tabledetail').hide();
+                LoadGrid(true, MarketerID, BeginDate, EndDate);
+            }
+            else if (radioValue == 2) {
+                $('#tablesummary').hide();
+                $('#tabledetail').show();
+                LoadGridDetail(true, MarketerID, BeginDate, EndDate);
+            }
+
+
+            //LoadGrid(true, MarketerID, BeginDate, EndDate);
+            loadTotaux( BeginDate, EndDate,MarketerID);
+            $("#MarketerID").val('0');
+            $("#Marketer").val('');
+        });
+
+
+    });
+</script>

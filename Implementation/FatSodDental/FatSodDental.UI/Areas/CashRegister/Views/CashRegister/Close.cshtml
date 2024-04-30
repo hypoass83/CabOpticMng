@@ -1,0 +1,344 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.Ressources;
+@using System.Web;
+@using System.Web.Mvc;
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+}
+@section content
+{
+@(X.FormPanel()
+        .ID("Unknow")
+        .Items(
+             X.PanelTitle()
+              .ID("PanelTitl555e")
+              .Border(true)
+              .Padding(2)
+              .Content(
+                    @<header>
+                        <h4>@Resources.CloseCashRegisterTitle</h4>
+                        <code>@Resources.CloseCashRegisterSubTitle</code>
+                    </header>
+                    )
+                )
+                .Frame(true)
+                .MarginSpec("-20 0 0 0")
+                .BodyPadding(10)
+    )
+    @**********All cash operations of this day********@
+@*@(
+ X.Container()
+    .Layout(LayoutType.HBox)
+    .ID("DEContainer")
+    .MarginSpec("-10 0 0 0")
+    .Items(
+        X.GridPanel()
+            .Flex(1)
+            .ID("SalePanel")
+            .Layout(LayoutType.Anchor)
+            .Border(false)
+            .Title(Resources.InputOpDate +" "+ ViewBag.BusnessDayDate)
+            .DefaultAnchor("100%")
+            .Store(
+               X.Store()
+                .GroupField("All sales")
+                .ID("SalesListStore")
+                .RemotePaging(true)
+                .AutoLoad(true)
+                .PageSize(5)
+                .Model(
+                    X.Model()
+                        .IDProperty("SaleID")
+                        .Fields(
+                            new ModelField("SaleDate", ModelFieldType.Date),
+                            //new ModelField("SaleID", ModelFieldType.Int),
+                            new ModelField("SaleTotalPrice", ModelFieldType.Float),
+                            new ModelField("CashReceived", ModelFieldType.Float),
+                            new ModelField("SaleReceiptNumber", ModelFieldType.String),
+                            new ModelField("SaleOperation", ModelFieldType.String),
+                            new ModelField("PersonName", ModelFieldType.String)
+
+                        )
+                )
+                .DataSource(ViewBag.ListSalesDay)
+                .ServerProxy(
+                    X.AjaxProxy()
+                    .Url(Url.Action("GetSalesDayList","CashRegister"))
+                    .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                    .Reader(X.JsonReader().RootProperty("data"))
+                )
+            )
+            .ColumnModel(
+                X.RowNumbererColumn()
+                ,
+                //X.Column()
+                //    .Text("ID")
+                //    .DataIndex("SaleID")
+                //    .Flex(1)
+                //        ,
+                X.Column()
+                    .Text(Resources.SaleRef)
+                    .DataIndex("SaleReceiptNumber")
+                    .Flex(1)
+                    ,
+                    X.DateColumn()
+                    .Text(Resources.UIDateOperation)
+                    .DataIndex("SaleDate")
+                    .Flex(1),
+                X.Column()
+                    .Text(Resources.Customer)
+                    .DataIndex("PersonName")
+                    .Flex(1),
+                X.Column()
+                    .Text(Resources.SaleOperation)
+                    .DataIndex("SaleOperation")
+                    .Flex(1)
+                    ,                    
+                X.Column()
+                    .Text(Resources.SaleAmount)
+                    .DataIndex("SaleTotalPrice")
+                    .Flex(1),
+                X.Column()
+                    .Text(Resources.CashReceived)
+                    .DataIndex("CashReceived")
+                    .Flex(1)
+
+                )
+                    .BottomBar(
+                        X.PagingToolbar()
+                )
+        ,
+        X.Component().Width(5)
+        ,    
+        //Lis of purchase of day   
+        X.GridPanel()
+         .Flex(1)
+         .ID("PurchasePanel")
+         .Layout(LayoutType.Anchor)
+         .Border(false)
+        .Title(Resources.OutputOpDate + " " + ViewBag.BusnessDayDate)
+         .Store(Html.X().Store()
+            .GroupField("All purchases")
+            .ID("SupplierListStore")
+            .RemotePaging(true)
+            .AutoLoad(true)
+            .PageSize(5)            
+            .Model(Html.X().Model()
+                .Fields(
+                        //new ModelField("PurchaseID", ModelFieldType.Int),
+                        new ModelField("PurchaseReference", ModelFieldType.String),
+                        new ModelField("SupplierFullName", ModelFieldType.String),
+                        new ModelField("CashReceivedOupted", ModelFieldType.Float),
+                        new ModelField("SupplierOperation", ModelFieldType.String),
+                        new ModelField("PurchaseBringerFullName", ModelFieldType.String),
+
+                        new ModelField("PurchaseTotalAmount", ModelFieldType.Float)
+                        //new ModelField("PersonName", ModelFieldType.String)
+
+                )
+            ).DataSource(ViewBag.ListPurchasseDay)
+            .ServerProxy(
+                X.AjaxProxy()
+                .Url(Url.Action("GetAllPurchaseDayList"))
+                .ActionMethods(ac => ac.Read = HttpMethod.GET)
+                .Reader(X.JsonReader().RootProperty("data"))
+            )
+         )
+         .ColumnModel(
+            Html.X().Column()
+                .Text(Resources.PurchaseRef)
+                .DataIndex("PurchaseReference")
+                .Flex(1)
+                ,
+            Html.X().Column()
+                    .Text(Resources.SupplierNane)
+                    .DataIndex("SupplierFullName")
+                    .Flex(1),
+            Html.X().Column()
+                .Text(Resources.SupplierOperation)
+                .DataIndex("SupplierOperation")
+                .Flex(1),
+            Html.X().Column()
+                .Text(Resources.PurchaseBringer)
+                .DataIndex("PurchaseBringerFullName")
+                .Flex(1),
+            Html.X().Column()
+                .Text(Resources.PurchaseAmount)
+                .DataIndex("PurchaseTotalAmount")
+                .Flex(1)
+            ,
+            Html.X().Column()
+                .Text(Resources.CashOutput)
+                .DataIndex("CashReceivedOupted")
+                .Flex(1)                
+            )
+               .BottomBar(
+                        X.PagingToolbar()
+                )
+     )
+)*@
+    @**************      Form to close cahs register     ****************@
+@(
+            X.FormPanel()
+                .ID("TillDayForm")
+                .Title(Resources.Closecashregist)
+                .Frame(false)
+                .MarginSpec("5 0 0 300")
+                .Width(550)
+                .BodyPadding(10)
+                .Listeners(ls=>ls.FieldChange.Handler = "if(App.TillDayForm.isValid()){App.btnSave.setDisabled(false);App.btnPrint.setDisabled(false);}else{App.btnSave.setDisabled(true);App.btnPrint.setDisabled(true);}")
+                .FieldDefaults(fd => { fd.LabelWidth = 120; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+                .Buttons(
+                        X.Button()
+                        .ID("PrintReport")
+                        .Text(Resources.PrintReport)
+                        .Disabled(false)
+                        .Hidden(true)
+                        .Icon(Icon.Printer)
+                        .Margin(5)
+                        .DirectEvents(de =>
+                        {
+                            de.Click.Confirmation.ConfirmRequest = true;
+                            de.Click.Confirmation.Message = Resources.MsgPrint;
+                            de.Click.Confirmation.Title = Resources.CloseCashOp;
+                            de.Click.Url = Url.Action("PrintReport", "CashRegister");
+                            de.Click.EventMask.ShowMask = true;
+                            de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                        })
+                        ,
+                        X.Button()
+                        .ID("btnPrint")
+                        .Text(Resources.PrintRepClosecash)
+                        .Disabled(true)
+                        .Hidden(true)
+                        .Icon(Icon.Printer)
+                        .Margin(5)
+                        .DirectEvents(de =>
+                        {
+                            de.Click.Confirmation.ConfirmRequest = true;
+                            de.Click.Confirmation.Message = Resources.MsgCloseCash;
+                            de.Click.Confirmation.Title = Resources.CloseCashOp;
+                            de.Click.Url = Url.Action("CloseCashAndPrintReport", "CashRegister");
+                            de.Click.EventMask.ShowMask = true;
+                            de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                        })
+                        ,
+                        X.Button()
+                        .ID("btnSave")
+                        .Text(Resources.CloseCashN)
+                        .Disabled(false)
+                        .Icon(Icon.BinClosed)
+                        .Margin(5)
+                        .DirectEvents(de =>
+                        {
+                            de.Click.Confirmation.ConfirmRequest = true;
+                            de.Click.Confirmation.Message = Resources.MsgCloseCash;
+                            de.Click.Confirmation.Title = Resources.CloseCashOp;
+                            de.Click.Url = Url.Action("CloseDay", "CashRegister");
+                            de.Click.EventMask.ShowMask = true;
+                            de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                        })
+                        ,
+                        X.Button()
+                            .ID("btnCancel")
+                            .Text(Resources.ResetButton)
+                            .MarginSpec("0 20 10 10")
+                            .OnClientClick("this.up('form').reset();")
+                    )
+                    .Items(
+                        X.TextField().Name("TillDayID").ID("TillDayID").Hidden(true).Value(ViewBag.tillDay.TillDayID),
+                            X.DateField().FieldLabel(Resources.UIDateOperation)
+                            .Name("TillDayDate")
+                            .MsgTarget(MessageTarget.Side)
+                            .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                            .ID("TillDayDate")
+                            .ReadOnly(true)
+                            .InputType(Ext.Net.InputType.DateTime)
+                            .Hidden(true)
+                            .Value(ViewBag.tillDay.TillDayDate)
+                        ,
+                            X.NumberField().FieldLabel(Resources.OpenAmtDate)
+                            .Name("TillDayOpenPrice")
+                            .ID("TillDayOpenPrice")
+                            .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                            .BlankText("Code " + Resources.RequiredField)
+                            .ReadOnly(true)
+                            //.Hidden(true)
+                            .Value(ViewBag.tillDay.TillDayOpenPrice)
+                            .AllowBlank(false)
+                            ,
+                        X.NumberField().Hidden(true).Value(ViewBag.YesterdayTillDayClosingPrice ).ID("YesterdayTillDayClosingPrice").Name("YesterdayTillDayClosingPrice")
+                        ,
+                            X.NumberField().FieldLabel(Resources.InputAmtDate).ReadOnly(true).Value(ViewBag.TillSatut.Inputs).ID("InputCash").Name("InputCash")
+                        ,
+                            X.NumberField().FieldLabel(Resources.OutputAmtDate).ReadOnly(true).Value(ViewBag.TillSatut.Ouputs).ID("OutputCash").Name("OutputCash")
+                        ,                            
+                        X.NumberField().FieldLabel(Resources.SoldeCaisse).ReadOnly(true).Value(ViewBag.TillSatut.Ballance).ID("Solde")                             
+                        ,
+                            X.NumberField().FieldLabel(Resources.EnterPhyCashAmt)
+                            .Name("TillDayClosingPrice")
+                            .ID("TillDayClosingPrice")
+                            .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                            .BlankText(Resources.EnterPhyCashAmt)
+                            .MinValue(0)
+                            .Width(300)
+                            .Height(50)
+                            .EnableKeyEvents(true)
+                            //.DirectEvents(de =>
+                            //{
+                            //    de.KeyUp.Url = Url.Action("IsCorrectClosingDayPrice", "CashRegister");
+                            //    de.KeyUp.ExtraParams.Add(new Parameter("closingPriceOfDay", "this.getValue()", ParameterMode.Raw));
+                            //    de.KeyUp.ExtraParams.Add(new Parameter("InputCash", "App.InputCash.getValue()", ParameterMode.Raw));
+                            //    de.KeyUp.ExtraParams.Add(new Parameter("OutputCash", "App.OutputCash.getValue()", ParameterMode.Raw));
+                            //    de.KeyUp.ExtraParams.Add(new Parameter("YesterdayTillDayClosingPrice", "App.YesterdayTillDayClosingPrice.getValue()", ParameterMode.Raw));
+                            //})
+                            .MinValue(0)
+                            .AllowBlank(false)
+                        ,
+                        X.Checkbox().FieldLabel("Till").Hidden(true)
+                            .Name("TillID")
+                            .ID("TillID")
+                            .Checked(true)
+                            .InputValue(ViewBag.tillDay.TillID + "")
+                            .Value(ViewBag.tillDay.TillID)
+                                        
+                    )
+           
+          )
+    @****************Cash operation report conatiner**************************************************@
+@(
+ X.Container()
+    .Layout(LayoutType.HBox)
+    .Flex(1)
+    .MarginSpec("0 0 -100 0")
+    .MinHeight(500)
+    //.Title(Resources.RptCashOpDay)
+    .ID("RptCashOp")
+    //.Collapsible(true)
+    .Padding(20)
+    .AutoScroll(false)
+    .Hidden(true)
+    .Loader(
+       X.ComponentLoader()
+        //.Url(Url.Action("RenderState", "State"))
+        .AutoLoad(false)
+        .Mode(LoadMode.Frame)
+        //.Params(new Parameter("To", "02/02/2014"))
+        //.Params(new Parameter("At", "01/02/2015"))
+        //.Params(new Parameter("Print", "Pdf")) 
+        .LoadMask(lm =>
+            {
+                lm.ShowMask = true;
+                lm.Msg = Resources.MsgGenerateState;
+                lm.UseMsg = true;
+
+            })
+        )
+)
+}

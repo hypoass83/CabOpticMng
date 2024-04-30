@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<parameters>
+  <setParameter name="IIS Web Application Name" value="FSInventory" />
+  <setParameter name="EFDbContext-Web.config Connection String" value="Data Source=LOCALHOST;Initial Catalog=ValdozInventory;Persist Security Info=True;User ID=sa;Password=Kokodi12" />
+  <setParameter name="EFDbContext_DatabasePublish-Web.config Connection String" value="Data Source=LOCALHOST;Initial Catalog=ValdozInventory;Persist Security Info=True;User ID=sa;Password=Kokodi12" />
+</parameters>

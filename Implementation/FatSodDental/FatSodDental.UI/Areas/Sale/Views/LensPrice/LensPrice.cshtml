@@ -1,0 +1,251 @@
+@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Supply.Entities;
+@using FatSod.DataContext.Initializer;
+@using FatSod.Ressources;
+@model System.Collections.IEnumerable
+
+
+@{
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+
+    //ViewBag.Title = FatSod.Ressources.Resources.Product;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+    var X = Html.X();
+
+}
+
+@section content
+{
+@(
+
+
+        //Début du FormPanel
+            X.FormPanel()
+        //paramétrages du formpanel
+                .ID("PriceForm")
+                .Collapsible(true)
+                .Layout(LayoutType.Column)
+                .Title("Add New Number Range Price")
+                .Frame(true)
+                .MarginSpec("0 20 20 20")
+                .BodyPadding(10)
+                .FieldDefaults(fd => { fd.LabelWidth = 120; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+        //buttons enregistrer et Réinitialiser
+                .Buttons(
+        //buttons enregistrer
+                    X.Button()
+                        .ID("btnSave")
+                        .Text(FatSod.Ressources.Resources.SaveButton)
+                        .Disabled(true)
+                        .Icon(Icon.Disk)
+                        .Margin(10)
+        //.DirectClickAction(addAction),
+                            .DirectEvents(
+                                de =>
+                                {
+                                    de.Click.Url = Url.Action("AddManager");
+                                    de.Click.EventMask.ShowMask = true;
+                                    de.Click.EventMask.Msg = FatSod.Ressources.Resources.EventMaskMsg;
+                                }
+                            ),
+        //buttons Réinitialiser
+                        X.Button()
+                            .ID("btnReset")
+                            .Text(FatSod.Ressources.Resources.ResetButton)
+                            .Icon(Icon.ArrowRefresh)
+                            .MarginSpec("0 20 10 10")
+                            .DirectEvents(
+                                    de =>
+                                    {
+                                        de.Click.Url = Url.Action("Reset");
+                                        de.Click.EventMask.ShowMask = true;
+                                        de.Click.EventMask.Msg = FatSod.Ressources.Resources.EventMaskMsg;
+                                    }
+                            )
+                    )
+        //listeners du formpanel
+                    .Listeners(
+                        ls =>
+                        {
+                            ls.FieldChange.Handler = "if(App.PriceForm.isValid()){App.btnSave.setDisabled(false);}else{App.btnSave.setDisabled(true);}";
+                            ls.AfterRender.Handler = "if(App.PriceForm.isValid()){App.btnSave.setDisabled(false);}else{App.btnSave.setDisabled(true);}";
+                        }
+                     )
+        //les champs de saisie du formulaire
+                     .Items(
+                        X.Container() @*début du box contenant code et libellé*@
+                            .Layout(LayoutType.VBox)
+                            .Items(
+                            //identifiant
+                            X.TextField().Name("LensNumberRangePriceID").ID("LensNumberRangePriceID").Hidden(true),
+                            //code
+                           X.MultiCombo()
+                                .ID("LensCategoryIds")
+                                .Name("LensCategoryIds")
+                                //.Name("LensCategoryID")
+                                .FieldLabel(FatSod.Ressources.Resources.Category)
+                                .MinWidth(400)
+                                .MsgTarget(MessageTarget.Side)//le lieu d'affichage du message d'erreur lié à un défaut de validation
+                                .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                .BlankText(FatSod.Ressources.Resources.InputBlankTextMessage)//message qui sera afficher si le champ reste vide
+                                .AllowBlank(false)//dit si oui ou non le champ peut etre vide
+                                    .Items(LoadComponent.GetLensCategories()),
+                            //code
+                            X.ComboBox()
+                                .ID("SphericalValueRangeID")
+                                .Name("SphericalValueRangeID")
+                                .FieldLabel("Spherical Range")
+                                .MinWidth(400)
+                                .MsgTarget(MessageTarget.Side)//le lieu d'affichage du message d'erreur lié à un défaut de validation
+                                .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                .BlankText(FatSod.Ressources.Resources.InputBlankTextMessage)//message qui sera afficher si le champ reste vide
+                                .AllowBlank(true)//dit si oui ou non le champ peut etre vide
+                                .Items(LoadComponent.GetAllSphericalRanges), 
+                             X.ComboBox()
+                                .MinWidth(400)
+                                .ID("CylindricalValueRangeID")
+                                .Name("CylindricalValueRangeID")
+                                .FieldLabel("Cylindrical Range")
+                                .MsgTarget(MessageTarget.Side)//le lieu d'affichage du message d'erreur lié à un défaut de validation
+                                .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                .BlankText(FatSod.Ressources.Resources.InputBlankTextMessage)//message qui sera afficher si le champ reste vide
+                                .AllowBlank(true)//dit si oui ou non le champ peut etre vide
+                                .Items(LoadComponent.GetAllCylindricalRanges),
+                            X.ComboBox()
+                                .ID("AdditionValueRangeID")
+                                .Name("AdditionValueRangeID")
+                                .FieldLabel("Addition Range")
+                                .MsgTarget(MessageTarget.Side)//le lieu d'affichage du message d'erreur lié à un défaut de validation
+                                .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                .BlankText(FatSod.Ressources.Resources.InputBlankTextMessage)//message qui sera afficher si le champ reste vide
+                                .AllowBlank(true)//dit si oui ou non le champ peut etre vide
+                                .Items(LoadComponent.GetAllAdditionRanges).MinWidth(400),
+                            X.NumberField().FieldLabel(FatSod.Ressources.Resources.Sellingprice).Name("Price").ID("Price").MinValue(1).AllowBlank(false).MinWidth(400)
+                                )@*, début du box contenant code et libellé*@
+)
+                                @*Fin du FormPanel*@
+)
+@*fin de la partie formulaire*@
+
+
+    @*Début du tableau*@
+    @(Html.X().GridPanel()
+        .Title("Number Range Prices")
+        .ID("PriceList")
+        .Layout(LayoutType.Fit)
+        .MarginSpec("0 20 20 20")
+        .Frame(true)
+        .Collapsible(true)
+        .Store(
+            Html.X().Store()
+                .ID("PriceListStore")
+                .AutoLoad(true)
+                .PageSize(5)
+                .GroupField("Light")
+                .DataSource(Model)
+                .Model(Html.X().Model()
+                    .Fields(
+                        new ModelField() { Name = "LensNumberRangePriceID", Type = ModelFieldType.Int },
+                        new ModelField() { Name = "SphericalValueRange", Type = ModelFieldType.String },
+                        new ModelField() { Name = "CylindricalValueRange", Type = ModelFieldType.String },
+                        new ModelField() { Name = "AdditionValueRange", Type = ModelFieldType.String },
+                        new ModelField() { Name = "Price", Type = ModelFieldType.String },
+                                new ModelField() { Name = "LensCategory", Type = ModelFieldType.String }
+                        
+                    )
+                )
+
+                .ServerProxy(X.AjaxProxy()
+                        .Url(Url.Action("GetAllPrices"))
+                    .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                    .Reader(X.JsonReader().RootProperty("data"))
+                )
+
+            )
+
+        .ColumnModel(
+
+            Html.X().Column()
+                    .Text("Lens")
+                    .DataIndex("LensCategory")
+                    .Flex(1)
+                    ,
+        
+            Html.X().Column()
+                    .Text("Spherical Range")
+                    .DataIndex("SphericalValueRange")
+                    .Flex(1)
+                    ,
+            Html.X().Column()
+                .Text("Cylindrical Range")
+                .DataIndex("CylindricalValueRange")
+                .Flex(1)
+                ,
+            Html.X().Column()
+                .Text("Addition Range")
+                .DataIndex("AdditionValueRange")
+                .Flex(1),
+             Html.X().Column()
+                .Text(FatSod.Ressources.Resources.b_Price)
+                .DataIndex("Price")
+                .Flex(1),
+            Html.X().ImageCommandColumn()
+                        .Width(30)
+                        .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.DELETE, profile, CodeValue.Supply.LensCoating_SM.CODE,db))
+                        .Commands(
+                            Html.X().ImageCommand()
+                                .CommandName("Delete")
+                                .IconCls("icon-delete")
+                                .ToolTip(tt =>
+                                    {
+                                        tt.Text = FatSod.Ressources.Resources.ConfirmDeleteMessage;
+                                        tt.Title = "Supression";
+                                    }
+                                 )
+                        )
+                        .DirectEvents(de =>
+                        {
+                            de.Command.Action = "DeleteLensCoating";
+                            de.Command.Method = HttpMethod.POST;
+                            de.Command.Confirmation.ConfirmRequest = true;
+                            de.Command.Confirmation.Message = FatSod.Ressources.Resources.ConfirmDeleteMessage;
+                            de.Command.Confirmation.Title = FatSod.Ressources.Resources.ConfirmDeleteTitle;
+                            de.Command.ExtraParams.Add(new Parameter("LensNumberRangePriceID", "record.data.LensNumberRangePriceID", ParameterMode.Raw));
+                            de.Command.EventMask.ShowMask = true;
+                            de.Command.EventMask.Msg = FatSod.Ressources.Resources.EventMaskMsg;
+                        }),
+            Html.X().ImageCommandColumn()
+                    .Width(30)
+                    .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, profile, CodeValue.Supply.LensCoating_SM.CODE,db))
+                    .Commands(
+                    Html.X().ImageCommand()
+                            .CommandName("Edit")
+                            .IconCls("icon-edit")
+                            .ToolTip(tt => tt.Text = "Modifier ?")
+                    )
+
+                    .DirectEvents(de =>
+                    {
+                        de.Command.Action = "UpdateLensCoating";
+                        de.Command.Method = HttpMethod.GET;
+                        de.Command.ExtraParams.Add(new Parameter("LensNumberRangePriceID", "record.data.LensNumberRangePriceID", ParameterMode.Raw));
+                        de.Command.EventMask.ShowMask = true;
+                        de.Command.EventMask.Msg = FatSod.Ressources.Resources.EventMaskUpdate;
+                    })
+            )
+                .Plugins(
+                    X.FilterHeader()
+                    )
+                            .BottomBar(
+                            X.PagingToolbar()
+                    )
+            
+                                                        
+    )
+    @*Fin du tableau*@
+}

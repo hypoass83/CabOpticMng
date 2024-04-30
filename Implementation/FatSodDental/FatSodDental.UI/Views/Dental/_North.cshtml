@@ -1,0 +1,66 @@
+﻿@{
+    var X = Html.X();
+}
+
+@(Html.X().Panel()
+    .Header(true)
+    .Border(true)
+    .Region(Region.North)
+    .Border(false)
+    .Height(100)
+    .BodyStyle("background-color:/*#9503d4*/#ffffff;")
+    .Items(
+        X.Container()
+        .ID("MenuTop")
+        .Cls("default-menu-cls")
+        .Loader(
+//Chargement des modules avec ajax
+            X.ComponentLoader()
+            .AutoLoad(true)
+            .Url(Url.Action("GetDefaultMenus", "Menu"))
+            .Mode(LoadMode.Component)
+            .LoadMask(lm =>
+            {
+                lm.ShowMask = true;
+                lm.Msg = "Initialisation des menus ...";
+                lm.UseMsg = true;
+            })
+        ),
+        X.Container()
+        .ID("Menu")
+        .Loader(
+//Chargement des modules avec ajax
+            X.ComponentLoader()
+            .AutoLoad(true)
+            .Url(Url.Action("GetModules", "Menu"))
+            .Mode(LoadMode.Component)
+            .LoadMask(lm =>
+            {
+                lm.ShowMask = true;
+                lm.Msg = "Initialisation des menus ...";
+                lm.UseMsg = true;
+
+            })
+        )
+    )
+    .Items(
+        X.Container()
+        .ID("Menu_Container")
+        .Padding(0)
+        .MarginSpec("-1 0 0 0")
+        //.StyleSpec("height:100px; width:auto; background-image: url('../Content/Images/bground.png');")
+        //.Listeners(r =>
+        //    {
+        //        r.Enable.Handler = "App.Security1.setEnableToggle(true);App.Security1.setPressed(true);App.Security1.setDisabled(true);";
+        //    }
+        //)
+        .Loader(
+//Chargement des menus d'un module
+                X.ComponentLoader()
+                .Url(Url.Action("GetMenusOfModule", "Menu"))
+                .Mode(LoadMode.Component)
+                .Params(new Parameter("module", Session["defaultModule"]))
+            )
+     )
+     .Collapsible(false)
+)

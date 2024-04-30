@@ -1,0 +1,14 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using FatSod.Security.Entities;
+
+namespace FatSod.Security.Abstracts
+{
+    public interface IUser : IRepository<User>
+    {
+        int Remove(int user);
+    }
+}

@@ -1,0 +1,388 @@
+﻿@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+@using CABOPMANAGEMENT.Tools;
+
+@model IEnumerable<FatSod.Supply.Entities.InventoryDirectory>
+@{
+    ViewBag.Title = Resources.b_InventoryDirectory;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var profile = (Session["UserProfile"] == null) ? 0 : (int)Session["UserProfile"];
+    var user = (Session["UserID"] == null) ? 0 : (int)Session["UserID"];
+
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+
+}
+
+<div class="box box-primary box-body">
+    <div class="row">
+        <div class="col-md-12">
+            <fieldset>
+                <legend>@Resources.Directory Information</legend>
+                <div class="panel panel-default">
+                    <div class="panel-body1">
+                        <div class="col-md-6">
+                            <div class="row ipt" style="margin-top:2px;">
+                                <input type="hidden" id="InventoryCountingId" />
+                                <div class="col-sm-3">@Resources.Branches<code>(*)</code></div>
+                                <div class="row">
+                                    <div class="col-sm-7">
+                                        <input type="hidden" id="DefaultBranchId" value="@ViewBag.CurrentBranch" />
+                                        <select id="BranchId" class="form-control"></select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div hidden class="row ipt" style="margin-top:2px;">
+                                <div class="col-sm-3">@Resources.UIDateOperation</div>
+                                <div class="col-sm-7">
+                                    <input type="text" id="CreatedById" class="input-sm form-control" value="@user" />
+                                    <input type="text" id="CreatedDate" class="input-sm form-control" value="@ViewBag.BusnessDayDate" />
+                                </div>
+                            </div>
+                            <div class="row ipt" style="margin-top:2px;">
+                                <div class="col-sm-3">@Resources.AutorizedBy<code>(*)</code></div>
+                                <div class="col-sm-7">
+                                    <select class="form-control" id="AuthorizedById" name="AuthorizedById"> </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="row ipt" style="margin-top:2px;">
+                                <div class="col-sm-3">@Resources.Reference</div>
+                                <div class="col-sm-7">
+                                    <input class="form-control input-sm" id="Reference" type="text" readonly>
+                                </div>
+                            </div>
+                            <div class="row ipt" style="margin-top:2px;">
+                                <div class="col-sm-3">@Resources.Description<code>(*)</code></div>
+                                <div class="col-sm-7">
+                                    <textarea class="form-control input-sm" id="Description" type="text"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-8">
+        </div>
+        <div class="col-sm-2">
+            <button type="submit" class="btn btn-primary btn-success" id="btnSubmit">@Resources.SaveButton</button>
+        </div>
+        <div class="col-sm-2">
+            <button type="button" id="btnCancel" class="btn btn-primary btn-danger">@Resources.ResetButton</button>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <fieldset>
+                @*<legend>@Resources.inventoryDirectoryList</legend>*@
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <table class="table" id="mainTable">
+                            <thead>
+                                <tr class="dataTableHead">
+                                    <th>
+                                        @Resources.Branches
+                                    </th>
+                                    <th>
+                                        @Resources.Reference
+                                    </th>
+                                    <th>
+                                        @Resources.CreationDate
+                                    </th>
+                                    <th>
+                                        @Resources.Description
+                                    </th>
+                                    <th>
+                                        Action
+                                    </th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+</div>
+<!--css detail-->
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .btnreduice {
+        padding-bottom: 2px;
+        padding-top: 2px;
+    }
+
+    .ipt {
+        margin-bottom: 3px;
+        /* margin-left: 1px;*/
+    }
+
+    .ipt1 {
+        margin-bottom: 3px;
+        margin-left: -1%;
+    }
+
+    #img-upload {
+        width: 100%;
+    }
+
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin: 0;
+        min-width: 0;
+        padding: 10px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 275px;
+        margin-bottom: 4%;
+    }
+
+    .panel-body1 {
+        height: 80px;
+        margin-bottom: 2%;
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+</style>
+<!--javascript-->
+<script>
+    $(document).on('ready', function () {
+        //datepicker
+        var todaysDate = new Date();
+        $(function () {
+            $(".datepicker").datepicker({
+                format: 'yyyy-mm-dd',
+                showButtonPanel: true,
+                minDate: '@ViewBag.BusnessDayDate'
+            });
+        });
+        LoadAllDirectories(false);
+        populateBranch();
+
+        populateUsers();
+
+        $('#btnCancel').on('click', function () {
+           location.reload(true);
+        });
+
+        $('#btnSubmit').on('click', function () {
+            ValideCommande();
+        });
+    });
+
+
+    function populateBranch() {
+        $.get('@Url.Action("OpenedBusday", "Directory")', {}, function (data) {
+            console.log("Liste des branches ", data);
+            $('#BranchId').empty();
+            $('#BranchId').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#BranchId').append($("<option></option>").val(value.BranchID).html(value.BranchName));
+            });
+            var _DefaultId = $('#DefaultBranchId').val();
+            $('#BranchId').val(_DefaultId);
+            InitDate(_DefaultId);
+        }, 'json');
+    }
+
+    function populateUsers() {
+        $.get('@Url.Action("populateUsers", "Directory")', {}, function (data) {
+            $('#AuthorizedById').empty();
+            $('#AuthorizedById').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#AuthorizedById').append($("<option></option>").val(value.GlobalPersonID).html(value.UserFullName));
+            });
+        }, 'json');
+    }
+
+    function InitDate(Branch) {
+        $.get('@Url.Action("ChangeBusDay", "Directory")', { BranchId: Branch }, function (data) {
+            $('#Reference').empty();
+            $.each(data, function (key, value) {
+                $('#Reference').val(value.InventoryDirectoryReference);
+            });
+        }, 'json');
+    }
+
+    function ValideCommande() {
+
+        var isAllValid = true;
+        var fields = ["BranchId", "AuthorizedById", "CreatedById", "CreatedDate", "Reference", "Description"]
+
+        if ($('#BranchId').val() == '') {
+            isAllValid = false;
+            $("#BranchId").addClass("invalid-data");
+        }
+        else {
+            $("#BranchId").addClass("valid-data");
+        }
+
+        if ($('#AuthorizedById').val() == '' || $('#AuthorizedById').val() == 0) {
+            isAllValid = false;
+            $("#AuthorizedById").addClass("invalid-data");
+        }
+        else {
+            $("#AuthorizedById").addClass("valid-data");
+        }
+
+        if ($('#CreatedById').val() == '') {
+            isAllValid = false;
+            $("#CreatedById").addClass("invalid-data");
+        }
+        else {
+            $("#CreatedById").addClass("valid-data");
+        }
+
+        if ($('#CreatedDate').val() == '') {
+            isAllValid = false;
+            $("#CreatedDate").addClass("invalid-data");
+        }
+        else {
+            $("#CreatedDate").addClass("valid-data");
+        }
+
+        if ($('#Description').val() == '') {
+            isAllValid = false;
+            $("#Description").addClass("invalid-data");
+        }
+        else {
+            $("#Description").addClass("valid-data");
+        }
+
+        if ($('#Reference').val() == '') {
+            isAllValid = false;
+            $("#Reference").addClass("invalid-data");
+        }
+        else {
+            $("#Reference").addClass("valid-data");
+        }
+        //["BranchId", "AuthorizedById", "CreatedById", "CreatedDate", "Reference", "Description"]
+        if (isAllValid) {
+            var data = {
+                InventoryCountingId: $('#InventoryCountingId').val(),
+                BranchId: $('#BranchId').val(),
+                AuthorizedById: $('#AuthorizedById').val(),
+                CreatedById: $('#CreatedById').val(),
+                CreatedDate: $('#CreatedDate').val(),
+                Reference: $('#Reference').val(),
+                Description: $('#Description').val()
+            }
+
+            $(this).val('Please wait...');
+            //$(this).prop('disabled', true);
+            $('#btnSubmit').prop('disabled', true);
+            console.log("AddInventoryCounting ", data);
+            $.ajax({
+                url: '@Url.Action("AddInventoryCounting", "Directory")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    alert(d.Message);
+                    $('#btnSubmit').prop('disabled', false);
+                    if (d.status == true)
+                        location.reload();
+
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').prop('disabled', false);
+                }
+            });
+        }
+    }
+
+    function LoadAllDirectories(test) {
+
+        if (test) {
+            $('#mainTable').dataTable().fnDestroy();
+        }
+        var oTable = $('#mainTable');
+
+        oTable = $('#mainTable').dataTable({
+            "paging": true,
+            "pageLength": 4,
+            "lengthMenu": [[4, 8, 12, -1], [4, 8, 12, "All"]],
+            "searching": true,
+            "ordering": true,
+            "pagingType": "full_numbers",
+            // Ajax call
+            "ajax": "@Url.Action("GetAllBarcodeInventories", "Directory")",
+
+            "columns": [
+                { "data": "BranchName", "width": "15%" },
+                { "data": "Reference", "width": "15%" },
+                { "data": "CreatedDate", "width": "15%" },
+                { "data": "Description", "width": "40%" },
+                {// this is Actions Column
+                    mRender: function (data, type, row) {
+                        return '<a href="#" class="editor_remove" onclick="DeleteDirectory(' + row.InventoryCountingId + ')"><span class="glyphicon glyphicon-trash"></span></a>'
+                    }
+                }
+            ]
+        });
+    }
+
+    function DeleteDirectory(InventoryCountingId) {
+
+        if (!confirm("Do you really want to Delete ?"))
+            return;
+
+        var data = { inventoryCountingId: parseInt(InventoryCountingId) };
+        $.ajax({
+            url: '@Url.Action("DeleteInventoryCounting", "Directory")',
+            type: "POST",
+            data: JSON.stringify(data),
+            dataType: "JSON",
+            contentType: "application/json",
+            success: function (d) {
+                alert(d.Message);
+                if (d.status == true) 
+                    location.reload();
+            },
+            error: function (response) {
+                alert('Error. Please try again.');
+            }
+        });
+    }
+
+</script>

@@ -1,0 +1,499 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Supply.Entities;
+@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+
+@model System.Collections.IEnumerable
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    string activateValidatePurchase = @"if(App.DepositForm.isValid())
+                                            {
+                                                App.btnSave.setDisabled(false);
+                                            }else{
+                                                App.btnSave.setDisabled(true);
+                                            }";
+    string labelSeparator = " <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :";
+    //Les valeurs par défaut afin de réduire les clicques sur l'interface de commande
+    int DefaultBranchID = (int)Session["DefaultBranchID"];
+    int DefaultDeviseID = (int)Session["DefaultDeviseID"];
+    int DefaultLocationID = (int)(Session["DefaultLocationID"] != null ? Session["DefaultLocationID"] : 0);
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+@section content
+{
+
+@************************************************ Sales form informations ********************************@
+@(
+ X.FormPanel()
+            .ID("PostSupForm")
+            .Frame(true)
+            .MarginSpec("-10 0 -10 0")
+            .BodyPadding(10)
+        //.Title(Resources.FormUserAddTitle)
+            .Items(
+                X.DateField().FieldLabel("Sold Date")
+                .AllowBlank(false).Name("SoldDate")
+                .ID("SoldDate")
+                .Format("dd/MM/yyyy")
+                .Value((DateTime)ViewBag.BusnessDayDate)
+                .MarginSpec("10 0 10 0")
+                .InputType(Ext.Net.InputType.DateTime)
+                .DirectEvents(de =>
+                {
+                    de.Change.Action = "ReloadSalesListStore";
+                    de.Change.Method = HttpMethod.POST;
+                    de.Change.EventMask.ShowMask = true;
+                    de.Change.EventMask.Msg = Resources.EventMaskUpdate;
+                })
+                ,
+                X.FieldContainer().FieldLabel(Resources.SearchCriteria)
+                        .Layout(LayoutType.HBox)
+                        .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                        .ID("SearchCriteria")
+                        .MsgTarget(MessageTarget.Side)
+                            .Items(
+                                X.ComboBox().Name("Seach Option")//.FieldLabel(Resources.UICollectifAccount)
+                                .Items(new ListItem(Resources.Patient, "NAME"),
+                                        new ListItem(Resources.ReceiptNumber, "NUMBER"))
+                                .Value("NAME")
+                                .ValueField("SearchOption")
+                                .AllowBlank(false).ForceSelection(true)
+                                .ID("SearchOption")
+                                .Width(150)
+                                .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                .EmptyText("Choose Search Option")
+                                .AutoSelect(false)
+                                ,
+                                X.Component().Width(5),
+                                X.TextField().Width(250).ID("SearchValue").Name("SearchValue")
+                                .BlankText("Type Search Value")
+                                .AllowBlank(false)
+                                .DirectEvents(de =>
+                                {
+                                    de.Change.Action = "loadGrid";
+                                })
+                            )
+
+                )
+
+)
+@**********All customers pending sales********@
+@(
+ X.Container()
+    .Layout(LayoutType.HBox)
+    .ID("pendingSalesOp")
+    .MarginSpec("0 0 0 0")
+    .Items(
+        X.GridPanel()
+            .Flex(1)
+            .ID("SalePanelGrid")
+            .Layout(LayoutType.Anchor)
+            .Border(false)
+            .Title(Resources.AllpendingSalesOperation)
+            .DefaultAnchor("100%")
+            .Store(
+               X.Store()
+                .GroupField("Pending sales")
+                .ID("SalesListStore")
+                .RemotePaging(true)
+                .AutoLoad(true)
+                .PageSize(5)
+                .Model(
+                    X.Model()
+                        .IDProperty("SaleID")
+                        .Fields(
+                            new ModelField("SaleReceiptNumber", ModelFieldType.String),
+                            new ModelField("CustomerFullName", ModelFieldType.String),
+                            new ModelField("SaleDate", ModelFieldType.Date),
+                            new ModelField("SaleTotalPrice", ModelFieldType.Float),
+                            new ModelField("Advanced", ModelFieldType.Float),
+                            new ModelField("Remainder", ModelFieldType.Float)
+                        )
+                )
+                .DataSource(Model)
+                .ServerProxy(
+                    X.AjaxProxy()
+                    .Url(Url.Action("PendingCustomerSale", "Deposit"))
+                    .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                    .Reader(X.JsonReader().RootProperty("data"))
+                )
+
+                .Parameters(ps =>
+                    {
+                        ps.Add(new StoreParameter("BranchID", "App.BranchID.getValue()", ParameterMode.Raw));
+                        ps.Add(new StoreParameter("SoldDate", "App.SoldDate.getValue()", ParameterMode.Raw));
+                        ps.Add(new StoreParameter("SearchOption", "App.SearchOption.getValue()", ParameterMode.Raw));
+                        ps.Add(new StoreParameter("SearchValue", "App.SearchValue.getValue()", ParameterMode.Raw));
+                    }
+
+                )
+
+            )
+            .ColumnModel(
+                X.RowNumbererColumn()
+                ,
+                X.Column()
+                    .Text(Resources.SaleRef)
+                    .DataIndex("SaleReceiptNumber")
+                    .Flex(1)
+                    ,
+                X.Column()
+                    .Text(Resources.Customer)
+                    .DataIndex("CustomerFullName")
+                    .Flex(1)
+                    ,
+                    X.DateColumn()
+                    .Text(Resources.UIDateOperation)
+                    .DataIndex("SaleDate")
+                    .Flex(1),
+                X.Column()
+                    .Text(Resources.SaleAmount)
+                    .DataIndex("SaleTotalPrice")
+                    .Flex(1),
+                X.Column()
+                    .Text(Resources.Advanced)
+                    .DataIndex("Advanced")
+                    .Flex(1)
+                    ,
+                X.Column()
+                    .Text(Resources.Remainder)
+                    .DataIndex("Remainder")
+                    .Flex(1)
+                    ,
+                 Html.X().ImageCommandColumn()
+                                .Width(30)
+                                .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.DELETE, profile, CodeValue.CashRegister.SUBMENU_DEPOT_ASSURE,db))
+                                .Commands(
+                                    Html.X().ImageCommand()
+                                        .CommandName("Delete")
+                                        .IconCls("icon-delete")
+                                        .ToolTip(tt =>
+                                            {
+                                                tt.Text = "Voulez-vous supprimer ?";
+                                                tt.Title = "Supression";
+                                            }
+                                         )
+                                )
+                                .DirectEvents(de =>
+                                {
+                                    de.Command.Action = "Delete";
+                                    de.Command.Method = HttpMethod.POST;
+                                    de.Command.Confirmation.ConfirmRequest = true;
+                                    de.Command.Confirmation.Message = Resources.ConfirmDeleteMessage;
+                                    de.Command.Confirmation.Title = Resources.ConfirmDeleteTitle;
+                                    de.Command.ExtraParams.Add(new Parameter("SaleID", "record.data.SaleID", ParameterMode.Raw));
+                                    de.Command.EventMask.ShowMask = true;
+                                    de.Command.EventMask.Msg = Resources.EventMaskMsg;
+                                }),
+                        X.ImageCommandColumn()
+                    .Width(30)
+                    .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, profile, CodeValue.CashRegister.SUBMENU_DEPOT_ASSURE, db))
+                    .Commands(
+                    X.ImageCommand()
+                            .CommandName("Edit")
+                            .IconCls("icon-edit")
+                    )
+                    .DirectEvents(de =>
+                    {
+                        de.Command.Action = "InitializeFields";
+                        //de.Command.Method = HttpMethod.POST;
+                        de.Command.ExtraParams.Add(new Parameter("SaleID", "record.data.SaleID", ParameterMode.Raw));
+                        de.Command.EventMask.ShowMask = true;
+                        de.Command.EventMask.Msg = Resources.EventMaskUpdate;
+                    })
+
+                )
+                        .Plugins(
+                            X.FilterHeader()
+                        )
+                        .BottomBar(
+                                X.PagingToolbar()
+                        )                    
+     )
+)
+    @(
+ X.FormPanel()
+        //.Width(1000)
+       // .Height(350)
+        .ID("DepositForm")
+        .Layout(LayoutType.Column)
+        .MarginSpec("5 10 10 10")
+            .Title(Resources.InfoDeposit)
+            .Buttons(
+                        X.Button()
+                            .ID("btnSave")
+                            .Text(Resources.Deposit)
+                            .OnClientClick("App.Pdf.setHidden(true)")
+                            .Disabled(true)
+                            .Icon(Icon.Disk)
+                            .DirectEvents(de =>
+                            {
+                                de.Click.Url = Url.Action("DoDeposit");
+                                de.Click.EventMask.ShowMask = true;
+                                de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                            })
+                                ,
+                X.Button()
+                    .ID("btnPrint")
+                    .Text(Resources.PrintReceipt)
+                    .Icon(Icon.Printer)
+                    .Disabled(true)
+                    .OnClientClick("App.Pdf.setHidden(false)")
+                    .DirectEvents(de =>
+                    {
+                        de.Click.Url = Url.Action("PrintDepositReceipt", "Deposit");
+                        de.Click.EventMask.ShowMask = true;
+                        de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                        de.Click.ExtraParams.Add(new Parameter("detail", "non", ParameterMode.Value));
+                    }),
+                    X.Button()
+                    .ID("btnDeliveryOrder")
+                    .Text(Resources.PrintDatailReceipt)
+                    .Icon(Icon.Printer)
+                    .OnClientClick("App.Pdf.setHidden(false);")
+                    .DirectEvents(de =>
+                    {
+                        de.Click.Url = Url.Action("PrintDepositReceipt", "Deposit");
+                        de.Click.EventMask.ShowMask = true;
+                        de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                        de.Click.ExtraParams.Add(new Parameter("detail", "oui", ParameterMode.Value));
+                    }),
+                        X.Button()
+                            .ID("Cancel1")
+                            .Text(Resources.Cancel)
+                            .MarginSpec("0 20 10 10")
+                            .OnClientClick("App.Pdf.setHidden(true)")
+                            .DirectEvents(de =>
+                            {
+                                de.Click.Url = Url.Action("Reset");
+                                de.Click.Complete = "";
+                                de.Click.EventMask.ShowMask = true;
+                                de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                            })
+                    )
+        .Listeners(ls =>
+        {
+            ls.FieldChange.Handler = activateValidatePurchase;
+        })
+        .Items(
+            X.TextField().Name("PurchaseID").ID("PurchaseID").Hidden(true),
+             X.Container()
+                .Layout(LayoutType.VBox)
+                .MarginSpec("10 10 0 10")
+                .Items(//General Container 1
+            X.TextField().Name("StatutSale").ID("StatutSale").Hidden(true).Value(SalePurchaseStatut.Advanced),
+                    X.ComboBox()
+                    .ID("BranchID")
+                    .Name("BranchID")
+                    .FieldLabel(Resources.Branches)
+                    .Value(DefaultBranchID)
+                    .AllowBlank(false)
+                    .BlankText(Resources.Branches + " " + Resources.RequiredField)
+                    .LabelSeparator(labelSeparator)
+                    .EmptyText(Resources.Select)
+                    .Items(LoadComponent.GetOpenedBranches)
+                    .ForceSelection(true)
+                    //.DisplayField("BranchName")
+                    //.ValueField("BranchID")
+                    .DirectEvents(de =>
+                    {
+                        de.Change.Url = Url.Action("ChangeBusDay");
+                        de.Change.ExtraParams.Add(new Parameter("BranchID", "this.getValue()", ParameterMode.Raw));
+                        de.Change.EventMask.ShowMask = true;
+                        de.Change.EventMask.Msg = Resources.EventMaskMsg;
+                    })
+                    
+                    ,
+
+                        X.DateField().FieldLabel(Resources.DepositDate)
+                        .AllowBlank(false)
+                        .Name("DepositDate")
+                        .ID("DepositDate")
+                        .InputType(Ext.Net.InputType.DateTime)
+                        .Value(ViewBag.BusnessDayDate)
+                        .ReadOnly(true),
+                    X.TextField()
+                        .Name("Representant")
+                        .FieldLabel(Resources.Customer)
+                        .AllowBlank(false)
+                        .MarginSpec("2 0 10 0")
+                        .ReadOnly(true)
+                        .ID("CustomerName")
+                        .LabelSeparator(labelSeparator)
+                        .EmptyText(Resources.Select)
+                        .Width(310)
+                ),
+                X.Container()
+                .ID("SalePaiementContainer")
+                .Layout(LayoutType.VBox)
+                .MarginSpec("10 0 0 20")
+                .Items(//Sale Paiement Container
+
+                    X.NumberField()
+                        .FieldLabel(Resources.Debt)
+                        .ID("Debt")
+                        .Name("Debt")
+                        .MarginSpec("0 0 5 0")
+                        .AllowBlank(false)
+                        .EnforceMaxLength(true)
+                        .ReadOnly(true)
+                            .Listeners(ls =>
+                            {
+                                ls.Change.Handler = "App.RemainderDept.setValue(App.Debt.getValue())";
+                            }),
+
+                        X.TextField().FieldLabel(Resources.Reference)
+                        .Name("DepositReference")
+                        .MsgTarget(MessageTarget.Side)
+                        .ID("DepositReference")
+                        .AllowBlank(false).MinLength(4).EnforceMaxLength(true)
+                        .MarginSpec("30 0 0 0")
+                        .ReadOnly(true)
+                           ,
+                   X.TextField()
+                        .Name("SaleID")
+                        .Hidden(true)
+                        .FieldLabel(Resources.SAL)
+                        .AllowBlank(true)
+                        .MarginSpec("5 0 10 0")
+                        .BlankText(Resources.Customer + " " + Resources.RequiredField)
+                        .ID("SaleID")
+                ),
+
+                X.Container()
+                .Layout(LayoutType.VBox)
+                .MarginSpec("10 0 0 20")
+                .Items(//General Container 2
+                    X.ComboBox()
+                        .ID("PaymentMethod")
+                        .Name("PaymentMethod")
+                        .FieldLabel(Resources.PaymentMethod)
+                        //.Items(LoadComponent.PaymentMethods)
+                        .AllowBlank(false)
+                        .BlankText(Resources.PurchaseMode + " " + Resources.RequiredField)
+                        .LabelSeparator(labelSeparator)
+                        .EmptyText(Resources.Select)
+                        .Value(CodeValue.Accounting.DefaultCodeAccountingSection.CODECAIS)
+                        .DisplayField("Label")
+                        .ValueField("Code")
+                        .Items(LoadComponent.SalePaymentMethods)
+                        .ForceSelection(true)
+                        .Listeners(ls =>
+                            {
+                                ls.Enable.Handler = "if(this.getValue() == '" + CodeValue.Accounting.DefaultCodeAccountingSection.CODEBANK + "' ){App.PaymentMethodID.setDisabled(false);App.PaymentMethodID.allowBlank = false;}else{App.PaymentMethodID.setDisabled(true);App.PaymentMethodID.allowBlank = true;}";
+                                ls.Change.Handler = "if(this.getValue() == '" + CodeValue.Accounting.DefaultCodeAccountingSection.CODEBANK + "' ){App.PaymentMethodID.setDisabled(false);App.PaymentMethodID.allowBlank = false; App.PaymentMethodID.getStore().load();}else{App.PaymentMethodID.setDisabled(true);App.PaymentMethodID.allowBlank = true;}";
+                                ls.Disable.Handler = "App.PaymentMethodID.allowBlank = true; App.PaymentMethodID.setDisabled(true);App.PaymentMethodID.clearValue();";
+                                ls.Select.Handler = "if(this.getValue() == '" + CodeValue.Accounting.DefaultCodeAccountingSection.CODEBANK + "' ){App.PaymentMethodID.clearValue(); App.PaymentMethodID.getStore().load();}";
+                            }
+                        ),
+
+                    X.ComboBox()
+                        .Name("PaymentMethodID")
+                        .ID("PaymentMethodID")
+                        .FieldLabel(Resources.ChoixBank)
+                        .EmptyText(Resources.Select)
+                        .AutoSelect(false)
+                        .LabelSeparator(labelSeparator)
+                        .MarginSpec("0 0 10 0")
+                        .AllowBlank(true)
+                        .Disabled(true)
+                        .BlankText(Resources.RequiredField)
+                        .DisplayField("Name")
+                        .ValueField("ID")
+                        .Store(
+                                X.Store()
+                                .AutoLoad(false)
+                                .Model(
+                                    X.Model()
+                                    .IDProperty("ID")
+                                        .Fields(
+                                            new ModelField("ID", ModelFieldType.String) { Mapping = "ID" },
+                                            new ModelField("Name", ModelFieldType.String) { Mapping = "Name" }
+                                        )
+                                )
+                                .Proxy(
+                                    X.AjaxProxy()
+                                        .Url(Url.Action("PaymentMethods"))
+                                        .Reader(X.JsonReader().RootProperty("data"))
+                                )
+                                .Parameters(ps =>
+                                    ps.Add(new StoreParameter("PaymentMethod", "App.PaymentMethod.getValue()", ParameterMode.Raw))
+                                )
+                            ),
+
+                        X.ComboBox()
+                            .ID("DeviseID")
+                            .Name("DeviseID")
+                            .FieldLabel(Resources.UIDevise)
+                            .AllowBlank(false)
+                            .BlankText(Resources.UIDevise + " " + Resources.RequiredField)
+                            .LabelSeparator(labelSeparator)
+                            .EmptyText(Resources.Select)
+                            .Items(LoadComponent.GetDevise)
+                            .Value(1),
+                        X.NumberField()
+                        .FieldLabel(Resources.UIAmount)
+                        .ID("Amount")
+                        .Name("Amount")
+                        .MarginSpec("0 0 5 0")
+                        .AllowBlank(false)
+                        .EnforceMaxLength(true)
+                        .MinValue(0)
+                        .Listeners(ls =>
+                        {
+                            ls.Change.Handler = "App.RemainderDept.setValue(App.Debt.getValue() - this.getValue());";
+                        }),
+
+                        X.NumberField()
+                        .FieldLabel("Remaining Debt")
+                        .ID("RemainderDept")
+                        .Name("RemainderDept")
+                        .MarginSpec("0 0 5 0")
+                        .AllowBlank(true)
+                        .EnforceMaxLength(true)
+                        .ReadOnly(true)
+                        .Hidden(false)
+                        //.MinValue(0)
+                    )
+    )//fin du formulaire
+    
+    )@*fin de l'élément razor*@
+
+
+    @(
+ X.Container()
+        //Panel for print
+            .Items(X.Panel()
+                                .ID("Pdf")
+                                .Title(Resources.panelprintvalreceip)
+                                .Hidden(true)
+                                .Layout(LayoutType.HBox)
+                                .Flex(1)
+                                .Collapsible(true)
+                                .Padding(1)
+                                .AutoScroll(false)
+                                .Hidden(true)
+                                .MinHeight(500)
+                                .MinWidth(500)
+                                .Loader(
+                                   X.ComponentLoader()
+                                    .AutoLoad(false)
+                                    .Mode(LoadMode.Frame)
+                                    .LoadMask(lm =>
+                                        {
+                                            lm.ShowMask = true;
+                                            lm.Msg = Resources.MsgGenerateState;
+                                            lm.UseMsg = true;
+
+                                        })
+                                    )
+        )
+                           
+                                )
+    }

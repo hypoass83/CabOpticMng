@@ -1,0 +1,177 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.Ressources;
+@model System.Collections.IEnumerable
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    string labelSeparator = "  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :";
+}
+@section content
+{
+@(
+    X.FormPanel()
+        .ID("Unknow")
+        .Items(
+             X.PanelTitle()
+              .ID("PanelTitl555e")
+              .Border(true)
+              .Padding(0)
+              .Content(
+            @<header>
+                <h4>@Resources.printcustbill</h4>
+                <h6><code>@Resources.ChooseCustbill</code>.</h6>
+            </header>
+            )
+        )
+        .Frame(true)
+        .MarginSpec("-40 0 0 0")
+        //.BodyPadding(10)        
+)
+@(
+    X.Container()
+     .Layout(LayoutType.HBox)
+     .MarginSpec("-2 0 0 0")
+     .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.StretchMax})
+     .Items(
+       X.FormPanel()
+        .ID("ChoosePeriodForm")
+        .Width(300)
+        .MaxHeight(200)
+        .Title(Resources.Periodeparam)
+        .Listeners(ls => ls.FieldChange.Handler = "if(App.ChoosePeriodForm.isValid() && App.CustomerID.getValue()>0){App.btnPrint.setDisabled(false);}else{App.btnPrint.setDisabled(true);}")
+        .FieldDefaults(fd => { fd.LabelWidth = 120; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+        .Items(
+            X.ComboBox()
+                .ID("BranchID")
+                .Name("BranchID")
+                .FieldLabel(Resources.Branches)
+                .AllowBlank(false)
+                .BlankText(Resources.Branches + " " + Resources.RequiredField)
+                .LabelSeparator(labelSeparator)
+                .EmptyText(Resources.Select)
+                .DisplayField("BranchName")
+                .Listeners(ls => ls.Select.Handler = "App.CustomerID.setDisabled(false);App.CustomerStoreID.load();")
+                .ValueField("BranchID")
+                .Store(
+                    X.Store()
+                    .AutoLoad(true)
+                    .Model(
+                        X.Model()
+                            .IDProperty("BranchIDtore")
+                            .Fields(
+                                new ModelField("BranchID", ModelFieldType.Int) { Mapping = "BranchID" },
+                                new ModelField("BranchName", ModelFieldType.String) { Mapping = "BranchName" }
+                            )
+                    )
+                    .Proxy(
+                        X.AjaxProxy()
+                            .Url(Url.Action("OpenedBusday"))
+                            .Reader(X.JsonReader().RootProperty("data"))
+                    )
+                )
+            ,
+           X.ComboBox().Name("CustomerID").FieldLabel(Resources.Customer)
+            .QueryMode(DataLoadMode.Local)
+            .AllowBlank(false)
+            .ForceSelection(true)
+            .Disabled(true)
+            //.MarginSpec("5 0 10 0")
+            .BlankText(Resources.Customer + " " + Resources.RequiredField)
+            .ID("CustomerID")
+            .LabelSeparator(labelSeparator)
+            .EmptyText(Resources.Select)
+            .DisplayField("CustomerFullName")
+            .ValueField("PersonID")
+            .Store(
+                X.Store()
+                .AutoLoad(false)
+                .ID("CustomerStoreID")
+                .Model(
+                    X.Model()
+                        .IDProperty("CustomerIDtore")
+                        .Fields(
+                            new ModelField("CustomerFullName", ModelFieldType.String) { Mapping = "CustomerFullName" },
+                            new ModelField("PersonID", ModelFieldType.Int) { Mapping = "PersonID" }
+                        )
+                )
+                .Proxy(
+                    X.AjaxProxy()
+                        .Url(Url.Action("LoadThirdPartyAccounts"))
+                        .Reader(X.JsonReader().RootProperty("data"))
+                )
+                .Parameters(ps =>
+                    {
+                        ps.Add(new StoreParameter("BranchID", "App.BranchID.getValue()", ParameterMode.Raw));
+                    }
+                )
+            )
+            ,
+            //plage de date
+                X.DateField().FieldLabel(Resources.UIBeginDate)//.MarginSpec("0 0 5 0")
+                    .AllowBlank(false).Name("BeginDate")
+                    .ID("BeginDate")
+                    //.Value(ViewBag.BusnessDayDate)
+                    //.MarginSpec("5 0 10 0")
+                    .InputType(Ext.Net.InputType.DateTime)
+                ,
+                    X.DateField().FieldLabel(Resources.UIEndDate)
+                    .AllowBlank(false)
+                    .Name("EndDate")
+                    .ID("EndDate")
+                    //.MarginSpec("5 0 10 0")
+                    .InputType(Ext.Net.InputType.DateTime)
+        )
+        .Buttons(
+            X.Button()
+                .ID("btnPrint")
+                .Text(Resources.printbill)
+                .Icon(Icon.Printer)
+                .Disabled(true)
+                //.OnClientClick("App.GridV.setHidden(true);App.Pdf.setHidden(false);")
+                .DirectEvents(de =>
+                {
+                    de.Click.Url = Url.Action("PrintBill", "State");
+                    //de.Click.ExtraParams.Add(new Parameter("Print", "Pdf", ParameterMode.Value));
+                    de.Click.EventMask.ShowMask = true;
+                    de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                }),
+            X.Button()
+                .Text(Resources.ResetButton)
+                .MarginSpec("0 20 10 10")
+                .OnClientClick("this.up('form').reset();App.RptBill.setHidden(true);")
+        )
+    )
+)
+@(
+@****************Bill of customer report conatiner**************************************************@
+         X.Panel()
+            .Layout(LayoutType.HBox)
+            .Flex(1)
+            .MarginSpec("0 0 0 0")
+            .Title(Resources.BillCustRpt)
+            .ID("RptBill")
+            .Collapsible(true)
+            .Padding(20)
+            .AutoScroll(false)
+            .Hidden(true)
+            .MinHeight(500)
+            .Loader(
+                X.ComponentLoader()
+                .AutoLoad(false)
+                .Mode(LoadMode.Frame)
+                .LoadMask(lm =>
+                    {
+                        lm.ShowMask = true;
+                        lm.Msg = Resources.MsgGenerateState;
+                        lm.UseMsg = true;
+
+                    })
+            )
+       )
+
+}

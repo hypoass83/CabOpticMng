@@ -1,0 +1,91 @@
+﻿@using FatSod.Ressources;
+@{
+    var X = Html.X();
+}
+
+@* Fenêtre de connexion *@
+@(
+    X.Window()
+        .ID("WindowLogin")
+        .Closable(false)
+        .DefaultButton("Bt_Login")
+        .Resizable(false)
+        .Height(200)
+        .TitleAlign(TitleAlign.Left)
+        .Icon(Icon.Lock)
+        .Title(Resources.LoginForm)
+        .Draggable(true)
+        .Width(300)
+        .Modal(true)
+        .BodyPadding(5)
+        .Layout(LayoutType.Fit)
+        //.Hidden(!con.Verrouiller)
+        .Items(
+            X.Panel()
+                .Border(false)
+                .Layout(LayoutType.Table)
+                .LayoutConfig(new TableLayoutConfig() { Columns = 2 })
+                .BodyStyle("background-color:transparent;")
+                .Items(
+                    X.Panel()
+                        .Layout(LayoutType.VBox)
+                        .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center, Pack = BoxPack.Center })
+                        .Height(130)
+                        .Width(130)
+                        .BodyStyle("background-color:transparent;")
+                        .Border(false)
+                        .Html(@<img src="../../Resources/Images/png/Mr_Suit_Lock.png" height="120" width="120"/>)
+                )
+                .Items(
+                    X.FormPanel().ID("Form")
+                        .Border(false)
+                        .Width(140)
+                        .BodyStyle("background-color:transparent;")
+                        .Layout(LayoutType.VBox)
+                        .Defaults(X.Parameter().Name("margins").Value("0 5 0 0").Mode(ParameterMode.Value))
+                        .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center, Pack = BoxPack.Center })
+                        .Defaults(d => {
+                            d.Add(new Parameter("anchor", "95%", ParameterMode.Value));
+                            d.Add(new Parameter("blankText", Mvc_Ext_.App_Language.Resource.Blank_Text, ParameterMode.Value));
+                            d.Add(new Parameter("allowBlank", "false", ParameterMode.Raw));
+                            d.Add(new Parameter("msgTarget", "side", ParameterMode.Value));
+                        })
+                        .Items(
+                            X.TextField().ID("compte")
+                                .Name("compte")
+                                .Width(130)
+                                .LabelAlign(LabelAlign.Top)
+                                .StandardVtype(ValidationType.AlphaNum)
+                                .FieldLabel(Mvc_Ext_.App_Language.Resource.Login),
+                            X.TextField().ID("motdedasse")
+                                .Name("motdedasse")
+                                .Width(130)
+                                .LabelAlign(LabelAlign.Top)
+                                .StandardVtype(ValidationType.AlphaNum)
+                                .FieldLabel(Mvc_Ext_.App_Language.Resource.Password)
+                                .InputType(Ext.Net.InputType.Password)
+                        )
+                )
+        )
+        .Buttons(
+            X.Button()
+                .Text(Mvc_Ext_.App_Language.Resource.Cancel)
+                .Icon(Icon.Cancel)
+                .Flat(true)
+                .Handler("#{Form}.getForm().reset()"),
+            X.Button()
+                .Text(Mvc_Ext_.App_Language.Resource.To_Connect)
+                .Icon(Icon.Accept)
+                .ID("Bt_Login")
+                .Flat(true)
+                .DirectEvents(de =>
+                {
+                    de.Click.FormID = "Form";
+                    de.Click.Url = Url.Action("Deverrouiller_session", "Session");
+                    de.Click.Before = @"if (!#{Form}.getForm().isValid()) { return false; }";
+                    de.Click.EventMask.ShowMask = true;
+                    de.Click.EventMask.Msg = Mvc_Ext_.App_Language.Resource.Loading + "...";
+                })
+        )
+)
+@* -----------------------------------------------------------*@

@@ -1,0 +1,264 @@
+﻿@using FatSod.Ressources;
+@using CABOPMANAGEMENT.Tools;
+@using FatSod.DataContext.Initializer;
+
+@{
+    ViewBag.Title = @Resources.NoPurchaseReport;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+
+}
+
+<div class="box box-primary box-body">
+    <div class="row">
+        <div class="col-md-12">
+            <fieldset>
+                <div class="panel panel-default">
+                    <div class="panel-body2">
+                        <div id="searchForm" class="row ipt">
+                            <div class="col-sm-2">@Resources.UIBeginDate</div>
+                            <div class="col-sm-3">
+                                <input class="form-control datepicker checkDateNoGraterThanToday" id="startDate" type="text" placeholder="choose sale date" value="@ViewBag.OperationDate">
+                            </div>
+
+                            <div class="col-sm-2">@Resources.UIEndDate</div>
+                            <div class="col-sm-3">
+                                <input class="form-control datepicker checkDateNoGraterThanToday" id="endDate" type="text" placeholder="choose sale date" value="@ViewBag.OperationDate">
+                            </div>
+
+                            <div class="col-sm-2" >
+                                <button id="btnSearch" class="btn btn-primary btn-success">@Resources.Search</button>
+                            </div>
+
+                        </div>
+                        <table class="table" id="mainTable">
+                            <thead>
+                                <tr class="dataTableHead">
+                                    <th>ID</th>
+                                    <th>@Resources.UIDateOperation</th>
+                                    <th>@Resources.ConsultationDate</th>
+                                    <th>@Resources.Customer</th>
+                                    <th>@Resources.PhoneNumber</th>
+                                    <th>@Resources.Consultant</th>
+                                    <th>@Resources.Value</th>
+                                    <th>Dilatation | Prescription</th>
+                                    <th>DD @Resources.Reason</th>
+                                    <th>CS @Resources.Reason</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+    
+    <div class="row">
+    </div>
+    <div id="JustificationForm" hidden>
+        <div class="row">
+            <div class="col-md-12">
+                <fieldset>
+                    <legend>@Resources.Justification</legend>
+                    <div class="panel">
+                        <div class="panel-body" style="background-color: #99bce8;">
+                            <input type="hidden" id="NoPurchaseId" />
+                            <div class="row">
+                                <div class="col-sm-1">@Resources.Reason</div>
+                                <div class="col-sm-3">
+                                    <textarea class="form-control" id="CustomerServiceReason"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-2" style="margin-left:10%;margin-top:10px;">
+                <button id="btnCancel" class="btn btn-primary btn-danger">@Resources.ResetButton</button>
+            </div>
+            <div class="col-sm-2" style="margin-top:10px;">
+                <button id="btnSubmit" class="btn btn-primary btn-success">@Resources.ValidateButton</button>
+            </div>
+
+        </div>
+    </div>  
+
+</div>
+
+<style>
+    .ipt {
+        margin-bottom: 6px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin-left: 10px;
+        min-width: 0;
+        padding: 0px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body2 {
+        height: 225px;
+        /*margin-top: 10px;*/
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+
+    #searchForm {
+        padding-bottom: 30px;
+        background-color: #99bce8;
+        padding-top: 20px;
+    }
+</style>
+
+<script>
+
+    function loadNoPurchases(test) {
+        var startDate = $("#startDate").val();
+        var endDate = $("#endDate").val();
+        $('#JustificationForm').hide();
+
+        if (test) {
+            $('#mainTable').dataTable().fnDestroy();
+        }
+        var oTable = $('#mainTable');
+        oTable = $('#mainTable').dataTable({
+            fixedColumns: true,
+            "paging": true,
+            "pageLength": 10,
+            "lengthMenu": [[5, 10, 15, -1], [5, 10, 15, "All"]],
+            "searching": true,
+            "ordering": true,
+            "pagingType": "full_numbers",
+            // Ajax call
+            "ajax": {
+                "url": "@Url.Action("getNoPurchases", "NoPurchaseReport")",
+                //"type": "GET",
+                "datatype": "json",
+                "data": { startDate: startDate, endDate: endDate}
+            },
+
+            "columns": [
+                { "data": "NoPurchaseId", "width": "5%" },
+                { "data": "DisplayDate", "width": "5%" },
+                { "data": "DisplayConsultationDate", "width": "5%" },
+                { "data": "Customer", "width": "14%" },
+                { "data": "PrescriptionSummary", "width": "6%" },
+                { "data": "Consultant", "width": "13%" },
+                { "data": "CustomerValue", "width": "6%" },
+                { "data": "OperationType", "width": "5%" },
+                { "data": "DeliveryDeskReason", "width": "30%" },
+                { "data": "CustomerServiceReason", "width": "30%" },
+                {// this is Actions Column
+                    mRender: function (data, type, row) {
+                        var addOption = '@LoadAction.IsMenuActionAble(MenuAction.ADD, @profile, CodeValue.CRM.CustomerSatisfaction, db)';
+                        var T_addOption = (addOption == 'False') ? '<a href="#" class="editor_remove" onclick="GetDetails(' + row.NoPurchaseId + ')"><span class="glyphicon glyphicon-edit"></a>' : '';
+                        return T_addOption;
+                    }
+                }
+
+
+            ],
+            dom: 'Bfrtip',
+            buttons: [
+                'copy', 'csv', 'excel'
+            ],
+            "fnRowCallback": function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                if (aData.HasBeenPurchased) {
+                    $(nRow).addClass('has-been-purchased');
+                }
+            }
+        });
+
+    }
+
+    function GetDetails(id) {
+        $('#JustificationForm').show();
+        $('#NoPurchaseId').val(id);
+        $('#CustomerServiceReason').val("");
+    }
+
+    function UpdateNoPurchase(id) {
+        var isAllValid = true;
+
+        if ($('#NoPurchaseId').val().trim() == '') {
+            isAllValid = false;
+        }
+
+        if ($('#CustomerServiceReason').val().trim() == '') {
+            isAllValid = false;
+            $("#CustomerServiceReason").addClass("invalid-data");
+        }
+        else {
+            $("#CustomerServiceReason").addClass("valid-data");
+        }
+
+        if (isAllValid) {
+            var data = {
+                NoPurchaseId: parseInt(id),
+                CustomerServiceReason: $('#CustomerServiceReason').val().trim()
+            }
+            $(this).val('Please wait...');
+
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("UpdateNoPurchase", "NoPurchaseReport")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        //reinitialisation des champs
+                        loadNoPurchases(true);
+                        // location.reload(true);
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                },
+                error: function (response) {
+                    console.log(response);
+                    alert('Error. Please try again.', response);
+                }
+            });
+        }
+    }
+
+    $(document).on('ready', function () {
+        $('#JustificationForm').hide();
+        $(function () {
+            $(".datepicker").datepicker({
+                format: 'yyyy-mm-dd'
+            });
+        });
+        
+        $('#btnSearch').on('click', function () {
+            loadNoPurchases(true);
+        });
+        loadNoPurchases(false);
+
+        $('#btnSubmit').on('click', function () {
+            var id = $('#NoPurchaseId').val();
+            UpdateNoPurchase(id);
+        });
+
+        $('#btnCancel').on('click', function () {
+            // location.reload(true);
+            $('#CustomerServiceReason').val("");
+        });
+
+    });
+</script>

@@ -1,0 +1,597 @@
+﻿@using FatSod.Ressources;
+@using CABOPMANAGEMENT.Tools;
+@using FatSod.DataContext.Initializer;
+
+@{
+    ViewBag.Title = @Resources.RappelGeneralSMS;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+
+}
+<div class="box box-primary box-body">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <fieldset>
+                        <legend>@Resources.SearchCriteria</legend>
+
+                        <div class="row ipt" >
+                            <div class="col-sm-4" style="margin-top:5px;font-size:1.05em;">@Resources.CritereSearchRGSMS</div>
+                            <div class="col-sm-1" style="margin-left:-15px;width:10%;">
+                                <input class="form-control" id="NbreMois" type="number" value="6">
+                                <input class="form-control" id="DateEnvoi" type="hidden" value="@ViewBag.BusnessDayDate">
+                            </div>
+                            <div class="col-sm-2" style="margin-left:-25px;margin-top:5px;">
+                                @Resources.Month
+                            </div>
+                            <div class="col-sm-2">
+                                <button type="button" class="btn btn-primary" id="btnSearch">@Resources.Search</button>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <div class="panel panel-default">
+                <div class="panel-body1">
+                    <fieldset>
+                        <legend>@Resources.DescriptifInfo</legend>
+                        <input type="hidden" id="HistoSMSID" />
+                        <input type="hidden" id="NbreSMS" />
+                        <input type="hidden" id="TypeSms" />
+                       
+                        <div class="row ipt" style="word-spacing:10px;font-size:1.8em;margin:25px;">
+                            @Resources.MessagebeforesendSms
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+        </div>
+        <!-- Right Side Begins Here -->
+        <div class="col-sm-6">
+            <div class="panel panel-default">
+                <div class="panel-body1">
+                    <fieldset style="border-left: 2px solid black">
+                        <legend>@Resources.InfoSMS</legend>
+                        <div class="row ipt">
+                            <!-- RaisonRdv -->
+                            <div class="col-sm-1">@Resources.SMS</div>
+                            <div class="col-sm-8">
+                                <textarea style="height:100px;width:800px;" type="text" id="SmsEnvoye" @*placeholder="@Resources.typesmshere"*@ class="input-sm form-control" maxlength="160">
+Cher(e) Client(e), VALDOZOPTIC vous informe que votre prochain rendez-vous est prévu le {}.Nous vous remercions pour votre fidélité.Chez Valdoz ça dose!
+                                </textarea>
+                            </div>
+                        </div>
+
+
+                    </fieldset>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-12">
+            <div class="row" style="margin-left:10%;margin-top:-10px;">
+                <div class="col-sm-2">
+                    <button id="btnCancel" class="btn btn-primary btn-danger">@Resources.ResetButton</button>
+                </div>
+                <div class="col-sm-2">
+                    <button id="btnUpdatePhoneNumber" class="btn btn-primary btn-success">@Resources.UpdatePhoneNumber</button>
+                </div>
+                <div class="col-sm-2">
+                    <button id="btnSubmit" class="btn btn-primary btn-success">@Resources.Send</button>
+                </div>
+            </div>
+        </div>
+            <div class="col-md-12">
+                <fieldset>
+                    <div class="panel panel-default">
+                        <div class="panel-body2">
+                            <table class="table" id="mainTable">
+                                <thead>
+                                    <tr class="dataTableHead">
+                                        <th>ID</th>
+                                        <th>@Resources.CustomerID</th>
+                                        <th>@Resources.Customer</th>
+                                        <th>@Resources.PhoneNumber</th>
+                                        <th>@Resources.Quater</th>
+                                        <th>@Resources.SellingDate</th>
+                                        <th><input type="checkbox" id="selectall" /></th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+
+</div>
+
+<!-- Css Begins Here -->
+
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 6px;
+    }
+
+    #img-upload {
+        width: 100%;
+    }
+
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin-left: 10px;
+        min-width: 0;
+        padding: 0px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 100px;
+        margin-top: -5px;
+    }
+
+    .panel-body1 {
+        height: 120px;
+        margin-top: -15px;
+        margin-bottom: 3%;
+    }
+
+    .panel-body2 {
+        height: 225px;
+        margin-top: 10px;
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+
+    .panel-body3 {
+        height: 75px;
+        margin-top: 5px;
+        /*margin-left: 15%;*/
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+</style>
+
+<script>
+    $(document).on('ready', function () {
+
+        var todaysDate = $('#DateEnvoi').val();
+        $(function () {
+            $(".datepicker").datepicker({
+                format: 'yyyy-mm-dd',
+                showButtonPanel: true,
+                minDate: todaysDate
+            });
+        });
+
+        var NbreMois = 0;
+        var DateEnvoi = $("#DateEnvoi").val();
+        GetAllSelectedSMSCusto(false, NbreMois, DateEnvoi);
+        $('#btnSearch').on('click', function () {
+            NbreMois = $("#NbreMois").val();
+            DateEnvoi = $("#DateEnvoi").val();
+            GetAllSelectedSMSCusto(true, NbreMois, DateEnvoi);
+        });
+
+        $('#btnUpdatePhoneNumber').on('click', function () {
+            getDataTableEltPhone();
+        });
+
+        $('#btnSubmit').on('click', function () {
+            getDataTableElt();
+        });
+
+        //click sur la case a cocher select all a l'entete du tableau
+       
+        //// add multiple select / deselect functionality
+        //$("#selectall").click(function () {
+        //    $('.editor-active').attr('checked', this.checked);
+        //});
+
+        //// if all checkbox are selected, check the selectall checkbox
+        //// and viceversa
+        //$(".editor-active").click(function(){
+
+        //    if($(".editor-active").length == $(".editor-active:checked").length) {
+        //        $("#selectall").attr("checked", "checked");
+        //    } else {
+        //        $("#selectall").removeAttr("checked");
+        //    }
+
+        //});
+       
+        $("#selectall").click(function () {
+            $('#mainTable tbody input[type="checkbox"]').prop('checked', this.checked);
+        });
+
+        $('#btnCancel').on('click', function () {
+            location.reload(true);
+        });
+    });
+
+    function GetAllSelectedSMSCusto(test, NbreMois, ServerDate) {
+        if (test) {
+            $('#mainTable').dataTable().fnDestroy();
+        }
+        var oTable = $('#mainTable');
+        oTable = $('#mainTable').dataTable({
+            fixedColumns: true,
+            "paging": true,
+            "pageLength": 20,
+            "lengthMenu": [[20, 40, 60, -1], [20, 40, 60, "All"]],
+            "searching": true,
+            "ordering": true,
+            "pagingType": "full_numbers",
+            //"columnDefs": [
+            //        { "visible": false, "targets": 1 }
+            //],
+            "order": [[2, 'asc']],
+            // Ajax call
+            "ajax": {
+                "url": "@Url.Action("GetAllSelectedSMSCusto", "RappelGeneralSMS")",
+            "type": "GET",
+            "datatype": "json",
+            "data": { NbreMois: NbreMois, ServerDate: ServerDate }
+        },
+            "columns": [
+                { "data": "ID", "width": "1%" },
+                { "data": "CustomerID", "width": "1%" },
+                { "data": "CustomerName", "width": "40%" },
+                { "data": "CustomerPhone", "width": "20%", "className": "editable" },
+                { "data": "CustomerQuater", "width": "20%" },
+                { "data": "SaleDeliveryDate", "width": "20%" },
+                {
+                    mRender: function (data, type, row) {
+                        //if ( type === 'display' ) {
+                        return '<input type="checkbox" class="editor-active" value=' + row.ID + '>';
+                        //}
+                        //return data;
+                    },
+                    className: "dt-body-center"
+                },
+                {// this is Actions Column
+                    mRender: function (data, type, row) {
+                        var deleteOption = '@LoadAction.IsSubMenuActionAble(MenuAction.DELETE, @profile, CodeValue.CRM.AlertSMS.RappelGeneralSMS, db)';
+                        var T_deleteOption = (deleteOption == 'False') ? '<a href="#" class="editor_remove" onclick="DeleteItem(' + row.ID + ')"><span class="glyphicon glyphicon-remove"></a>' : '';
+
+                        return T_deleteOption;
+                    }
+                }
+            ],
+        dom: 'Bfrtip',
+        buttons: [
+            'copy', 'csv', 'excel'
+        ]
+
+    });
+    $('#mainTable').on('click', 'tbody td.editable', function () {
+        if ($(this).attr("contentEditable") == true) {
+            $(this).attr("contentEditable", "false");
+        } else {
+            $(this).attr("contentEditable", "true");
+        }
+    });
+
+  
+    }
+
+    function DeleteItem(obj) {
+
+        if (confirm("Do you want to Delete this Data ?")) {
+            var globalID = obj;
+            //post to the server
+            $(this).val('Please wait...');
+            var data = {
+                ExtractSMSID: parseInt(globalID)
+            }
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("Delete", "RappelGeneralSMS")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        clearForm();
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                    $('#btnSubmit').val('@Resources.Send');
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').val('@Resources.Send');
+                }
+            });
+        }
+    }
+
+    function getDataTableEltPhone() {
+        var table = document.getElementById('mainTable');
+
+        var rowLength = table.rows.length;
+        var SMSItems = [];
+        for (var i = 1; i < rowLength; i += 1) {
+            var row = table.rows[i];
+            var ID = row.cells[0].innerHTML;
+            var CustomerID = row.cells[1].innerHTML;
+            var CustomerName = row.cells[2].innerHTML;
+            var CustomerPhone = row.cells[3].innerHTML;
+            var CustomerQuater = row.cells[4].innerHTML;
+            var SaleDeliveryDate = row.cells[5].innerHTML;
+            SMSItems.push({
+                ID: ID,
+                CustomerID: CustomerID,
+                CustomerName: CustomerName,
+                CustomerPhone: CustomerPhone,
+                CustomerQuater: CustomerQuater,
+                SaleDeliveryDate: SaleDeliveryDate
+            });
+
+        }
+        if (SMSItems.length > 0) {
+            UpdatePhone(SMSItems);
+        }
+    }
+    function UpdatePhone(input) {
+        var isAllValid = true;
+
+        var formData = new FormData();
+        $.each(input, function (key, input) {
+
+            if (input.CustomerPhone == '') {
+                @*isAllValid = false;
+                alert('@Resources.wrongphonenumber');*@
+                return;
+            }
+
+
+            if (isAllValid) {
+                formData.append("SMSItems[" + key + "].ExtractSMSID", input.ID);
+                formData.append("SMSItems[" + key + "].CustomerID", input.CustomerID);
+                formData.append("SMSItems[" + key + "].CustomerName", input.CustomerName);
+                formData.append("SMSItems[" + key + "].CustomerPhone", input.CustomerPhone);
+                formData.append("SMSItems[" + key + "].CustomerQuater", input.CustomerQuater);
+                formData.append("SMSItems[" + key + "].SaleDeliveryDate", input.SaleDeliveryDate);
+            }
+        });
+
+
+        if (isAllValid) {
+
+            $(this).val('Please wait...');
+
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("UpdatePhone", "RappelGeneralSMS")',
+                type: "POST",
+                data: formData,//JSON.stringify(data),
+                dataType: "JSON",
+                contentType: false,
+                processData: false,
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        //clear form
+                        clearForm();
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                    $('#btnSubmit').val('@Resources.Send');
+                },
+                error: function () {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').val('@Resources.Send');
+                }
+            });
+        }
+    }
+
+    function getDataTableElt() {
+
+        var searchIDs = [];
+
+        $("#mainTable input:checkbox:checked").map(function () {
+            searchIDs.push($(this).val());
+        });
+
+        var rowLength = searchIDs.length;
+
+        //var table = document.getElementById('mainTable').find('input:checkbox:checked');
+
+        //var rowLength = table.rows.length;
+        var SMSItems = [];
+        for (var i = 0; i < rowLength; i += 1) {
+            var ID = searchIDs[i];
+            //var row = table.rows[i];
+            //var ID = row.cells[0].innerHTML;
+            //var CustomerID = row.cells[1].innerHTML;
+            //var CustomerName = row.cells[2].innerHTML;
+            //var CustomerPhone = row.cells[3].innerHTML;
+            //var CustomerQuater = row.cells[4].innerHTML;
+            //var SaleDeliveryDate = row.cells[5].innerHTML;
+            SMSItems.push({
+                ID: ID,
+                //CustomerID: CustomerID,
+                //CustomerName: CustomerName,
+                //CustomerPhone: CustomerPhone,
+                //CustomerQuater: CustomerQuater,
+                //SaleDeliveryDate: SaleDeliveryDate
+            });
+
+        }
+        if (SMSItems.length > 0) {
+            EnvoiSMS(SMSItems);
+        }
+    }
+
+    //function getDataTableElt() {
+    //    var table = document.getElementById('mainTable');
+
+    //    var rowLength = table.rows.length;
+    //    var SMSItems = [];
+    //    for (var i = 1; i < rowLength; i += 1) {
+    //        var row = table.rows[i];
+    //        var ID = row.cells[0].innerHTML;
+    //        var CustomerID = row.cells[1].innerHTML;
+    //        var CustomerName = row.cells[2].innerHTML;
+    //        var CustomerPhone = row.cells[3].innerHTML;
+    //        var CustomerQuater = row.cells[4].innerHTML;
+    //        var SaleDeliveryDate = row.cells[5].innerHTML;
+    //        SMSItems.push({
+    //            ID: ID,
+    //            CustomerID: CustomerID,
+    //            CustomerName: CustomerName,
+    //            CustomerPhone: CustomerPhone,
+    //            CustomerQuater: CustomerQuater,
+    //            SaleDeliveryDate: SaleDeliveryDate
+    //        });
+
+    //    }
+    //    if (SMSItems.length > 0) {
+    //        EnvoiSMS(SMSItems);
+    //    }
+    //}
+    function EnvoiSMS(input) {
+        var isAllValid = true;
+        if ($('#SmsEnvoye').val().trim() == '') {
+            isAllValid = false;
+            $('#SmsEnvoye').addClass("invalid-data");
+        }
+        else {
+            $('#SmsEnvoye').addClass("valid-data");
+        }
+
+        if ($('#DateEnvoi').val().trim() == '') {
+            isAllValid = false;
+            $('#DateEnvoi').addClass("invalid-data");
+        }
+        else {
+            $('#DateEnvoi').addClass("valid-data");
+        }
+
+        if ($('#NbreMois').val().trim() == '') {
+            isAllValid = false;
+            $('#NbreMois').addClass("invalid-data");
+        }
+        else {
+            $('#NbreMois').addClass("valid-data");
+        }
+
+        var formData = new FormData();
+        $.each(input, function (key, input) {
+
+            if (input.CustomerPhone == '') {
+                @*isAllValid = false;
+                alert('@Resources.wrongphonenumber');*@
+                return;
+            }
+
+
+            if (isAllValid) {
+                formData.append("SMSItems[" + key + "].ExtractSMSID", input.ID);
+                //formData.append("SMSItems[" + key + "].CustomerID", input.CustomerID);
+                //formData.append("SMSItems[" + key + "].CustomerName", input.CustomerName);
+                //formData.append("SMSItems[" + key + "].CustomerPhone", input.CustomerPhone);
+                //formData.append("SMSItems[" + key + "].CustomerQuater", input.CustomerQuater);
+                //formData.append("SMSItems[" + key + "].SaleDeliveryDate", input.SaleDeliveryDate);
+
+                formData.append("SMSItems[" + key + "].AlertDescrip", "GENERAL");
+                formData.append("SMSItems[" + key + "].TypeAlert", "GENERAL");
+                formData.append("SMSItems[" + key + "].Condition", $('#NbreMois').val());
+            }
+        });
+
+
+        if (isAllValid) {
+            formData.append("DateEnvoi", $('#DateEnvoi').val().trim());
+            formData.append("SmsEnvoye", $('#SmsEnvoye').val().trim());
+            formData.append("NbreMois", $('#NbreMois').val().trim());
+            
+            $(this).val('Please wait...');
+            $('#btnSubmit').prop('disabled', true);
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("EnvoiSMS", "RappelGeneralSMS")',
+                type: "POST",
+                data: formData,//JSON.stringify(data),
+                dataType: "JSON",
+                contentType: false,
+                processData: false,
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        //clear form
+                        clearForm();
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                    $('#btnSubmit').val('@Resources.Send');
+                    $('#btnSubmit').prop('disabled', false);
+                },
+                error: function () {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').val('@Resources.Send');
+                    $('#btnSubmit').prop('disabled', false);
+                }
+            });
+        }
+    }
+
+    function clearForm() {
+        $('#btnSubmit').prop('disabled', false);
+        $('#HistoSMSID').val('');
+        var NbreMois = $("#NbreMois").val();
+        var DateEnvoi = $("#DateEnvoi").val();
+        GetAllSelectedSMSCusto(true, NbreMois, DateEnvoi);
+
+    }
+</script>

@@ -1,0 +1,51 @@
+﻿@using FatSod.Ressources;
+
+@model IEnumerable<FatSod.Security.Entities.BusinessDay>
+@{
+    ViewBag.Title = "IT Operations";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    //var user = (int)Session["UserID"];
+    //var ServerDate = (DateTime)Session[""];
+}
+
+<div class="row" style="margin-top:5px;margin-left:25px">
+    @if (TempData["Message"] != null)
+    {
+        @Html.Raw(TempData["Message"])
+    }
+</div>
+
+<div class="box box-primary box-body">
+    <div class="row">
+        <div class="col-sm-2">
+            <button id="btnSubmit" class="btn btn-primary">Migrate Customer From Customer Order</button>
+        </div>
+    </div>
+</div>
+
+<!-- Css Begins Here -->
+
+<style>
+    
+</style>
+
+<!--********** JavaScripts **********-->
+<script>
+
+    $(document).on('ready', function () {
+        $('#btnSubmit').on('click', function () {
+            $.get('@Url.Action("MigrateCustomerFromCustomerOrder", "IT")', {}, function (data) {
+                console.log('Call data ', data);
+                alert(data.Message);
+            }).fail(function (jqXHR, textStatus) {
+                console.error('Call error ', jqXHR, textStatus);
+
+            }).always(function () {
+            });
+        });
+    });
+
+  
+
+</script>
+

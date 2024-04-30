@@ -1,0 +1,10 @@
+Faire en sorte quen cas de return, la reduction d argent soit faite en fonction du mode de paiement utilisee lors de la vente.
+En probleme est apparau; scenario
+1- Vente de 100 000(Mode de Paiement Banque(Cheque))
+2- Return de la vente(100 000)
+	Le mode de paiement du retour a ete la caisse au lieu d etre la banque
+3- La banque n a pas ete reduite de 100 000 malgre le retour
+4- Le retour a affecter la banque de 100 000
+5- No Purchase Report => Retirer les clients qui ont deja fait l achat apres la creation du No Purchase
+6- Sauvegarder en base de donnees les informations sur l operateur qui percoit l argent lors d une vente ou d un depot ainsi que les informations sur le bon dans le cas des assures
+7- Faire en sorte de mettre en code barre ou un code qr sur une carte qu on remettra aux clients de valdoz apres consultation; ceci permettra de recuperer les informations sur le client lors de sa prochaine consultation

@@ -1,0 +1,411 @@
+﻿@using FatSod.Ressources;
+
+@model IEnumerable<FatSod.Budget.Entities.BudgetAllocated>
+@{
+    ViewBag.Title = "Budget Allocated";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="box box-primary box-body">
+    <div class="row">
+        <fieldset class="col-md-11">
+            <legend>Generals Informations</legend>
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <div class="row ipt">
+                        <input class="form-control input-sm" id="BudgetAllocatedID" name="BudgetAllocatedID" type="hidden">
+                        <div class="col-sm-2">@Resources.Branches</div>
+                        <div class="col-sm-4">
+                            <select class="form-control" id="BranchID" name="BranchID"></select>
+                        </div>
+                        <div class="col-sm-2">Fiscal Year</div>
+                        <div class="col-sm-4">
+                            <select class="form-control" id="FiscalYearID" name="FiscalYearID"></select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+    </div>
+    <div class="row">
+        <fieldset class="col-md-5">
+            <legend>@Resources.addCmdLine</legend>
+            <div class="panel panel-default">
+                <div class="panel-body1">
+                    <div class="row ipt">
+                        <div class="col-sm-3">Budget Line</div>
+                        <div class="col-sm-6">
+                            <input class="form-control" id="BudgetLine"  type="text">
+                            <input class="form-control" id="BudgetLineID" name="BudgetLineID" type="hidden">
+                        </div>
+                    </div>
+                    <div class="row ipt">
+                        <div class="col-sm-3">@Resources.Amount</div>
+                        <div class="col-sm-6">
+                            <input class="form-control number" id="AllocateAmount" name="AllocateAmount" type="number">
+                        </div>
+                    </div>
+                    <div class="row ipt">
+                        <div class="col-sm-2" style="margin-left:25%;">
+                            <button id="btnReset" class="btn btn-primary">Reset</button>
+                        </div>
+                        <div class="col-sm-2">
+                            <button id="btnAddToGrid" class="btn btn-primary">Add Line</button>
+                        </div>
+                    </div>
+                 </div>
+                
+            </div>
+        </fieldset>
+        <fieldset class="col-md-6">
+            <legend>Budget Allocated state</legend>
+            <div class="panel panel-default">
+                <div class="panel-body2">
+                    <div class="row">
+                        <table class="table" id="mainTable">
+                            <thead>
+                                <tr class="dataTableHead">
+                                    <th>ID</th>
+                                    <th>Branch</th>
+                                    <th>Fiscal Year</th>
+                                    <th>Budget Line</th>
+                                    <th>Allocate Amount</th>
+                                    <th>Operations</th>
+                                </tr>
+                            </thead>
+                        </table>
+                       
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+    </div>
+    <div class="row">
+        <div class="col-sm-2" style="margin-left:10%;margin-top:10px;">
+            <button id="btnCancel" class="btn btn-primary btn-danger">@Resources.ResetButton</button>
+        </div>
+        <div class="col-sm-2" style="margin-top:10px;">
+            <button id="btnSubmit" class="btn btn-primary btn-success">@Resources.SaveButton</button>
+        </div>
+    </div>
+</div>
+
+<!-- Css Begins Here -->
+
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 6px;
+    }
+
+    #img-upload {
+        width: 100%;
+    }
+
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin-left: 10px;
+        min-width: 0;
+        padding: 0px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 60px;
+    }
+    .panel-body1{
+        height: 200px;
+        margin-top:10px;
+        margin-left:15%;
+    }
+    .panel-body2{
+        height: 200px;
+        margin-top:10px;
+        margin-left:10px;
+        margin-right:10px;
+    }
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+    
+</style>
+<script>
+    // Get the UserBranch List
+    function populateUserBranch() {
+        $.get('@Url.Action("GetBranchOpenedBusday", "BudgetAllocated")', {}, function (data) {
+            $('#BranchID').empty();
+            $('#BranchID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#BranchID').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+    // Get the FiscalYears List
+    function populateFiscalYears() {
+        $.get('@Url.Action("FiscalYears", "BudgetAllocated")', {}, function (data) {
+            $('#FiscalYearID').empty();
+            $('#FiscalYearID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#FiscalYearID').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+    // Get the BudgetLine List
+    function populateBudgetLine() {
+        $("#BudgetLine").autocomplete({
+           source: function(request,response) {
+               $.ajax({
+                   url: '@Url.Action("GetBudgetLine", "BudgetAllocated")',
+                   type: "POST",
+                   dataType: "json",
+                   //cache: false,
+                   data: { filter: request.term, FiscalYearID: $('#FiscalYearID').val().trim() },
+                   success: function (data) {
+                       response($.map(data, function (item) {
+                           return { label: item.BudgetLineLabel, value: item.BudgetLineLabel, id: item.BudgetLineID };
+                       }))
+
+                   }
+               })
+           },
+           messages: {
+               noResults: "No results",
+               results: function (count) {
+                   return count + (count == 0 ? ' result' : ' results');
+               }
+           },
+            select: function (event, ui) {
+                $("#BudgetLineID").val(ui.item.id);
+                //alert(ui.item ? ("You picked '" + ui.item.label + "' with an ID of " + ui.item.id) : "Nothing selected, input was " + this.value);
+            }
+       });
+    }
+
+    function clearForm() {
+        $('#BranchID').val('');
+        $('#FiscalYearID').val('');
+        clearFormBudgetLine();
+    }
+    function clearFormBudgetLine() {
+        $('#BudgetLineID').val('');
+        $('#AllocateAmount').val('');
+        $('#BudgetLine').val('');
+    }
+    function loadDataTable(test) {
+
+        if (test)
+        {
+            $('#mainTable').dataTable().fnDestroy();
+        }
+        var oTable = $('#mainTable');
+
+        oTable = $('#mainTable').dataTable({
+            "paging": true,
+            "pageLength": 3,
+            "lengthMenu": [[3, 5, 10, -1], [3, 5, 10, "All"]],
+            "searching": true,
+            "ordering": true,
+            "pagingType": "full_numbers",
+            // Ajax call
+            "ajax": "@Url.Action("GetBudgetAllocatedList", "BudgetAllocated")",
+
+        "columns": [
+            { "data": "BudgetAllocatedID" },
+            { "data": "Branch" },
+            { "data": "FiscalYear" },
+            { "data": "BudgetLine" },
+            { "data": "AllocateAmount" },
+            {// this is Actions Column
+                mRender: function (data, type, row) {
+                    @*var linkEdit = '<a href="@Url.Action("Edit", "BudgetAllocated", new { id = -1 })"><span class="glyphicon glyphicon-edit"></span></a>'
+                    linkEdit = linkEdit.replace("-1", row.BudgetAllocatedID);*@
+                    //var lindel = "<a href='#' onclick='DeleteItem("+row.BudgetAllocatedID+")'><span class='glyphicon glyphicon-trash'></span></a>";
+                    //return lindel
+                    @*var linkDelete = '<a href="@Url.Action("DeleteBudgetAllocatedLine", "BudgetAllocated", new { id = -1 })"><span class="glyphicon glyphicon-trash"></span></a> ';
+                    linkDelete = linkDelete.replace("-1", row.BudgetAllocatedID);*@
+
+                    //return  linkEdit + " | "  lindel;
+                    //return '<input type="hidden" id="Wauditordid"  value="' + row.BudgetAllocatedID + '" readonly><button type="submit" id="settlementsd"><span class="glyphicon glyphicon-trash"></span>';
+                    return '<a href="#" class="editor_remove" onclick="DeleteItem(' + row.BudgetAllocatedID + ')"><span class="glyphicon glyphicon-trash"></span></a>'
+                }
+            }
+        ]
+        });
+    }
+
+    function DeleteItem(obj) {
+        if (confirm("Do you want to Delete ?")) {
+            var globalID = obj;//$(obj).parent().siblings(":first").text();
+            //alert(globalID);
+            //post to the server
+            $(this).val('Please wait...');
+            var data = {
+                ID: parseInt(globalID)
+            }
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("DeleteBudgetAllocatedLine", "BudgetAllocated")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        loadDataTable(true);
+                        //clear form
+                        clearFormBudgetLine();
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                }
+            });
+        }
+    }
+
+    $(document).on('ready', function () {
+        populateUserBranch();
+        populateFiscalYears();
+        populateBudgetLine();
+        loadDataTable(false);
+
+        $('#btnReset').on('click', function () {
+            clearFormBudgetLine();
+        });
+        $('#btnCancel').on('click', function () {
+            location.reload(true);
+        });
+        //ajout ds la datagrid
+        $('#btnAddToGrid').on('click',function(){
+            var isAllValid = true;
+            if ($('#BranchID').val() == "0") {
+                isAllValid = false;
+                $("#BranchID").addClass("invalid-data");
+            }
+            else {
+                $("#BranchID").addClass("valid-data");
+            }
+
+            if ($('#FiscalYearID').val() == "0") {
+                isAllValid = false;
+                $("#FiscalYearID").addClass("invalid-data");
+            }
+            else {
+                $("#FiscalYearID").addClass("valid-data");
+            }
+
+            if ($('#BudgetLineID').val().trim() == '') {
+                isAllValid = false;
+                $("#BudgetLineID").addClass("invalid-data");
+            }
+            else {
+                $("#BudgetLineID").addClass("valid-data");
+            }
+
+            if ($('#AllocateAmount').val().trim() == '') {
+                isAllValid = false;
+                $("#AllocateAmount").addClass("invalid-data");
+            }
+            else {
+                $("#AllocateAmount").addClass("valid-data");
+            }
+            var data = {
+                BranchID: $.trim($('#BranchID').val()),
+                FiscalYearID: $.trim($('#FiscalYearID').val()),
+                BudgetLineID: $('#BudgetLineID').val().trim(),
+                AllocateAmount: $('#AllocateAmount').val().trim()
+            }
+            $(this).val('Please wait...');
+            if (isAllValid) {
+                $.ajax({
+                    url: '@Url.Action("AddBudgetAllocatedLine", "BudgetAllocated")',
+                    type: "POST",
+                    data: JSON.stringify(data),
+                    dataType: "JSON",
+                    contentType: "application/json",
+                    success: function (d) {
+                        //check is successfully save to database
+                        if (d.status == true) {
+                            loadDataTable(true);
+                            //clear form
+                            clearFormBudgetLine();
+                        }
+                        else {
+                            alert('Failed');
+                        }
+                        $('#btnAddToGrid').val('Add Line');
+                    },
+                    error: function () {
+                        alert('Error. Please try again.');
+                        $('#btnAddToGrid').val('Add Line');
+                    }
+                });
+            }
+        });
+        //validation des operations
+        $('#btnSubmit').on('click', function () {
+            var isAllValid = true;
+            
+            $(this).val('Please wait...');
+            if (isAllValid) {
+                $.ajax({
+                    url: '@Url.Action("AllocateBudget", "BudgetAllocated")',
+                    type: "POST",
+                    data: null,
+                    dataType: "JSON",
+                    contentType: "application/json",
+                    success: function (d) {
+                        //check is successfully save to database
+                        if (d.status == true) {
+                            //will send status from server side
+                            alert(d.Message);
+                            location.reload(true);
+                        }
+                        else {
+                            alert(d.Message);
+                        }
+                        $('#btnSubmit').val('@Resources.SaveButton');
+                    },
+                    error: function () {
+                        alert('Error. Please try again.');
+                        $('#btnSubmit').val('@Resources.SaveButton');
+                    }
+                });
+            }
+        });
+    });
+</script>

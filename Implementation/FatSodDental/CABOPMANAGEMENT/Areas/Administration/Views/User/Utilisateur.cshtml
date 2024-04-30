@@ -1,0 +1,853 @@
+﻿@using FatSod.Ressources;
+@using CABOPMANAGEMENT.Tools;
+
+@model IEnumerable<FatSod.Security.Entities.User>
+@{
+    ViewBag.Title = @Resources.UserFormTitle;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var profile = (Session["UserProfile"] == null) ? 0 : (int)Session["UserProfile"];
+    var user = (Session["UserID"] == null) ? 0 : (int)Session["UserID"];
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+
+<header>
+    @*<h4>@Resources.UserFormTitle</h4>*@
+    <h6>@Resources.RequireField <code>(*)</code>.</h6>
+</header>
+
+<div class="box box-primary box-body">
+    <div class="row">
+        <div class="col-md-6">
+            <h3>@Resources.FormUserAddTitle</h3>
+        </div>
+    </div>
+    <div class="row">
+        <fieldset class="col-md-4">
+            <legend>@Resources.PersonIdentificationForm</legend>
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <div class="row ipt">
+                        <input class="form-control input-sm" id="GlobalPersonID" name="GlobalPersonID" type="hidden" >
+                        <div class="col-sm-4">@Resources.UINom<code>(*)</code></div>
+                        <div class="col-sm-8">
+                            <input class="form-control input-sm" id="Name" name="Name" type="text">
+                        </div>
+                    </div>
+                    <div class="row ipt">
+                        <div class="col-sm-4">@Resources.PersonSurname<code>(*)</code></div>
+                        <div class="col-sm-8">
+                            <input class="form-control input-sm" id="Description" name="Description" type="text">
+                        </div>
+                    </div>
+                    <div class="row ipt">
+                        <div class="col-sm-4">Matricule<code>(*)</code></div>
+                        <div class="col-sm-8">
+                            <input class="form-control input-sm" id="Matricule" name="Code" type="text">
+                        </div>
+                    </div>
+                    <div class="row ipt">
+                        <div class="col-sm-4">@Resources.PersonCNI<code>(*)</code></div>
+                        <div class="col-sm-8">
+                            <input class="form-control input-sm" id="CNI" name="CNI" type="text">
+                        </div>
+                    </div>
+                    <div class="row ipt">
+                        <div class="col-sm-4">@Resources.PersonSex</div>
+                        <div class="col-sm-8">
+                            <input type="radio" name="SexID" id="Masculin" value="1" checked="checked" /> @Resources.Male<br />
+                            <input type="radio" name="SexID" id="Feminin" value="2" /> @Resources.Female
+                        </div>
+                    </div>
+                    <div class="row ipt">
+                        <div class="col-sm-4">@Resources.PersonJob<code>(*)</code></div>
+                        <div class="row">
+                            <div class="col-sm-7">
+                                <select id="Job" name="JobID" class="form-control"></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row ipt">
+                        <div class="col-sm-4">@Resources.PersonnIsConnected</div>
+                        <div class="col-sm-3">
+                            <input type="radio" id="ConnectedUser" name="IsConnected" value="1" /> @Resources.Yess
+                            
+                        </div>
+                        <div class="col-sm-3">
+                            <input type="radio" id="NoConnected" name="IsConnected" value="0" checked="checked" /> @Resources.No<br />
+                        </div>
+                    </div>
+                    <div class="row ipt">
+                        <div class="col-sm-4">@Resources.PersonnIsMarketer</div>
+                        <div class="col-sm-3">
+                            <input type="radio" id="YesIsMarketer" name="IsMarketer" value="1" checked="checked" /> @Resources.Yess
+                        </div>
+                        <div class="col-sm-3">
+                            <input type="radio" id="NoIsMarketer" name="IsMarketer" value="0" /> @Resources.No<br />
+                        </div>
+                    </div>
+                    <div class="row ipt">
+                        <div class="col-sm-4">@Resources.PersonnIsSeller</div>
+                        <div class="col-sm-3">
+                            <input type="radio" id="YesIsSeller" name="IsSeller" value="1" checked="checked" /> @Resources.Yess
+                        </div>
+                        <div class="col-sm-3">
+                            <input type="radio" id="NoIsSeller" name="IsSeller" value="0"  /> @Resources.No<br />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+        <!-- Adress -->
+        <fieldset class="col-md-4">
+            <legend>@Resources.PersonAdressForm</legend>
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <input type="hidden" id="AdressID" />
+                    <div class="row ipt">
+                        <div class="col-sm-4">@Resources.PersonMobile</div>
+                        <div class="col-sm-8">
+                            <input type="text" id="AdressPhoneNumber" name="AdressPhoneNumber" class="input-sm form-control" />
+                        </div>
+                    </div>
+                    <div class="row ipt">
+                        <div class="col-sm-4">Email</div>
+                        <div class="col-sm-8">
+                            <input type="text" id="AdressEmail" name="AdressEmail" class="input-sm form-control" />
+                        </div>
+                    </div>
+                    <div class="row ipt">
+                        <div class="col-sm-4">@Resources.PersonBox</div>
+                        <div class="col-sm-8">
+                            <input type="text" id="AdressPOBox" name="AdressPOBox" class="input-sm form-control" />
+                        </div>
+                    </div>
+                    <div class="row ipt" >
+                        <div class="col-sm-4">Fax</div>
+                        <div class="col-sm-8">
+                            <input type="text" id="AdressFax" name="AdressFax" class="input-sm form-control" />
+                        </div>
+                    </div>
+                    <div class="row ipt">
+                        <div class="col-sm-4">@Resources.AdressCountry<code>(*)</code></div>
+                        <div class="row">
+                            <div class="col-sm-7">
+                                <select id="Country" name="Country" class="form-control"></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row ipt">
+                        <div class="col-sm-4">@Resources.AdressRegion<code>(*)</code></div>
+                        <div class="row">
+                            <div class="col-sm-7">
+                                <select id="Region" name="Region" class="form-control" disabled="disabled"></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row ipt">
+                        <div class="col-sm-4">@Resources.AdressTown<code>(*)</code></div>
+                        <div class="row">
+                            <div class="col-sm-7">
+                                <select id="Town" name="Town" class="form-control" disabled="disabled"></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-4">@Resources.AdressQuarter<code>(*)</code></div>
+                        <div class="row">
+                            <div class="col-sm-7">
+                                <select id="Quarter" name="QuarterID" class="form-control" disabled="disabled"></select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+        <!-- User Login Parameter -->
+        <fieldset class="col-md-4">
+            <legend>@Resources.FormUserParameter</legend>
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <fieldset id="connect" hidden>
+                        <div class="row ipt">
+                            <div class="col-sm-4">@Resources.UserLogin</div>
+                            <div class="col-sm-8">
+                                <input type="text" id="UserLogin" name="UserLogin" class="input-sm form-control" />
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-4">@Resources.UserPassword</div>
+                            <div class="col-sm-8">
+                                <input type="password" id="UserPassword" name="UserPassword" class="input-sm form-control" />
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-4">@Resources.UserPassword2</div>
+                            <div class="col-sm-8">
+                                <input type="password" id="UserPassword2" name="UserPasswordVerif" class="input-sm form-control" />
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-4">@Resources.My_profile<code>(*)</code></div>
+                        <div class="row">
+                            <div class="col-sm-7">
+                                <select id="ProfileID" name="ProfileID" class="form-control"></select><br />
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+                        <div class="row ipt">
+                            <div class="col-sm-4">@Resources.UserBranch<code>(*)</code></div>
+                            <div class="row">
+                                <div class="col-sm-7">
+                                    <select id="Branch" name="Branch" class="form-control"></select><br />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-4">@Resources.UserAccessLevel<code>(*)</code></div>
+                            <div class="col-sm-8">
+                                <input type="radio" name="UserAccessLevel" id="Access4" value="4" /> @Resources.MostHighLevel<br />
+                                <input type="radio" name="UserAccessLevel" id="Access3" value="3" /> @Resources.HighLevel<br />
+                                <input type="radio" name="UserAccessLevel" id="Access1" value="1" checked /> @Resources.LowLevel
+                            </div>
+                        </div><br />
+                        <div class="row ipt">
+                            <div class="col-sm-4">@Resources.Suspendu</div>
+                            <div class="col-sm-8">
+                                <input type="radio" name="UserAccountState" id="Actif" value="1" checked="checked" /> @Resources.No<br />
+                                <input type="radio" name="UserAccountState" id="Suspendu" value="0" /> @Resources.Yess
+                            </div>
+                        </div>
+        </div>
+            </div>
+        </fieldset>
+        <fieldset class="col-md-3" id="fielsetimg">
+            <legend>Image representation</legend>
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="form-group" style="padding: 10px;">
+                            <label>Upload Image</label>
+                            <div class="input-group">
+                                <span class="input-group-btn">
+                                    <span class="btn btn-default btn-file">
+                                        Browse… <input type="file" name="UploadImage" id="UploadImage">
+                                    </span>
+                                </span>
+                                <input type="text" class="form-control" readonly>
+                            </div>
+                            <img id='img-upload' src="~/Images/users/default-avatar.png" style="height:200px; width:200px;" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+    </div><br />
+    <div class="row">
+        <div class="col-sm-2">
+            <button id="btnCancel" class="btn btn-primary btn-danger">@Resources.ResetButton</button>
+        </div>
+        <div class="col-sm-2">
+            <button id="btnSubmit" class="btn btn-primary btn-success">@Resources.SaveButton</button>
+        </div>
+    </div>
+</div>
+
+<!-- Ajout de la table contenant les data deja enregistrees-->
+<h2>@Resources.ProfileList</h2>
+<div class="box box-body box-primary">
+    <table class="table" id="mainTable">
+        <thead>
+            <tr class="dataTableHead">
+                <th>
+                    ID
+                </th>
+                <th>
+                    @Resources.PersonCNI
+                </th>
+                <th>
+                    @Resources.PersonName
+                </th>
+                <th>
+                    @Resources.PersonSurname
+                </th>
+                <th>
+                    Profile
+                </th>
+                <th>
+                    @Resources.PersonJob
+                </th>
+                <th>
+                    @Resources.UserLogin
+                </th>
+                <th>
+                    @Resources.TOWNCode
+                </th>
+                <th>
+                    @Resources.PersonMobile
+                </th>
+               
+                <th>
+                    Action
+                </th>
+            </tr>
+        </thead>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.GlobalPersonID)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CNI)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Description)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Profile.ProfileLabel)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Job.JobLabel)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.UserLogin)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Adress.Quarter.Town.TownLabel)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Adress.AdressPhoneNumber)
+                </td>
+               
+                <td>
+                     @if (!LoadAction.IsMenuActionAble(MenuAction.UPDATE, @profile, FatSod.DataContext.Initializer.CodeValue.Security.User.CODE, db)) { <a href=# onclick="EditItem(this)"><span class="glyphicon glyphicon-edit"></span></a>} |
+                     @if (!LoadAction.IsMenuActionAble(MenuAction.DELETE, @profile, FatSod.DataContext.Initializer.CodeValue.Security.User.CODE, db)) {<a href=# onclick="DeleteItem(this)"><span class="glyphicon glyphicon-trash"></span></a> }
+                </td>
+            </tr>
+        }
+
+    </table>
+</div>
+
+<!-- Css Begins Here -->
+
+<style>
+
+   
+    .invalid-data { 
+        border: 1px solid red; 
+    }
+    .valid-data
+    { 
+        border: 1px solid #ccc;
+    }
+    .ipt {
+        margin-bottom: 6px;
+    }
+
+    #img-upload {
+        width: 100%;
+    }
+
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+   
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin: 0;
+        min-width: 0;
+        padding: 10px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+        
+    }
+
+    .panel-body {
+        height: 350px;
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+</style>
+
+<!--********** JavaScripts **********-->
+<script>
+
+
+    //get user profile
+    function populateProfileID()
+    {
+        $.get('@Url.Action("populateProfileID", "User")', {}, function (data) {
+            $('#ProfileID').empty();
+            $('#ProfileID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#ProfileID').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+    // Get the Job List
+    function populateJobID() {
+        $.get('@Url.Action("populateJobID", "User")', {}, function (data) {
+            $('#Job').empty();
+            $('#Job').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#Job').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+
+    // Get the Country List
+    function populateCountry() {
+        $.get('@Url.Action("populateCountry", "User")', {}, function (data) {
+            $('#Country').empty();
+            $('#Country').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#Country').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+    function populateRegionBy(_countryId, Region) {
+
+        $('#Region').append($("<option value='0'>@Resources.Select</option>"));
+
+        if (_countryId>0) {
+            $('#Region').prop('disabled', false);
+            $.get('@Url.Action("populateRegion", "User")', { countryId: _countryId }, function (data) {
+                $('#Region').empty();
+                $('#Region').append($("<option value='0'>@Resources.Select</option>"));
+                $.each(data, function (key, value) {
+                    $('#Region').append($("<option></option>").val(value.ID).html(value.Name));
+                });
+                if (Region > 0) $('#Region').val(Region);
+            }, 'json');
+        }
+
+    }
+
+
+    function populateTownBy(_regionId,Town) {
+
+        $('#Town').append($("<option value='0'>@Resources.Select</option>"));
+
+
+        if (_regionId>0) {
+            $('#Town').prop('disabled', false);
+            $.get('@Url.Action("populateTown", "User")', { regionId: _regionId }, function (data) {
+                $('#Town').empty();
+                $('#Town').append($("<option value='0'>@Resources.Select</option>"));
+                $.each(data, function (key, value) {
+                    $('#Town').append($("<option></option>").val(value.ID).html(value.Name));
+                });
+                if (Town>0) $('#Town').val(Town);
+            }, 'json');
+        }
+
+    }
+
+    function populateQuarterListBy(_townId, Quarter) {
+        $('#Quarter').append($("<option value='0'>@Resources.Select</option>"));
+
+        if (_townId>0) {
+            $('#Quarter').prop('disabled', false);
+            $.get('@Url.Action("populateQuarterList", "User")', { townId: _townId }, function (data) {
+                $('#Quarter').empty();
+                $('#Quarter').append($("<option value='0'>@Resources.Select</option>"));
+                $.each(data, function (key, value) {
+                    $('#Quarter').append($("<option></option>").val(value.ID).html(value.Name));
+                });
+                if (Quarter > 0) $('#Quarter').val(Quarter);
+            }, 'json');
+        }
+
+    }
+
+    // Get the UserBranch List
+    function populateUserBranch() {
+        $.get('@Url.Action("populateUserBranch", "User")', {}, function (data) {
+            $('#Branch').empty();
+            $('#Branch').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#Branch').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+
+
+    function clearForm() {
+
+
+        $('#AdressID').val('');
+        $('#Name').val('');
+        $('#Description').val('');
+        $('#Matricule').val('');
+        $('#CNI').val('');
+
+        $('#AdressPhoneNumber').val('');
+        $('#AdressEmail').val('');
+        $('#AdressPOBox').val('');
+        $('#AdressFax').val('');
+
+        $('#UserLogin').val('');
+        $('#UserPassword').val('');
+        $('#UserPassword2').val('');
+        
+        $('#ProfileID').val('1');
+
+        $('#Job').val('');
+        $('#Country').val('');
+        $('#Region').val('');
+        $('#Town').val('');
+        $('#Quarter').val('');
+        $('#Branch').val('');
+
+        $('#GlobalPersonID').val('');
+    }
+
+
+    $(document).on('ready', function () {
+        $('#fielsetimg').hide();
+        populateJobID();
+        populateCountry();
+        $('#Country').on('change', function () {
+            var Country = $('#Country').val();
+            var Region = $('#Region').val();
+            populateRegionBy(Country, Region);
+        });
+        $('#Region').on('change', function () {
+            var Region = $('#Region').val();
+            var Town = $('#Town').val();
+            populateTownBy(Region, Town);
+        });
+        $('#Town').on('change', function () {
+            var Town = $('#Town').val();
+            var Quarter = $('#Quarter').val();
+            populateQuarterListBy(Town, Quarter);
+        });
+        populateUserBranch();
+        populateProfileID();
+
+
+        //chargement des parametres de connexion
+        $('input[type=radio][name="IsConnected"]').change(function()
+        //if($("input:radio[name=IsConnected]").is(":checked"))
+        {
+            if (this.value == '0') {
+            $('#connect').hide();
+            $('#UserLogin').val('');
+            $('#UserPassword').val('');
+            $('#UserPassword2').val('');
+            $('#ProfileID').val('1');
+        }
+        else if (this.value == '1') {
+            $('#connect').show();
+        }
+
+        });
+
+
+        $('#btnCancel').on('click', function () {
+            $('#Job').prop('selectedIndex', 0);
+            $('#Country').prop('selectedIndex', 0);
+            $('#Region').prop('selectedIndex', 0);
+            $('#Town').prop('selectedIndex', 0);
+            $('#Quarter').prop('selectedIndex', 0);
+            $('#Branch').prop('selectedIndex', 0);
+            clearForm();
+
+        });
+
+        $('#mainTable').DataTable();
+
+        $('#btnSubmit').on('click', function () {
+            var isAllValid = true;
+
+
+            if ($('#Name').val().trim() == '') {
+                isAllValid = false;
+                $("#Name").addClass("invalid-data");
+            }
+            else {
+                $("#Name").addClass("valid-data");
+            }
+
+            if ($('#Description').val().trim() == '') {
+                isAllValid = false;
+                $("#Description").addClass("invalid-data");
+            }
+            else {
+                $("#Description").addClass("valid-data");
+            }
+
+            if ($('#Matricule').val() == '') {
+                isAllValid = false;
+                $("#Matricule").addClass("invalid-data");
+            }
+            else {
+                $("#Matricule").addClass("valid-data");
+            }
+
+            if ($('#CNI').val() == '') {
+                isAllValid = false;
+                $("#CNI").addClass("invalid-data");
+            }
+            else {
+                $("#CNI").addClass("valid-data");
+            }
+
+            if ($('#Job').val() == '') {
+                isAllValid = false;
+                $("#Job").addClass("invalid-data");
+            }
+            else {
+                $("#Job").addClass("valid-data");
+            }
+
+            if ($('#Country').val() == '') {
+                isAllValid = false;
+                $("#Country").addClass("invalid-data");
+            }
+            else {
+                $("#Country").addClass("valid-data");
+            }
+
+            if ($('#Region').val() == '') {
+                isAllValid = false;
+                $("#Region").addClass("invalid-data");
+            }
+            else {
+                $("#Region").addClass("valid-data");
+            }
+
+            if ($('#Town').val() == '') {
+                isAllValid = false;
+                $("#Town").addClass("invalid-data");
+            }
+            else {
+                $("#Town").addClass("valid-data");
+            }
+
+            if ($('#Quarter').val() == '') {
+                isAllValid = false;
+                $("#Quarter").addClass("invalid-data");
+            }
+            else {
+                $("#Quarter").addClass("valid-data");
+            }
+
+            if ($('#Branch').val() == '') {
+                isAllValid = false;
+                $("#Branch").addClass("invalid-data");
+            }
+            else {
+                $("#Branch").addClass("valid-data");
+            }
+
+            if (isAllValid) {
+
+                var formData = new FormData();
+                var totalFiles = document.getElementById("UploadImage").files.length;
+                var file = document.getElementById("UploadImage").files[0];
+
+                formData.append("UploadImage", file);
+
+                formData.append("AdressPhoneNumber", $('#AdressPhoneNumber').val().trim());
+                formData.append("AdressEmail", $('#AdressEmail').val().trim());
+                formData.append("AdressPOBox", $('#AdressPOBox').val().trim());
+                formData.append("AdressFax", $('#AdressFax').val().trim());
+                formData.append("CountryID", $('#Country').val().trim());
+                formData.append("RegionID", $('#Region').val().trim());
+                formData.append("TownID", $('#Town').val().trim());
+                formData.append("QuarterID", $('#Quarter').val().trim());
+                formData.append("UserID", @user);
+                @*//UserPassword: @Session["UserPassword"],
+                //UserPasswordVerif: @Session["UserPasswordVerif"],*@
+                formData.append("Branch", $('#Branch').val().trim());
+                formData.append("UserAccessLevel", $('input[name=UserAccessLevel]:checked').val().trim());
+                formData.append("UserAccountState", $('input[name=UserAccountState]:checked').val().trim());
+                formData.append("Name", $('#Name').val().trim());
+                formData.append("Description", $('#Description').val().trim());
+                formData.append("Code", $('#Matricule').val().trim());
+                formData.append("CNI", $('#CNI').val().trim());
+                formData.append("SexID", $('input[name=SexID]:checked').val().trim());
+                formData.append("JobID", $('#Job').val().trim());
+                formData.append("IsConnected", $('input[name=IsConnected]:checked').val().trim());
+                formData.append("IsMarketer", $('input[name=IsMarketer]:checked').val().trim());
+                formData.append("IsSeller", $('input[name=IsSeller]:checked').val().trim());
+                
+                formData.append("UserLogin",$('#UserLogin').val().trim());
+                formData.append("UserPassword",$('#UserPassword').val().trim());
+                formData.append("UserPassword2",$('#UserPassword2').val().trim());
+                formData.append("ProfileID",$('#ProfileID').val().trim());
+                formData.append("GlobalPersonID",$('#GlobalPersonID').val().trim());
+                formData.append("AdressID",$('#AdressID').val());
+
+                $(this).val('Please wait...');
+
+                //post data to server
+                $.ajax({
+                    url: '@Url.Action("AddUser", "User")',
+                    type: "POST",
+                    data: formData, //formData,//JSON.stringify(data),
+                    dataType: "JSON",
+                    //contentType: "application/json",
+                    contentType: false,
+                    processData: false,
+                    success: function (d) {
+                        //check is successfully save to database
+                        if (d.status == true) {
+                            //will send status from server side
+                            alert(d.Message);
+                            location.reload(true);
+                            //$('#mainTable').DataTable().ajax.reload();
+                            //clear form
+                            clearForm();
+                        }
+                        else {
+                            alert(d.Message);
+                        }
+                        $('#btnSubmit').val('@Resources.SaveButton');
+                    },
+                    error: function (response) {
+                        alert('Error. Please try again.');
+                        $('#btnSubmit').val('@Resources.SaveButton');
+                    }
+                });
+            }
+        });
+    });
+
+    function EditItem(obj)
+    {
+
+        var globalID=$(obj).parent().siblings(":first").text();
+        var Country = 0;
+        var Region = 0;
+        var Town = 0;
+        var Quarter = 0;
+
+        $.get('@Url.Action("Edit", "User")', { id : parseInt(globalID) },  function (data) {
+            $.each(data, function (key, value) {
+                $('#AdressID').val(value.AdressID);
+                $('#Name').val(value.Name);
+                $('#Description').val(value.Description);
+                $('#Matricule').val(value.Code);
+                $('#CNI').val(value.CNI);
+                $('input[name=SexID][value="' + value.SexID + '"]').prop('checked', true);
+                $('#Job').val(value.JobID);
+                $('input[name=IsConnected][value="' + value.IsConnected + '"]').prop('checked', true);
+                $('input[name=IsMarketer][value="' + value.IsMarketer + '"]').prop('checked', true);
+                $('input[name=IsSeller][value="' + value.IsSeller + '"]').prop('checked', true);
+                
+                $('#AdressPhoneNumber').val(value.AdressPhoneNumber);
+                $('#AdressEmail').val(value.AdressEmail);
+                $('#AdressPOBox').val(value.AdressPOBox);
+                $('#AdressFax').val(value.AdressFax);
+                
+                Country = value.Country;
+                Region = value.Region;
+                Town = value.Town;
+                Quarter = value.QuarterID;
+
+                $('#UserLogin').val(value.UserLogin);
+                $('#UserPassword').val(value.UserPassword);
+                $('#UserPassword2').val(value.UserPassword);
+                
+                $('#ProfileID').val(value.ProfileID);
+                $('#Branch').val(value.Branch);
+                $('input[name=UserAccessLevel][value="' + value.UserAccessLevel + '"]').prop('checked', true);
+                $('input[name=UserAccountState][value="' + value.UserAccountState + '"]').prop('checked', true);
+                $('#GlobalPersonID').val(value.GlobalPersonID);
+            });
+
+            $('#Country').val(Country);
+            populateRegionBy(Country, Region);
+            $('#Region').val(Region);
+            populateTownBy(Region, Town);
+            $('#Town').val(Town);
+            populateQuarterListBy(Town, Quarter);
+            $('#Quarter').val(Quarter);
+
+        }, 'json');
+
+        var radioValue = parseInt($("input[name='IsConnected']:checked").val());
+
+        if(radioValue=1)
+        {
+           // alert('toto');
+            $('#connect').show();
+        }
+        else
+        {
+            //alert('titi');
+            $('#connect').hide();
+            $('#UserLogin').val('');
+            $('#UserPassword').val('');
+            $('#UserPassword2').val('');
+            $('#ProfileID').val('1');
+        }
+
+    }
+    function DeleteItem  (obj)
+    {
+        if (confirm("Do you want to Delete ?"))
+        {
+            var globalID=$(obj).parent().siblings(":first").text();
+            //post to the server
+            $(this).val('Please wait...');
+            var data = {
+                ID: parseInt(globalID)
+            }
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("Delete", "User")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        location.reload(true);
+                        //$('#mainTable').DataTable().ajax.reload();
+                        //clear form
+                        clearForm();
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                }
+            });
+        }
+
+    }
+</script>

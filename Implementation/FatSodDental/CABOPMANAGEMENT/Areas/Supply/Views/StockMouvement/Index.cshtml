@@ -1,0 +1,648 @@
+﻿@using FatSod.Ressources;
+
+@{
+    ViewBag.Title = @Resources.StockMouvement;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var profile = (Session["UserProfile"] == null) ? 0 : (int)Session["UserProfile"];
+    var user = (Session["UserID"] == null) ? 0 : (int)Session["UserID"];
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+<div class="box box-primary box-body">
+    <div class="row">
+        <div class="col-md-12">
+            <fieldset>
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <div class="row">
+                            <input type="hidden" id="LensCategory" />
+                            <input type="hidden" id="ProductLocalizationID" />
+                            <div class="row ipt">
+                                <!-- Branche -->
+                                <div class="col-sm-3" style="margin-left:50px;">@Resources.Branches</div>
+                                <div class="col-sm-3" style="margin-left:-100px;">
+                                    <input type="hidden" id="DefaultBranchID" value="@ViewBag.CurrentBranch" />
+                                    <select id="BranchID" class="input-sm form-control"></select>
+                                </div>
+                            </div>
+                            <div class="row ipt">
+                                <div class="col-sm-3" style="margin-left:50px;">@Resources.UIBeginDate</div>
+                                <div class="col-sm-3" style="margin-left:-100px;">
+                                    <input class="form-control datepicker" id="BeginDate" type="text" placeholder="choose Begin date" value="@ViewBag.BusnessDayDate">
+                                </div>
+                                <div class="col-sm-3">@Resources.UIEndDate</div>
+                                <div class="col-sm-3" style="margin-left:-100px;">
+                                    <input class="form-control datepicker checkDateNoGraterThanToday" id="EndDate" type="text" placeholder="choose End date">
+                                </div>
+                            </div>
+                            <hr />
+                            <div class="row ipt" style="margin-left:40px;">
+                                <div class="col-sm-4">@Resources.Localization<code>(*)</code></div>
+                                <div class="row">
+                                    <div class="col-sm-6" style="margin-left:-25px;">
+                                        <select id="LocalizationID" class="input-sm form-control"></select>
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">@Resources.Categories</div>
+                                <div class="row">
+                                    <div class="col-sm-6" style="margin-left:-25px;">
+                                        <select id="ProductCategory" class="input-sm form-control"></select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="NumeroVerre">
+                                <div class="row ipt" style="margin-left:40px;">
+                                    <div class="col-sm-4">@Resources.SelectNumber</div>
+                                    <div class="row">
+                                        <div class="col-sm-6" style="margin-left:-25px;">
+                                            <input class="form-control" id="ProductNumber" type="text">
+                                            <input class="form-control" id="ProductNumberID" type="hidden">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="displaynumeroserie">
+                                <div class="row ipt" style="margin-left:40px;">
+                                    <div class="col-sm-4">@Resources.NumeroSerie<code>(*)</code></div>
+                                    <div class="row">
+                                        <div class="col-sm-6" style="margin-left:-25px;">
+                                            <input type="text" id="referenceName" placeholder="@Resources.Select" class="input-sm form-control">
+                                            <input type="hidden" id="NumeroSerie" class="form-control" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row ipt" style="margin-left:40px;">
+                                    <div class="col-sm-4">@Resources.Marque<code>(*)</code></div>
+                                    <div class="row">
+                                        <div class="col-sm-6" style="margin-left:-25px;">
+                                            <input type="text" id="Marque" class="input-sm form-control" readonly />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="ProductCodeField">
+                                <div class="row ipt" style="margin-left:40px;">
+                                    <div class="col-sm-4">@Resources.Productlabel <code>(*)</code></div>
+                                    <div class="row">
+                                        <div class="col-sm-6" style="margin-left:-25px;">
+                                            <input type="hidden" id="ProductID1" class="input-sm form-control" />
+                                            <input type="text" id="ProductCode" class="input-sm form-control" style="width:150%" readonly />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="displayotherProduct">
+                                <div class="row ipt" style="margin-left:40px;">
+                                    <div class="col-sm-4">@Resources.Productlabel<code>(*)</code></div>
+                                    <div class="row">
+                                        <div class="col-sm-6" style="margin-left:-25px;">
+                                            <select id="ProductID" class="input-sm form-control"></select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row ipt" style="margin-left:40px;">
+                                <div class="col-sm-4">@Resources.StockQuantity <code>*</code></div>
+                                <div class="row">
+                                    <div class="col-sm-3" style="margin-left:-25px;">
+                                        <input class="form-control input-sm" id="StockQuantity" type="number" ReadOnly />
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+                <div class="row ipt" style="margin-top:-20px;">
+                    <div class="col-sm-2" style="margin-left:10px;margin-top:10px;">
+                        <button id="btnSave" class="btn btn-primary">@Resources.UIDisplayEntries</button>
+                    </div>
+                    <div class="col-sm-2" style="margin-top:10px;margin-left:-50px;">
+                        <button id="btnPrint" class="btn btn-primary btn-success">@Resources.UIPrint</button>
+                    </div>
+                    <div class="col-sm-3" style="margin-top:20px;">@Resources.StockQuantitybefore <span id="datebegin"></span></div>
+                    <div class="col-sm-2" style="margin-top:10px;">
+                        <input class="form-control input-sm" id="TotalQtyBefore" type="text" readonly />
+                    </div>
+                </div>
+            </fieldset>
+
+        </div>
+
+    </div>
+    <div class="row">
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel-body2">
+                <table class="table" id="mainTable">
+                    <thead>
+                        <tr class="dataTableHead">
+                            <th>ID</th>
+                            <th>@Resources.State</th>
+                            <th>@Resources.Description</th>
+                            <th>@Resources.UIDateOperation</th>
+                            <th>@Resources.Product</th>
+                            <th>@Resources.Quantity</th>
+                            <th>@Resources.Reason</th>
+                            <th>@Resources.StockQuantity</th>
+                            <th>@Resources.RegisteredBy</th>
+
+                        </tr>
+                    </thead>
+
+                </table>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Css Begins Here -->
+
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 6px;
+    }
+
+    #img-upload {
+        width: 100%;
+    }
+
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin-left: 10px;
+        min-width: 0;
+        padding: 0px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 300px;
+        margin-bottom:2%;
+    }
+
+    .panel-body1 {
+        height: 100px;
+        margin-top: 5px;
+        /*margin-left: 15%;*/
+    }
+
+    .panel-body2 {
+        height: 215px;
+        margin-top: 10px;
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+
+    .panel-body3 {
+        height: 75px;
+        margin-top: 5px;
+        /*margin-left: 15%;*/
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+
+    tr.group,
+    tr.group:hover {
+        background-color: #ddd !important;
+    }
+</style>
+
+<!--********** JavaScripts **********-->
+<script>
+
+    // Get the Magasin List
+    function populateStockedLocations() {
+        $.get('@Url.Action("GetAllStockedLocations", "StockMouvement")', {}, function (data) {
+            $('#LocalizationID').empty();
+            $('#LocalizationID').append($("<option value='0' selected='selected'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#LocalizationID').append($("<option></option>").val(value.LocalizationID).html(value.LocalizationCode));
+            });
+        }, 'json');
+    }
+    // Get the Branch List
+    function populateBranch() {
+        $.get('@Url.Action("GetOpenedBranches", "StockMouvement")', {}, function (data) {
+            $('#BranchID').empty();
+            $('#BranchID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#BranchID').append($("<option></option>").val(value.BranchID).html(value.BranchName));
+            });
+            var _DefaultId = $('#DefaultBranchID').val();
+            $('#BranchID').val(_DefaultId);
+        }, 'json');
+    }
+    function productitems() {
+        $('#ProductID').val('');
+        $('#ProductID1').val('');
+        $('#ProductCode').val('');
+        $('#ProductCategory').val('0');
+        $('#ProductNumberID').val('');
+        $('#ProductNumber').val('');
+    }
+    function productitemsansCat() {
+        $('#ProductID').val('');
+        $('#ProductID1').val('');
+        $('#ProductCode').val('');
+        $('#ProductNumberID').val('');
+        $('#ProductNumber').val('');
+
+        $('#referenceName').val('');
+        $('#NumeroSerie').val('');
+        $('#Marque').val('');
+    }
+    //function hideEquipmentPrice() {
+    //    $('#ProductID').hide();
+
+    //}
+    //function showEquipmentPrice() {
+    //    $('#ProductID').show();
+
+    //}
+
+    function hideNumeroVerre() {
+        $('#NumeroVerre').hide();
+        //$('#ProductCode').hide();
+    }
+    function showNumeroVerre() {
+        $('#NumeroVerre').show();
+        //$('#ProductCode').show();
+    }
+
+    function showProductCodeField() {
+        $('#ProductCodeField').show();
+    }
+    function hideProductCodeField() {
+        $('#ProductCodeField').hide();
+    }
+
+    function hideOtherProductLabel() {
+        $('#displaynumeroserie').hide();
+        $('#ProductCodeField').show();
+        $('#displayotherProduct').hide();
+
+    }
+    function showOtherProductLabel() {
+        $('#displaynumeroserie').show();
+        $('#ProductCodeField').hide();
+        $('#displayotherProduct').show();
+    }
+
+    function InitTotaux() {
+        $('#TotalQty').val('0');
+    }
+
+    // Get the Product category List
+    function GetProductCategory() {
+        $.get('@Url.Action("GetProductCategory", "StockMouvement")', {}, function (data) {
+            $('#ProductCategory').empty();
+            $('#ProductCategory').append($("<option value='0' selected='selected'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#ProductCategory').append($("<option></option>").val(value.CategoryID).html(value.Name));
+            });
+            var ProductCategoryID = $('#ProductCategory').val();
+            DisableNumero(ProductCategoryID);
+        }, 'json');
+    }
+
+    function DisableNumero(ProductCategoryID) {
+        $.get('@Url.Action("DisableNumero", "StockMouvement")', { ProductCategoryID: ProductCategoryID }, function (data) {
+            $('#LensCategory').empty();
+            $.each(data, function (key, value) {
+                $('#LensCategory').val(value.LensCategory);
+            });
+            var DepartureLocalizationID = $('#LocalizationID').val();
+            //0 = frame
+            //1 = equipement
+            //2 = lens
+            hideNumeroVerre();
+            var LensCategory = $('#LensCategory').val();
+            if (LensCategory == 0) {
+                hideProductLabel();
+                hideProductCodeField();
+                //chargement des numero
+                loadSerialNumber();
+            }
+            if (LensCategory == 1) {
+                showProductLabel();
+                hideProductCodeField();
+                // displaynewproduct();
+                if (parseInt(DepartureLocalizationID) > 0) {
+                    GetAllEquipementProducts(DepartureLocalizationID, ProductCategoryID, 0);
+                }
+            }
+            if (LensCategory == 2) {
+                showNumeroVerre();
+                hideOtherProductLabel();
+                if (parseInt(DepartureLocalizationID) > 0) {
+                    GetAllPagingNumbers();
+                }
+            }
+            /*if (LensCategory == 0) {
+                //hideEquipmentPrice();
+                //showNumeroVerre();
+                //if (parseInt(DepartureLocalizationID) > 0) {
+                    //GetAllPagingNumbers();
+                //}
+                hideProductLabel();
+                if (parseInt(DepartureLocalizationID) > 0) {
+                    //chargement des numero
+                    loadSerialNumber();
+                }
+            }
+            else {
+                //showEquipmentPrice();
+                //hideNumeroVerre();
+                showProductLabel();
+                if (parseInt(DepartureLocalizationID) > 0) {
+                    GetAllEquipementProducts(DepartureLocalizationID, ProductCategoryID, 0);
+                }
+
+            }*/
+        }, 'json');
+    }
+    function GetAllEquipementProducts(DepartureLocalizationID, ProductCategoryID, ProductNumberID) {
+        $.get('@Url.Action("GetAllProducts", "StockMouvement")', { DepartureLocalizationID: DepartureLocalizationID, ProductCategoryID: ProductCategoryID, ProductNumberID: ProductNumberID }, function (data) {
+            $('#ProductID').empty();
+            $('#ProductID').append($("<option value='0' selected='selected'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#ProductID').append($("<option></option>").val(value.ProductID).html(value.ProductCode));
+            });
+
+        }, 'json');
+    }
+    function GetAllPagingNumbers() {
+        $("#ProductNumber").autocomplete({
+            minLength: 4, // set minimum of 4 characters before search executes.
+            delay: 100, // wait 0.1 second after keystroke before search executes.
+            source: function (request, response) {
+                $.ajax({
+                    url: '@Url.Action("GetAllNumbers", "StockMouvement")',
+                    type: "POST",
+                    dataType: "json",
+                    //cache: false,
+                    data: { filter: request.term, ProductCategory: $('#ProductCategory').val(), localization: $('#LocalizationID').val() },
+                    success: function (data) {
+                        response($.map(data, function (item) {
+                            return { label: item.LensNumberFullCode, value: item.LensNumberFullCode, id: item.LensNumberID };
+                        }))
+                    }
+                })
+            },
+            messages: {
+                noResults: "No results",
+                results: function (count) {
+                    return count + (count == 0 ? ' result' : ' results');
+                }
+            },
+            select: function (event, ui) {
+                $("#ProductNumberID").val(ui.item.id);
+                var ProductNumberID = $('#ProductNumberID').val();
+                var Localization = $('#LocalizationID').val();
+                var ProductCategoryID = $('#ProductCategory').val();
+                OnLensNumberSelected(ProductNumberID, Localization, ProductCategoryID);
+            }
+        });
+    }
+    function OnProductSelected(ProductID, Localization) {
+        $.get('@Url.Action("OnProductSelected", "StockMouvement")', { CurrentProduct: ProductID, Localization: Localization }, function (data) {
+            $('#StockQuantity').empty();
+            $.each(data, function (key, value) {
+                $('#StockQuantity').val(value.StockQuantity);
+            });
+
+        }, 'json');
+    }
+    function OnLensNumberSelected(ProductNumberID, Localization, ProductCategoryID) {
+        $.get('@Url.Action("OnLensNumberSelected", "StockMouvement")', { ProductNumberID: ProductNumberID, Localization: Localization, ProductCategoryID: ProductCategoryID }, function (data) {
+            $('#ProductID1').empty();
+            $('#ProductCode').empty();
+            $('#StockQuantity').empty();
+            $.each(data, function (key, value) {
+                $('#ProductID1').val(value.ProductID);
+                $('#ProductCode').val(value.ProductCode);
+
+                $('#StockQuantity').val(value.StockQuantity);
+            });
+        }, 'json');
+    }
+
+    // Get the Frame List
+    function loadSerialNumber() {
+
+        $("#referenceName").autocomplete({
+            minLength: 1, // set minimum of 1 characters before search executes.
+            delay: 100, // wait 0.1 second after keystroke before search executes.
+            source: function (request, response) {
+                $.ajax({
+                    url: '@Url.Action("GetAllSerialNumber", "StockMouvement")',
+                    type: "POST",
+                    dataType: "json",
+                    //cache: false,
+                    data: { filter: request.term, DepartureLocalizationID: $("#LocalizationID").val() },
+                    success: function (data) {
+                        response($.map(data, function (item) {
+                            return { label: item.NumeroSerie, value: item.NumeroSerie, id: item.ProductLocalizationID };
+                        }))
+                    }
+                })
+            },
+            messages: {
+                noResults: "No results",
+                results: function (count) {
+                    return count + (count == 0 ? ' result' : ' results');
+                }
+            },
+            select: function (event, ui) {
+
+                $("#ProductLocalizationID").val(ui.item.id);
+                var ProductLocalizationID = $('#ProductLocalizationID').val();
+
+                loadProductInfo(ProductLocalizationID);
+            }
+        });
+    }
+
+
+    function loadProductInfo(ProductLocalizationID) {
+
+        $.get('@Url.Action("InitProductDetail", "StockMouvement")', { ProductLocalizationID: ProductLocalizationID }, function (data) {
+            $('#ProductID1').empty();
+            $('#Marque').empty();
+            $('#StockQuantity').empty();
+            $('#NumeroSerie').empty();
+            $.each(data, function (key, value) {
+                $('#ProductID1').val(value.ProductID);
+                $('#Marque').val(value.marque);
+                $('#StockQuantity').val(value.StockQuantity);
+                $('#NumeroSerie').val(value.NumeroSerie);
+            });
+        }, 'json');
+    }
+
+    //chargement des elemts de totaux apres le click sur afficher
+    function loadTotauxBefore(Bdate, ProductID, LocalizationID, NumeroSerie, Marque) {
+        //chargement detail
+        $.get('@Url.Action("ChargeQtyBefore", "StockMouvement")', { Bdate: Bdate, ProductID: ProductID, LocalizationID: LocalizationID, NumeroSerie: NumeroSerie, Marque: Marque }, function (data) {
+            $.each(data, function (key, value) {
+                $('#TotalQtyBefore').val(value.TotalQtyBefore);
+            });
+        }, 'json');
+    }
+    //chargement du tableau apres le click sur le bouton afficher
+    function LoadGrid(test, Bdate, Edate, ProductID, LocalizationID, NumeroSerie, Marque) {
+        if (test) {
+            $('#mainTable').dataTable().fnDestroy();
+        }
+        var oTable = $('#mainTable');
+        oTable = $('#mainTable').dataTable({
+            fixedColumns: true,
+            "paging": true,
+            "pageLength": 20,
+            "lengthMenu": [[20, 40, 60, -1], [20, 40, 60, "All"]],
+            "searching": true,
+            "ordering": true,
+            "pagingType": "full_numbers",
+            "columnDefs": [
+                    { "visible": false, "targets": 0 }
+            ],
+            "order": [[0, 'asc']],
+            // Ajax call
+            "ajax": {
+                "url": "@Url.Action("ModelRptProductSale", "StockMouvement")",
+                "type": "GET",
+                "datatype": "json",
+                "data": { Bdate: Bdate, Edate: Edate, ProductID: ProductID, LocalizationID: LocalizationID, NumeroSerie: NumeroSerie, Marque: Marque }
+            },
+            "columns": [
+                { "data": "RptGeneSaleID", "width": "1%" },
+                { "data": "CodeClient", "width": "1%" },
+                { "data": "NomClient", "width": "20%" },
+                { "data": "CustomerOrderDate", "width": "5%" },
+                { "data": "ProductCode", "width": "25%" },
+                { "data": "CustomerOrderNumber", "width": "5%" },
+                { "data": "CustomerName", "width": "10%" },
+                { "data": "LineQuantity", "width": "10%" },
+                { "data": "OperatorID", "width": "5%" }
+            ],
+            dom: 'Bfrtip',
+            buttons: [
+                'copy', 'csv', 'excel'
+            ]
+
+        });
+    }
+    function hideProductLabel() {
+        $('#displayotherProduct').hide();
+        $('#displaynumeroserie').show();
+        $('#StockQuantity').val('0');
+    }
+    function showProductLabel() {
+        $('#displayotherProduct').show();
+        $('#displaynumeroserie').hide();
+        $('#StockQuantity').val('0');
+    }
+
+    $(document).on('ready', function () {
+        $(function () {
+            $(".datepicker").datepicker({
+                format: 'yyyy-mm-dd'
+            });
+        });
+        InitTotaux();
+        //initialosation
+        hideProductLabel();
+        populateBranch();
+        //chargement des magasins
+        populateStockedLocations();
+        $('#LocalizationID').change(function () {
+            productitems();
+        });
+        //chargement des categories
+        GetProductCategory();
+        $('#ProductCategory').change(function () {
+            productitemsansCat();
+        });
+        $('#ProductCategory').change(function () {
+            var ProductCategoryID = $('#ProductCategory').val();
+            DisableNumero(ProductCategoryID);
+        });
+        //recuperation qte en stock pr le produit,unite de prix, mtant produit
+        $('#ProductID').change(function () {
+            var ProductID = $('#ProductID').val();
+            var Localization = $('#LocalizationID').val();
+            OnProductSelected(ProductID, Localization);
+        });
+        var ProductID = 0;
+        var LocalizationID = 0;
+        var Bdate = '1900-01-01';
+        var Edate = '1900-01-01';
+        LoadGrid(false, Bdate, Edate, ProductID, LocalizationID);
+        $("#btnSave").on('click', function () {
+
+            ProductID = 0;
+            var LensCategory = $('#LensCategory').val();
+            if (LensCategory == 0 || LensCategory == 2) {
+                if ($('#ProductID1').val() == "0") {
+                    ProductID = 0;
+                }
+                else {
+                    ProductID = $('#ProductID1').val();
+                }
+            }
+            else //equipement et frame
+            {
+                if ($('#ProductID').val() == "0" || $('#ProductID').val() == '') {
+                    ProductID = 0;
+                }
+                else {
+                    ProductID = $('#ProductID').val();
+                }
+            }
+            LocalizationID = $("#LocalizationID").val();
+            Bdate = $("#BeginDate").val();
+            Edate = $("#EndDate").val();
+            NumeroSerie = $("#NumeroSerie").val();
+            Marque = $("#Marque").val();
+
+            LoadGrid(true, Bdate, Edate, ProductID, LocalizationID, NumeroSerie, Marque);
+            loadTotauxBefore(Bdate, ProductID, LocalizationID, NumeroSerie, Marque);
+            document.getElementById('datebegin').innerHTML = Bdate;
+        });
+    });
+</script>

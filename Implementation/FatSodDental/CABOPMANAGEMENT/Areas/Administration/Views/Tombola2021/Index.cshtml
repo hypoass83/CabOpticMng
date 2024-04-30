@@ -1,0 +1,531 @@
+﻿@using FatSod.Ressources;
+@using FatSod.Supply.Entities;
+@using FatSod.DataContext.Initializer;
+@using CABOPMANAGEMENT.Tools;
+
+@{
+    ViewBag.Title = @Resources.Deposit;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var profile = (Session["UserProfile"] == null) ? 0 : (int)Session["UserProfile"];
+    var user = (Session["UserID"] == null) ? 0 : (int)Session["UserID"];
+
+    string cashRegisterCode = CodeValue.Accounting.DefaultCodeAccountingSection.CODECAIS;
+    string banCode = CodeValue.Accounting.DefaultCodeAccountingSection.CODEBANK;
+    string digitalPaymentCode = CodeValue.Accounting.DefaultCodeAccountingSection.DIGITAL_PAYMENT;
+
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+
+<div class="row" style="margin-top:5px;margin-left:25px">
+    @if (TempData["Message"] != null)
+    {
+        @Html.Raw(TempData["Message"])
+    }
+</div>
+<div class="box box-primary box-body" id="SaleValideForm">
+    <div class="row">
+        <div class="col-md-12">
+            <fieldset>
+                <input class="form-control input-sm" id="DisplayForm" type="hidden" value="@ViewBag.DisplayForm">
+                <div class="panel panel-default">
+                    <div class="panel-body2">
+
+                        <table class="table" id="mainTable">
+                            <thead>
+                                <tr class="dataTableHead">
+                                    <th>Phone Number</th>
+                                    <th>Language</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+
+                        </table>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+    
+</div>
+
+<!-- Css Begins Here -->
+
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 6px;
+    }
+
+    #img-upload {
+        width: 100%;
+    }
+
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin-left: 10px;
+        min-width: 0;
+        padding: 10px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 70px;
+    }
+
+    .panel-bodyfielset1 {
+        height: 180px;
+    }
+
+    .panel-bodyfielset2 {
+        height: 50px;
+    }
+
+    .panel-body1 {
+        height: 170px;
+        margin-top: 5px;
+        margin-bottom: 1%;
+    }
+
+    .panel-body2 {
+        height: 200px;
+        margin-top: 10px;
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+
+    .panel-body3 {
+        height: 75px;
+        margin-top: 5px;
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+
+    .panel-body4 {
+        height: 300px;
+        margin-left: 10px;
+    }
+</style>
+
+<script>
+
+
+    function enablebutton()
+    {
+        $('#btnPrint').prop('disabled', false);
+        $('#btnDeliveryOrder').prop('disabled', false);
+
+        $('#PaymentMethod').prop('disabled', false);
+        $('#Amount').prop('disabled', false);
+        $('#Amount').val('0');
+    }
+    function disablebutton() {
+        $('#btnPrint').prop('disabled', true);
+        $('#btnDeliveryOrder').prop('disabled', true);
+
+        @*$('#PaymentMethod').prop('disabled', false);
+        $('#PaymentMethod').val('0');
+        $('#Amount').prop('disabled', false);
+        $('#Amount').val('0');
+        var debt = $('#Debt').val();
+
+
+        if (!isNaN(parseFloat(debt)) && isFinite(debt) && parseFloat(debt)<=0) {
+            $('#PaymentMethod').val('@CodeValue.Accounting.DefaultCodeAccountingSection.CODECAIS');
+            onPaymentMethodChanged();
+            $('#PaymentMethod').prop('disabled', true);
+            $('#Amount').prop('disabled', true);
+        }*@
+
+    }
+
+    // Get the PaymentMethod List
+    function populatePaymentMethod() {
+        $.get('@Url.Action("populatePaymentMethod", "Deposit")', {}, function (data) {
+            $('#PaymentMethod').empty();
+            $('#PaymentMethod').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#PaymentMethod').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+
+    //chargement des commandes a valider
+    function GetAllCommand(test) {
+
+        if (test)
+        {
+            $('#mainTable').dataTable().fnDestroy();
+        }
+        var oTable = $('#mainTable');
+
+        oTable = $('#mainTable').dataTable({
+
+            fixedColumns: true,
+            "paging": true,
+            "pageLength": 3,
+            "lengthMenu": [[3, 5, 10, -1], [3, 5, 10, "All"]],
+            "searching": true,
+            "ordering": true,
+            "pagingType": "full_numbers",
+            // Ajax call
+            "ajax": "@Url.Action("PendingCustomerSale", "Tombola2021")",
+            //"dom": '<"toolbar">frtip',
+            "columns": [
+                { "data": "PhoneNumber" },
+                { "data": "PreferredLanguage" },
+                // END
+                {// this is Actions Column
+                    mRender: function (data, type, row) {
+
+                        @*var deleteOption = '@LoadAction.IsSubMenuActionAble(MenuAction.DELETE, @profile, CodeValue.CashRegister.SUBMENU_DEPOT_ASSURE, db)';
+                        var T_deleteOption = (deleteOption == 'False') ? '<a href=# class="editor_remove" onclick="DeleteItem(this)"><span class="glyphicon glyphicon-trash"></span></a>' : '';*@
+
+                        var updateOption = '@LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, @profile, CodeValue.CashRegister.SUBMENU_DEPOT_ASSURE, db)';
+                        var T_updateOption = (updateOption == 'False') ? '<a href="#" class="editor_remove" onclick="UpdateItem(' + row.SaleID + ')"><span class="glyphicon glyphicon-edit"></a>' : '';
+
+                        return T_updateOption @*+ " | " + T_deleteOption*@;
+                    }
+                }
+            ],
+            dom: 'Bfrtip',
+            buttons: [
+                'copy', 'csv', 'excel'
+            ]
+        });
+
+    }
+
+    function clearInitializeCommandFields()
+    {
+        $('#SaleID').val('');
+        $('#BranchID').val('');
+        $('#Representant').val('');
+        $('#DepositReference').val('');
+        $('#Debt').val('0');
+
+        $('#PaymentMethod').val('0');
+        onPaymentMethodChanged();
+        $('#PaymentMethodID').val('0');
+        $('#Amount').val('0');
+        $('#RemainderDept').val('0');
+
+        $('#CustomerID').val('');
+
+        $('#btnSubmit').prop('disabled', false);
+    }
+
+
+    function UpdateItem(obj) {
+        var globalID = obj;
+
+        $.get('@Url.Action("InitializeFields", "Deposit")', { SaleID: parseInt(globalID) }, function (data) {
+            $.each(data, function (key, value) {
+                $('#SaleID').val(value.SaleID);
+                $('#BranchID').val(value.BranchID);
+                $('#Representant').val(value.CustomerName);
+                $('#DepositReference').val(value.DepositReference);
+                $('#Debt').val(value.Debt);
+                $('#CustomerID').val(value.CustomerID);
+            });
+            $("#PaymentMethod").val(0);
+            onPaymentMethodChanged();
+            disablebutton();
+        }, 'json');
+
+    }
+
+
+
+    function ValideVente()
+    {
+
+        var isAllValid = true;
+        var d = new Date();
+        var hourPayment = d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds();
+        $('#heureVente').val(hourPayment);
+
+        if ($('#heureVente').val().trim() == '') {
+            isAllValid = false;
+        }
+        if ($('#SaleID').val().trim() == '') {
+            isAllValid = false;
+        }
+        if ($('#BranchID').val().trim() == '') {
+            isAllValid = false;
+        }
+
+        if ($('#Representant').val().trim() == '') {
+            isAllValid = false;
+            $("#Representant").addClass("invalid-data");
+        }
+        else {
+            $("#Representant").addClass("valid-data");
+        }
+
+        if ($('#DepositReference').val() == '') {
+            isAllValid = false;
+            $("#DepositReference").addClass("invalid-data");
+        }
+        else {
+            $("#DepositReference").addClass("valid-data");
+        }
+        if ($('#DepositDate').val() == '') {
+            isAllValid = false;
+            $("#DepositDate").addClass("invalid-data");
+        }
+        else {
+            $("#DepositDate").addClass("valid-data");
+        }
+        if ($('#DepositReference').val() == "") {
+            isAllValid = false;
+            $("#DepositReference").addClass("invalid-data");
+        }
+        else {
+            $("#DepositReference").addClass("valid-data");
+        }
+
+        if (parseInt($('#Amount').val()) < 0) {
+            isAllValid = false;
+            $("#Amount").addClass("invalid-data");
+        }
+        else {
+            $("#Amount").addClass("valid-data");
+        }
+
+        if ($('#DeviseID').val().trim() == '') {
+            isAllValid = false;
+            $("#DeviseID").addClass("invalid-data");
+        }
+        else {
+            $("#DeviseID").addClass("valid-data");
+        }
+
+        isAllValid = !isAllValid ? false : IsDigitalPaymentValid();
+
+        // Sans ce test, IsBankValid peut retourner true et annuler le resultat de IsDigitalPaymentValid quand il est false
+        isAllValid = !isAllValid ? false : IsBankValid();
+
+        var PaymentMethod = $('#PaymentMethod').val();
+        var banCode = $('#banCode').val();
+        var PaymentMethodID = $('#PaymentMethodID').val();
+        var DigitalPaymentMethodID = $('#DigitalPaymentMethodID').val();
+
+        if (isAllValid) {
+
+            var data = {
+                StatutSale: $('#StatutSale').val().trim(),
+                heureVente: $('#heureVente').val().trim(),
+                BranchID: $('#BranchID').val(),
+                DepositDate: $('#DepositDate').val(),
+                Representant: $('#Representant').val(),
+                Debt: $('#Debt').val(),
+                DepositReference: $('#DepositReference').val(),
+                SaleID: $('#SaleID').val(),
+                PaymentMethod: $('#PaymentMethod').val(),
+                PaymentMethodID: (PaymentMethod == banCode) ? PaymentMethodID : DigitalPaymentMethodID,
+                TransactionIdentifier: $('#TransactionIdentifier').val(),
+                DeviseID: $('#DeviseID').val(),
+                Amount: $('#Amount').val().trim(),
+                RemainderDept: $('#RemainderDept').val(),
+                SaleDeliver: $('input[name=SaleDeliver]:checked').val(),
+                CustomerID: $('#CustomerID').val()
+            };
+            console.log("data <=> ", data);
+            $(this).val('Please wait...');
+            $('#btnSubmit').prop('disabled', true);
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("DoDeposit", "Deposit")',
+                type: "POST",
+                data: JSON.stringify(data), //formData, //formData,//
+                dataType: "JSON",
+                contentType: "application/json",
+
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        //reinitialisation des champs
+                        clearInitializeCommandFields();
+                        GetAllCommand(true);
+                        enablebutton();
+                        //$('#btnSubmit').prop('disabled', true);
+                    }
+                    else {
+                        alert(d.Message);
+                        $('#btnSubmit').prop('disabled', false);
+                    }
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    alert('ERROR - Please try again.');
+                    console.error("xhr", xhr);
+                    console.error("ajaxOptions", ajaxOptions);
+                    console.error("thrownError", thrownError);
+                    disablebutton();
+                    $('#btnSubmit').prop('disabled', false);
+                }
+            });
+        }
+
+    }
+
+    $(document).on('ready', function () {
+        
+        GetAllCommand(false);
+    });
+
+    function OnAmountChanged() {
+
+        var PaymentMethod = $('#PaymentMethod').val().trim();
+
+        var cashRegisterCode = $('#CashRegisterCode').val();
+
+
+        var Amount = $('#Amount').val();
+        var TotalPriceTTC = $('#Debt').val();
+        var RemainderDept = parseInt(TotalPriceTTC) - parseInt(Amount);
+        $('#RemainderDept').val(RemainderDept);
+
+        //if (parseInt(Amount) > 0) {//Si le mode de paiement est credit alors
+        //    $('#PaymentMethod').val(cashRegisterCode);
+        //}
+
+        //loadBankChoice();
+    }
+
+    function onPaymentMethodChanged() {
+            var PaymentMethodCode = $('#PaymentMethod').val().trim();
+            console.log("digitalPaymentCode => " + $('#digitalPaymentCode').val());
+            var banCode = $('#banCode').val().trim();
+            var digitalPaymentCode = $('#digitalPaymentCode').val().trim();
+
+
+            if (PaymentMethodCode != banCode) {
+                $('#PaymentMethodID').empty();
+                $('#BankInfo').hide();
+            }
+
+            if (PaymentMethodCode != digitalPaymentCode) {
+                $('#DigitalPaymentMethodID').empty();
+                $('#DigitalPaymentInfo').hide();
+                $('#TransactionIdentifier').val("");
+            }
+
+            if (PaymentMethodCode == banCode) {
+                $('#BankInfo').show();
+                populatePaymentMethodID(PaymentMethodCode);
+                return;
+            }
+
+            if (PaymentMethodCode == digitalPaymentCode) {
+                $('#DigitalPaymentInfo').show();
+                populateDigitalPaymentMethods();
+                return;
+            }
+        }
+
+        function IsDigitalPaymentValid() {
+            var PaymentMethod = $("#PaymentMethod").val();
+            var digitalPaymentCode = $("#digitalPaymentCode").val();
+
+            if (PaymentMethod != digitalPaymentCode)
+                return true;
+
+            // verification proprement dite commence ici
+            var res = true;
+            if ($('#DigitalPaymentMethodID').val().trim() == 0) {
+                $("#DigitalPaymentMethodID").addClass("invalid-data");
+                res = false;
+            }
+            else {
+                $("#DigitalPaymentMethodID").addClass("valid-data");
+            }
+
+            if ($('#TransactionIdentifier').val().trim() == "") {
+                $("#TransactionIdentifier").addClass("invalid-data");
+                res = false;
+            }
+            else {
+                $("#TransactionIdentifier").addClass("valid-data");
+            }
+
+            return res;
+        }
+
+        function IsBankValid() {
+            var PaymentMethod = $("#PaymentMethod").val();
+            var banCode = $("#banCode").val();
+
+            if (PaymentMethod != banCode)
+                return true;
+
+            var res = true;
+            // verification proprement dite commence ici
+            if ($('#PaymentMethodID').val().trim() == 0) {
+                $("#PaymentMethodID").addClass("invalid-data");
+                res = false;
+            }
+            else {
+                $("#PaymentMethodID").addClass("valid-data");
+            }
+            return res;
+        }
+
+        // Get Digital Payment Method List
+        function populateDigitalPaymentMethods(BuyTypeCode) {
+
+            $.get('@Url.Action("DigitalPaymentMethods", "Deposit")', { BuyTypeCode: BuyTypeCode }, function (data) {
+                $('#DigitalPaymentMethodID').empty();
+                $('#DigitalPaymentMethodID').append($("<option value='0'>@Resources.Select</option>"));
+                $.each(data, function (key, value) {
+                    $('#DigitalPaymentMethodID').append($("<option></option>").val(value.ID).html(value.Name));
+                });
+            }, 'json');
+        }
+
+        // Get the PaymentMethodID List
+        function populatePaymentMethodID(PaymentMethod) {
+
+            $.get('@Url.Action("PaymentMethods", "Deposit")', { PaymentMethod: PaymentMethod }, function (data) {
+                $('#PaymentMethodID').empty();
+                $('#PaymentMethodID').append($("<option value='0'>@Resources.Select</option>"));
+                $.each(data, function (key, value) {
+                    $('#PaymentMethodID').append($("<option></option>").val(value.ID).html(value.Name));
+                });
+            }, 'json');
+        }
+
+</script>

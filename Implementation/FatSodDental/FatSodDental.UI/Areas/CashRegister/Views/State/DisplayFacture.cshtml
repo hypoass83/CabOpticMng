@@ -1,0 +1,285 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+@using FatSod.Supply.Entities;
+@model System.Collections.IEnumerable
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    string labelSeparator = "  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :";
+    string cashRegisterCode = CodeValue.Accounting.DefaultCodeAccountingSection.CODECAIS;
+    string bank = CodeValue.Accounting.DefaultCodeAccountingSection.CODEBANK;
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+
+}
+
+@section content
+{
+    @************************************************ Bill form informations ********************************@
+
+
+    @(
+ X.FormPanel()
+            .ID("BillForm")
+            .Frame(true)
+            .MarginSpec("-50 0 -10 0")
+            .BodyPadding(10)
+            .Items(
+                X.DateField().FieldLabel(Resources.BillDate)
+                .AllowBlank(false).Name("ReloadBillDate")
+                .ID("ReloadBillDate")
+                .Format("dd/MM/yyyy")
+                .Value((DateTime)ViewBag.BusnessDayDate)
+                .MarginSpec("25 0 10 0")
+                .InputType(Ext.Net.InputType.DateTime)
+                .DirectEvents(de =>
+                {
+                    de.Change.Action = "ReloadBillListStore";
+                    de.Change.Method = HttpMethod.POST;
+                    de.Change.EventMask.ShowMask = true;
+                    de.Change.EventMask.Msg = Resources.EventMaskUpdate;
+                })
+
+                )
+
+    )
+
+
+    @*************************************************** Bill list *************************************************************@
+    @(X.GridPanel()
+        .ID("BillList")
+        .Layout(LayoutType.Fit)
+        .MarginSpec("0 0 10 0")
+        .Margin(5)
+        .Frame(false)
+        .Collapsible(false)
+        .Store(X.Store()
+            .GroupField("Old Bill list")
+            .ID("BillListStore")
+            .RemotePaging(true)
+            .AutoLoad(true)
+            .PageSize(5)
+            .Model(
+                X.Model()
+                    .IDProperty("BillOrderID")
+                    .Fields(
+                                new ModelField("BillID", ModelFieldType.Int),
+                                new ModelField("BillDate", ModelFieldType.Date),
+                                new ModelField("BeginDate", ModelFieldType.Date),
+                                new ModelField("EndDate", ModelFieldType.Date),
+                                new ModelField("CustomerFullName", ModelFieldType.String),
+                                new ModelField("BillNumber", ModelFieldType.String)
+
+                    )
+            )
+            .DataSource(Model)
+            .ServerProxy(
+                X.AjaxProxy()
+                .Url(Url.Action("ReturnAbleBill"))
+                .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                .Reader(X.JsonReader().RootProperty("data"))
+            )
+            .Parameters(ps =>
+                    ps.Add(new StoreParameter("BillDate", "App.ReloadBillDate.getValue()", ParameterMode.Raw))
+            )
+            .Sorters(
+                X.DataSorter()
+                .Property("BillNumber")
+                .Direction(Ext.Net.SortDirection.ASC)
+            )
+        )
+
+        .ColumnModel(
+            X.RowNumbererColumn()
+            ,
+
+            X.DateColumn()
+                .Text(Resources.BillDate)
+                .DataIndex("BillDate")
+                .Format("dd/m/Y")
+                .Flex(1),
+
+           X.Column()
+                .Text(Resources.Customer)
+                .DataIndex("CustomerFullName")
+                .Flex(1),
+
+            X.DateColumn()
+                .Text(Resources.UIBeginDate)
+                .DataIndex("BeginDate")
+                .Format("dd/m/Y")
+                .Flex(1)
+                ,
+
+            X.DateColumn()
+                .Text(Resources.UIEndDate)
+                .DataIndex("EndDate")
+                .Flex(1)
+                .Format("dd/m/Y")
+                ,
+
+            X.Column()
+                .Text(Resources.BillNumber)
+                .DataIndex("BillNumber")
+                .Flex(1),
+             Html.X().ImageCommandColumn()
+                        .Width(30)
+                        .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.DELETE, profile, CodeValue.CashRegister.DisplayFacture, db))
+                        .Commands(
+                            Html.X().ImageCommand()
+                                .CommandName("Delete")
+                                .IconCls("icon-delete")
+                                .ToolTip(tt =>
+                                    {
+                                        tt.Text = "Voulez-vous supprimer ?";
+                                        tt.Title = "Supression";
+                                    }
+                                 )
+                        )
+                        .DirectEvents(de =>
+                        {
+                            de.Command.Action = "Delete";
+                            de.Command.Method = HttpMethod.POST;
+                            de.Command.Confirmation.ConfirmRequest = true;
+                            de.Command.Confirmation.Message = Resources.ConfirmDeleteMessage;
+                            de.Command.Confirmation.Title = Resources.ConfirmDeleteTitle;
+                            de.Command.ExtraParams.Add(new Parameter("BillID", "record.data.BillID", ParameterMode.Raw));
+                            de.Command.EventMask.ShowMask = true;
+                            de.Command.EventMask.Msg = Resources.EventMaskMsg;
+                        }),
+            X.ImageCommandColumn()
+                .Width(30)
+                .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, profile, CodeValue.CashRegister.DisplayFacture, db))
+                .Commands(
+                X.ImageCommand()
+                        .CommandName("Edit")
+                        .IconCls("icon-edit")
+                )
+                .DirectEvents(de =>
+                {
+                    de.Command.Action = "InitializeFields";
+                    de.Command.Method = HttpMethod.POST;
+                    de.Command.ExtraParams.Add(new Parameter("BillID", "record.data.BillID", ParameterMode.Raw));
+                    de.Command.EventMask.ShowMask = true;
+                    de.Command.EventMask.Msg = Resources.EventMaskUpdate;
+                })
+
+            )
+                    .Plugins(
+                        X.FilterHeader()
+                    )
+                    .BottomBar(
+                            X.PagingToolbar()
+                    )
+    )
+    @***********************  Bill form  ***************************@
+    @(
+ X.FormPanel()
+        .ID("GlobalBillForm")
+        .MarginSpec("0 0 0 0")
+        .Padding(0)
+        .FieldDefaults(fd => { fd.LabelWidth = 110; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+        .Buttons(
+            X.Button()
+                .ID("btnReceipt")
+                .Text(Resources.printbill)
+                .Icon(Icon.Printer)
+                .OnClientClick("App.FormBillIdentification.setHidden(true);App.Pdf.setHidden(false)")
+                .DirectEvents(de =>
+                {
+                    de.Click.Url = Url.Action("PrintAfficheBill");
+                    de.Click.EventMask.ShowMask = true;
+                    de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                }),
+            X.Button()
+                .Text(Resources.ResetButton)
+                .MarginSpec("0 20 10 10")
+                .OnClientClick("this.up('form').reset();App.FormBillIdentification.setHidden(false);App.Pdf.setHidden(true)")
+        )
+        .Items(
+            X.FormPanel()
+                .ID("FormBillIdentification")
+                .MarginSpec("0 0 0 0")
+                .Title(Resources.CustomerIdentification)
+                .Items(
+        //Top Fields, sale information
+                    X.Container()
+                     .MarginSpec("0 0 0 0")
+        //.Title(" ")
+                     .Layout(LayoutType.Column)
+                     .LayoutConfig(new ColumnLayoutConfig { DefaultValueMode = DefaultValueMode.RenderExplicit })
+                     .Items(
+                        X.TextField().Name("BillID").ID("BillID").Hidden(true),
+                        X.TextField().Name("CustomerID").FieldLabel(Resources.Customer).Hidden(true).ID("CustomerID"),
+                        X.TextField().Name("CustomerName")
+                         .FieldLabel(Resources.Customer)
+                         .ID("CustomerName")
+                         .MarginSpec("5 0 10 0")
+                         .ReadOnly(true),
+                        X.DateField().FieldLabel(Resources.BillDate)
+                            .AllowBlank(false).Name("BillDate")
+                            .ID("BillDate")
+                            .ReadOnly(true)
+                            .MarginSpec("5 0 10 0")
+                            .InputType(Ext.Net.InputType.DateTime)
+                        ,
+                        X.TextField().FieldLabel(Resources.BillNumber)
+                            .MarginSpec("5 0 10 0")
+                            .Name("BillNumber")
+                            .AllowBlank(false)
+                            .ID("BillNumber")
+                            .MinLength(2)
+                            .ReadOnly(true),
+                        X.DateField().FieldLabel(Resources.UIBeginDate)
+                            .MarginSpec("5 0 10 0")
+                            .Name("BeginDate")
+                            .AllowBlank(false)
+                            .ID("BeginDate")
+                            .ReadOnly(true)
+                              ,
+                        X.DateField().FieldLabel(Resources.UIEndDate)
+                        .MarginSpec("5 0 10 0")
+                        .Name("EndDate")
+                        .AllowBlank(false)
+                        .ID("EndDate")
+                        .ReadOnly(true)
+                       )
+                     )
+                     ,
+
+        //Panel for print
+                        X.Container()
+                        .ID("Pdf")
+        //.Title(Resources.panelprintvalreceip)
+                        .Hidden(true)
+                        .Layout(LayoutType.HBox)
+                        .Flex(1)
+        //.Collapsible(true)
+                        .Padding(20)
+                        .AutoScroll(false)
+                        .Hidden(true)
+                        .MinHeight(500)
+                        .Loader(
+                           X.ComponentLoader()
+                            .AutoLoad(false)
+                            .Mode(LoadMode.Frame)
+                            .LoadMask(lm =>
+                                {
+                                    lm.ShowMask = true;
+                                    lm.Msg = Resources.MsgGenerateState;
+                                    lm.UseMsg = true;
+
+                                })
+                            )
+                     )
+
+                        //End sale regelement
+    )
+
+}

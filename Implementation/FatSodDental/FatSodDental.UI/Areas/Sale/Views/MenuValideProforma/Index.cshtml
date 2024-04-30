@@ -1,0 +1,643 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Supply.Entities;
+@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+
+@model System.Collections.IEnumerable
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    string activateValidatePurchase = @"if(App.DepositForm.isValid())
+                                            {
+                                                App.btnSave.setDisabled(false);
+                                            }else{
+                                                App.btnSave.setDisabled(true);
+                                            }";
+
+
+    string handler_Customer_Lens_price = @"
+            var valueLens = App.Verres.getValue();
+            var lensFramePartprice=App.VerreAssurance.getValue();
+
+            lensCustPartprice=valueLens-lensFramePartprice;
+            App.VerreMalade.setValue(lensCustPartprice);
+
+            var PlafondInsPartprice=App.VerreAssurance.getValue()+App.MontureAssurance.getValue();
+            App.Plafond.setValue(PlafondInsPartprice);
+
+            var TotalMalade=App.VerreMalade.getValue()+App.MontureMalade.getValue();
+            App.TotalMalade.setValue(TotalMalade);
+    ";
+    string handler_Customer_Frame_price = @"
+            var valueFrame = App.Monture.getValue();
+            var FrameInsPartprice=App.MontureAssurance.getValue();
+
+            FrameCustPartprice=valueFrame-FrameInsPartprice;
+            App.MontureMalade.setValue(FrameCustPartprice);
+
+            var PlafondInsPartprice=App.VerreAssurance.getValue()+App.MontureAssurance.getValue();
+            App.Plafond.setValue(PlafondInsPartprice);
+
+            var TotalMalade=App.VerreMalade.getValue()+App.MontureMalade.getValue();
+            App.TotalMalade.setValue(TotalMalade);
+    ";
+    string handler_Customer_Plafond_price = @"
+            var valueAmount = App.Debt.getValue();
+            var PlafondInsPartprice=App.Plafond.getValue();
+
+            var TotalMalade=valueAmount-PlafondInsPartprice;
+            App.TotalMalade.setValue(TotalMalade);
+    ";
+    string labelSeparator = " <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :";
+    //string labelPerc = " <span style = \"color : #ff0000; font-size: 1em;\"> % </span> :";
+    //Les valeurs par défaut afin de réduire les clicques sur l'interface de commande
+    int DefaultBranchID = (int)Session["DefaultBranchID"];
+    int DefaultDeviseID = (int)Session["DefaultDeviseID"];
+    int DefaultLocationID = (int)(Session["DefaultLocationID"] != null ? Session["DefaultLocationID"] : 0);
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+@section content
+{
+
+    @************************************************ Sales form informations ********************************@
+    @(
+ X.FormPanel()
+            .ID("PostSupForm")
+            .Frame(true)
+            .MarginSpec("0 10 10 10")
+            .BodyPadding(10)
+        //.Title(Resources.FormUserAddTitle)
+            .Items(
+                X.DateField().FieldLabel("Proforma Date")
+                .AllowBlank(false).Name("SoldDate")
+                .ID("SoldDate")
+                .Format("dd/MM/yyyy")
+                .Value((DateTime)ViewBag.BusnessDayDate)
+                .MarginSpec("10 0 10 0")
+                .InputType(Ext.Net.InputType.DateTime)
+                .DirectEvents(de =>
+                {
+                    de.Change.Action = "ReloadSalesListStore";
+                    de.Change.Method = HttpMethod.POST;
+                    de.Change.EventMask.ShowMask = true;
+                    de.Change.EventMask.Msg = Resources.EventMaskUpdate;
+                }),
+
+                    X.FieldContainer().FieldLabel(Resources.SearchCriteria)
+                        .Layout(LayoutType.HBox)
+                        .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                        .ID("SearchCriteria")
+                        .MsgTarget(MessageTarget.Side)
+                            .Items(
+                                X.ComboBox().Name("Seach Option")//.FieldLabel(Resources.UICollectifAccount)
+                                .Items(new ListItem(Resources.Patient, "NAME"),
+                                        new ListItem(Resources.ReceiptNumber, "NUMBER"))
+                                .Value("NAME")
+                                .ValueField("SearchOption")
+                                .AllowBlank(false).ForceSelection(true)
+                                .ID("SearchOption")
+                                .Width(150)
+                                .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                .EmptyText("Choose Search Option")
+                                .AutoSelect(false)
+                                ,
+                                X.Component().Width(5),
+                                X.TextField().Width(250).ID("SearchValue").Name("SearchValue")
+                                .BlankText("Type Search Value")
+                                .AllowBlank(false)
+                                .DirectEvents(de =>
+                                {
+                                    de.Change.Action = "loadGrid";
+                                })
+                            )
+
+                )
+                
+
+    )
+    @**********All customers pending sales********@
+    @(
+ X.Container()
+    .Layout(LayoutType.HBox)
+    .ID("pendingSalesOp")
+    .MarginSpec("0 10 10 10")
+    .Items(
+        X.GridPanel()
+            .Flex(1)
+            .ID("SalePanelGrid")
+            .Layout(LayoutType.Anchor)
+            .Border(false)
+            .Title(Resources.AllpendingSalesOperation)
+            .DefaultAnchor("100%")
+            .Store(
+               X.Store()
+                .GroupField("Pending sales")
+                .ID("SalesListStore")
+                .RemotePaging(true)
+                .AutoLoad(true)
+                .PageSize(5)
+                .Model(
+                    X.Model()
+                        .IDProperty("CustomerOrderID")
+                        .Fields(
+                            new ModelField("CustomerOrderNumber", ModelFieldType.String),
+                            new ModelField("CustomerFullName", ModelFieldType.String),
+                            new ModelField("CustomerOrderDate", ModelFieldType.Date),
+                            new ModelField("SaleTotalPrice", ModelFieldType.Float),
+                            new ModelField("Remainder", ModelFieldType.Float)
+                        )
+                )
+                .DataSource(Model)
+                .ServerProxy(
+                    X.AjaxProxy()
+                    .Url(Url.Action("PendingCustomerSale", "MenuValideProforma"))
+                    .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                    .Reader(X.JsonReader().RootProperty("data"))
+                )
+
+                .Parameters(ps =>
+                    {
+                        ps.Add(new StoreParameter("BranchID", "App.BranchID.getValue()", ParameterMode.Raw));
+                        ps.Add(new StoreParameter("SoldDate", "App.SoldDate.getValue()", ParameterMode.Raw));
+                        ps.Add(new StoreParameter("SearchOption", "App.SearchOption.getValue()", ParameterMode.Raw));
+                        ps.Add(new StoreParameter("SearchValue", "App.SearchValue.getValue()", ParameterMode.Raw));
+                    }
+
+                )
+
+            )
+            .ColumnModel(
+                X.RowNumbererColumn()
+                ,
+                X.Column()
+                    .Text(Resources.SaleRef)
+                    .DataIndex("CustomerOrderNumber")
+                    .Flex(1)
+                    ,
+                X.Column()
+                    .Text(Resources.Customer)
+                    .DataIndex("CustomerFullName")
+                    .Flex(1)
+                    ,
+                    X.DateColumn()
+                    .Text(Resources.UIDateOperation)
+                    .DataIndex("CustomerOrderDate")
+                    .Flex(1),
+                X.Column()
+                    .Text(Resources.SaleAmount)
+                    .DataIndex("SaleTotalPrice")
+                    .Flex(1),
+                X.Column()
+                    .Text(Resources.Remainder)
+                    .DataIndex("Remainder")
+                    .Flex(1)
+                    ,
+                    X.ImageCommandColumn()
+                    .Width(30)
+                    .Hidden(LoadAction.IsMenuActionAble(MenuAction.UPDATE, profile, CodeValue.Sale.NewSale.ValideProforma, db))
+                    .Commands(
+                    X.ImageCommand()
+                            .CommandName("Edit")
+                            .IconCls("icon-edit")
+                    )
+                    .DirectEvents(de =>
+                    {
+                        de.Command.Action = "InitializeFields";
+                        //de.Command.Method = HttpMethod.POST;
+                        de.Command.ExtraParams.Add(new Parameter("CustomerOrderID", "record.data.CustomerOrderID", ParameterMode.Raw));
+                        de.Command.EventMask.ShowMask = true;
+                        de.Command.EventMask.Msg = Resources.EventMaskUpdate;
+                    }),
+                 Html.X().ImageCommandColumn()
+                                .Width(30)
+                                .Hidden(LoadAction.IsMenuActionAble(MenuAction.DELETE, profile, CodeValue.Sale.NewSale.ValideProforma, db))
+                                .Commands(
+                                    Html.X().ImageCommand()
+                                        .CommandName("Delete")
+                                        .IconCls("icon-delete")
+                                        .ToolTip(tt =>
+                                            {
+                                                tt.Text = "Voulez-vous supprimer ?";
+                                                tt.Title = "Supression";
+                                            }
+                                         )
+                                )
+                                .DirectEvents(de =>
+                                {
+                                    de.Command.Action = "Delete";
+                                    de.Command.Method = HttpMethod.POST;
+                                    de.Command.Confirmation.ConfirmRequest = true;
+                                    de.Command.Confirmation.Message = Resources.ConfirmDeleteMessage;
+                                    de.Command.Confirmation.Title = Resources.ConfirmDeleteTitle;
+                                    de.Command.ExtraParams.Add(new Parameter("CustomerOrderID", "record.data.CustomerOrderID", ParameterMode.Raw));
+                                    de.Command.EventMask.ShowMask = true;
+                                    de.Command.EventMask.Msg = Resources.EventMaskMsg;
+                                })
+
+                )
+                        .Plugins(
+                            X.FilterHeader()
+                        )
+                        .BottomBar(
+                                X.PagingToolbar()
+                        )
+     )
+    )
+    @(
+ X.FormPanel()
+        //.Width(1000)
+        // .Height(350)
+        .ID("DepositForm")
+        .Layout(LayoutType.Column)
+        .MarginSpec("5 10 10 10")
+            .Title(Resources.InfoDeposit)
+            .Buttons(
+
+                        X.Button()
+                            .ID("btnSave")
+                            .Text(Resources.ValidateButton)
+                            .OnClientClick("App.Pdf.setHidden(true)")
+                            .Disabled(true)
+                            .Icon(Icon.Disk)
+                            .DirectEvents(de =>
+                            {
+                                de.Click.Url = Url.Action("ValidateProforma", "MenuValideProforma");
+                                de.Click.EventMask.ShowMask = true;
+                                de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                            })
+                                ,
+                            X.Button()
+                            .ID("btnPrintFacture")
+                            .Text(Resources.Printfacture)
+                            .Icon(Icon.Printer)
+                            .Disabled(true)
+                            .OnClientClick("App.Pdf.setHidden(false)")
+                            .DirectEvents(de =>
+                            {
+                                de.Click.Url = Url.Action("PrintFacture", "MenuValideProforma");
+                                de.Click.EventMask.ShowMask = true;
+                                de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                            }),
+        
+                        X.Button()
+                        .ID("btnPrintBordDep")
+                        .Text(Resources.PrintBordDep)
+                        .Icon(Icon.Printer)
+                        .Disabled(true)
+                        .OnClientClick("App.Pdf.setHidden(false)")
+                        .DirectEvents(de =>
+                        {
+                        de.Click.Url = Url.Action("PrintBorderoDepotLunette", "MenuValideProforma");
+                        de.Click.EventMask.ShowMask = true;
+                        de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                        }),
+
+                        X.Button()
+                            .ID("Cancel1")
+                            .Text(Resources.Cancel)
+                            .MarginSpec("0 20 10 10")
+                            .OnClientClick("App.Pdf.setHidden(true)")
+                            .DirectEvents(de =>
+                            {
+                                de.Click.Url = Url.Action("Reset");
+                                de.Click.Complete = "";
+                                de.Click.EventMask.ShowMask = true;
+                                de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                            })
+                    )
+        .Listeners(ls =>
+        {
+            ls.FieldChange.Handler = activateValidatePurchase;
+        })
+        .Items(
+            X.TextField().Name("PurchaseID").ID("PurchaseID").Hidden(true),
+             X.Container()
+                .Layout(LayoutType.VBox)
+                .MarginSpec("10 10 0 10")
+                .Items(//General Container 1
+                     X.TextField().Name("CompteurFacture").ID("CompteurFacture").Hidden(true),
+                     X.TextField().Name("DeviseID").ID("DeviseID").Hidden(true),
+                     X.TextField().Name("CustomerOrderNumber").ID("CustomerOrderNumber").Hidden(true),
+                     X.TextField().Name("NumeroFacture").ID("NumeroFacture").Hidden(true),
+                    X.ComboBox()
+                    .ID("BranchID")
+                    .Name("BranchID")
+                    .FieldLabel(Resources.Branches)
+                    .Value(DefaultBranchID)
+                    .AllowBlank(false)
+                    .BlankText(Resources.Branches + " " + Resources.RequiredField)
+                    .LabelSeparator(labelSeparator)
+                    .EmptyText(Resources.Select)
+                    .Items(LoadComponent.GetOpenedBranches)
+                    .ForceSelection(true)
+        //.DisplayField("BranchName")
+        //.ValueField("BranchID")
+                    .DirectEvents(de =>
+                    {
+                        de.Change.Url = Url.Action("ChangeBusDay");
+                        de.Change.ExtraParams.Add(new Parameter("BranchID", "this.getValue()", ParameterMode.Raw));
+                        de.Change.EventMask.ShowMask = true;
+                        de.Change.EventMask.Msg = Resources.EventMaskMsg;
+                    })
+
+                    ,
+
+                        X.DateField().FieldLabel(Resources.DepositDate)
+                        .AllowBlank(false)
+                        .Name("CustomerOrderDate")
+                        .ID("DepositDate")
+                        .InputType(Ext.Net.InputType.DateTime)
+                        .Value(ViewBag.BusnessDayDate)
+                        .ReadOnly(true),
+                    X.TextField()
+                        .Name("CustomerName")
+                        .FieldLabel(Resources.Customer)
+                        .AllowBlank(false)
+                        .MarginSpec("2 0 10 0")
+                        .ReadOnly(true)
+                        .ID("CustomerName")
+                        .LabelSeparator(labelSeparator)
+                        .EmptyText(Resources.Select)
+        //.Width(310)
+                        ,
+                     X.TextField()
+                        .Name("CompanyName")
+                        .FieldLabel(Resources.Company)
+                        .AllowBlank(false)
+                        .MarginSpec("2 0 10 0")
+                        .ReadOnly(true)
+                        .ID("CompanyName")
+                        .LabelSeparator(labelSeparator)
+                        .EmptyText(Resources.Select)
+        //.Width(310)
+                        ,
+                     X.ComboBox()
+                        .Name("AssureurID")
+                        .FieldLabel(Resources.Assureur)
+                        .AllowBlank(false)
+                        .MarginSpec("2 0 10 0")
+                        .ID("Assureur")
+                        .LabelSeparator(labelSeparator)
+                        .EmptyText(Resources.Select)
+                        .Items(LoadComponent.GetAllAssureus())
+                        .DirectEvents(de =>
+                        {
+                            de.Change.Url = Url.Action("GenerateBill");
+                            de.Change.ExtraParams.Add(new Parameter("Assureur", "this.getValue()", ParameterMode.Raw));
+                            de.Change.EventMask.ShowMask = true;
+                            de.Change.EventMask.Msg = Resources.EventMaskUpdate;
+                        })
+        //.Width(310)
+                     ,
+                     X.TextField()
+                        .Name("PoliceAssurance")
+                        .FieldLabel(Resources.PoliceAssurance)
+                        .AllowBlank(false)
+                        .MarginSpec("2 0 10 0")
+                        .ID("PoliceAssurance")
+                        .LabelSeparator(labelSeparator)
+                        .EmptyText(Resources.Select)
+                    ,
+                     X.TextField()
+                        .Name("NumeroBonPriseEnCharge")
+                        .FieldLabel(Resources.NumeroBonPriseEnCharge)
+                        .AllowBlank(false)
+                        .MarginSpec("2 0 10 0")
+                        .ID("NumeroBonPriseEnCharge")
+                        .LabelSeparator(labelSeparator)
+                        .EmptyText(Resources.Select)
+        //.Width(310)
+                ),
+                X.Container()
+                .ID("SalePaiementContainer")
+                .Layout(LayoutType.VBox)
+                .MarginSpec("10 0 0 20")
+                .Items(//Sale Paiement Container
+                    X.TextField()
+                        .Name("PhoneNumber")
+                        .FieldLabel(Resources.PhoneNumber)
+                        .AllowBlank(true)
+                        .MarginSpec("2 0 10 0")
+                        //.ReadOnly(true)
+                        .ID("PhoneNumber")
+                        .EmptyText(Resources.Select),
+                    X.TextField()
+                        .Name("Remarque")
+                        .FieldLabel(Resources.Remarque)
+                        .AllowBlank(false)
+                        .MarginSpec("2 0 10 0")
+                        .ReadOnly(true)
+                        .ID("Remarque")
+                        .EmptyText(Resources.Select),
+                    X.TextField()
+                        .Name("MedecinTraitant")
+                        .FieldLabel(Resources.MedecinTraitant)
+                        .AllowBlank(false)
+                        .MarginSpec("2 0 10 0")
+                        .ReadOnly(true)
+                        .ID("MedecinTraitant")
+                        .EmptyText(Resources.Select),
+                    X.NumberField()
+                        .FieldLabel(Resources.Debt)
+                        .ID("Debt")
+                        .Name("Debt")
+                        .MarginSpec("0 0 5 0")
+                        .AllowBlank(false)
+                        .EnforceMaxLength(true)
+                        .ReadOnly(true)
+                         ,
+        /*X.NumberField()
+            .FieldLabel(Resources.Plafond)
+            .ID("PlafondAssurance")
+            .Name("PlafondAssurance")
+            .MarginSpec("0 0 5 0")
+            .AllowBlank(false)
+            .EnforceMaxLength(true)
+            .MinValue(0)
+            .Value(0)
+             ,*/
+
+                    X.NumberField()
+                        .FieldLabel(Resources.lenses)
+                        .ID("Verres")
+                        .Name("Verres")
+                        .MarginSpec("0 0 5 0")
+                        .AllowBlank(false)
+                        .EnforceMaxLength(true)
+        //.ReadOnly(true)
+                            ,
+                        X.NumberField()
+                        .FieldLabel(Resources.Monture)
+                        .ID("Monture")
+                        .Name("Monture")
+                        .MarginSpec("0 0 5 0")
+                        .AllowBlank(false)
+                        .EnforceMaxLength(true)
+        //.ReadOnly(true)
+                        ,
+
+                   X.TextField()
+                        .Name("CustomerOrderID")
+                        .Hidden(true)
+                        .FieldLabel(Resources.SAL)
+                        .AllowBlank(true)
+                        .MarginSpec("5 0 10 0")
+                        .BlankText(Resources.Customer + " " + Resources.RequiredField)
+                        .ID("CustomerOrderID")
+                ),
+                 X.Container()
+                .Layout(LayoutType.VBox)
+                .MarginSpec("10 0 0 20")
+                .Items(
+                    X.Radio().BoxLabel(Resources.No).Name("DatailBill")
+                        .ID("NoDetail").InputValue("0")                     
+                        .InputType(Ext.Net.InputType.Radio)
+                        .MarginSpec("5 5 10 0")
+                        .Listeners(ls =>
+                        {
+                            ls.Focus.Handler = @"
+                                            {
+                                                App.VerreAssurance.setHidden(true); App.MontureAssurance.setHidden(true);
+                                                App.lbLens.setHidden(true); App.lbMonture.setHidden(true);
+                                                App.lbLensP.setHidden(true); App.lbMontureP.setHidden(true);
+                                                App.Plafond.setReadOnly(false);App.VerreMalade.setHidden(true); 
+                                                App.MontureMalade.setHidden(true); 
+                                            }
+                                            ";
+                        }
+                        )
+                    .FieldLabel("           ").LabelSeparator("")
+                    ,
+                    X.Radio().BoxLabel(Resources.Yess).Name("DatailBill")
+                        .ID("IsDetail").InputValue("1")
+                        .MarginSpec("5 8 10 0")
+                        .FieldLabel(Resources.DetailBill)   
+                        .Checked(true)
+                        .LabelWidth(110)
+                        .Listeners(ls =>
+                        {
+                            ls.Focus.Handler = @"
+                                                {
+
+                                                App.VerreAssurance.setHidden(false);App.MontureAssurance.setHidden(false);
+                                                App.lbLens.setHidden(false); App.lbMonture.setHidden(false);
+                                                App.lbLensP.setHidden(false); App.lbMontureP.setHidden(false);
+                                                App.Plafond.setReadOnly(true);App.VerreMalade.setHidden(false);
+                                                App.MontureMalade.setHidden(false);
+                                                }
+                                            ";
+                        }
+                    )
+                 )
+                ,
+                X.Container()
+                .Layout(LayoutType.VBox)
+                .MarginSpec("10 0 0 20")
+                .Items(//General Container 2
+                            X.FieldSet()
+                                  .Width(370)
+                                  .MarginSpec("0 0 0 0")
+                                  .ID("ParAssuranceProperties")
+                                  .MinHeight(60)
+                                  .Title(Resources.ParAssurance)
+                                  .Items
+                                  (
+                                  X.Container()
+                                            .Layout(LayoutType.Column)
+                                            .MarginSpec("0 0 0 5")
+                                            .Items(
+                                                    X.Label().Text(Resources.lenses).ID("lbLens").MarginSpec("0 70 0 40"),
+                                                    X.Label().Text(Resources.Monture).ID("lbMonture").MarginSpec("0 70 0 0"),
+                                                    X.Label().Text(Resources.TotalAmount).ID("lbTotal").MarginSpec("0 20 0 0")
+                                            ),
+        //Contaenant des Inputs de l'oeil Droit : Troixième ligne
+                                            X.Container()
+                                            .Layout(LayoutType.Column)
+                                            .MarginSpec("2 0 10 5")
+                                            .Items(
+                                                    X.NumberField().Width(100).MarginSpec("0 15 0 0").Name("VerreAssurance").ID("VerreAssurance").AllowBlank(false)
+                                                    .Listeners(ls =>
+                                                    {
+                                                        ls.Change.Handler = handler_Customer_Lens_price;
+                                                    }),//VerreAssurance
+                                                    X.NumberField().Width(100).MarginSpec("0 15 0 0").Name("MontureAssurance").ID("MontureAssurance").AllowBlank(false)
+                                                    .Listeners(ls =>
+                                                    {
+                                                        ls.Change.Handler = handler_Customer_Frame_price;
+                                                    }),//MontureAssurance
+                                                    X.NumberField().Width(100).MarginSpec("0 5 0 0").Name("Plafond").ID("Plafond").AllowBlank(false).ReadOnly(true)
+                                                    .Listeners(ls =>
+                                                    {
+                                                        ls.Change.Handler = handler_Customer_Plafond_price;
+                                                    })
+                                            )
+                                  ),
+                           X.FieldSet()
+                                  .Width(370)
+                                  .MarginSpec("0 0 0 0")
+                                  .ID("ParMaladeProperties")
+                                  .MinHeight(60)
+                                  .Title(Resources.ParMalade)
+                                  .Items
+                                  (
+                                  X.Container()
+                                            .Layout(LayoutType.Column)
+                                            .MarginSpec("0 0 0 5")
+                                            .Items(
+                                                    X.Label().Text(Resources.lenses).MarginSpec("0 70 0 40").ID("lbLensP"),
+                                                    X.Label().Text(Resources.Monture).MarginSpec("0 70 0 0").ID("lbMontureP"),
+                                                    X.Label().Text(Resources.TotalAmount).MarginSpec("0 20 0 0").ID("lbTotalP")
+                                            ),
+        //Contaenant des Inputs de l'oeil Droit : Troixième ligne
+                                            X.Container()
+                                            .Layout(LayoutType.Column)
+                                            .MarginSpec("2 0 10 5")
+                                            .Items(
+                                                    X.NumberField().Width(100).MarginSpec("0 15 0 0").Name("VerreMalade").ID("VerreMalade").ReadOnly(true).AllowBlank(false),//VerreAssurance
+                                                    X.NumberField().Width(100).MarginSpec("0 15 0 0").Name("MontureMalade").ID("MontureMalade").ReadOnly(true).AllowBlank(false),//MontureAssurance
+                                                    X.NumberField().Width(100).MarginSpec("0 5 0 0").Name("TotalMalade").ID("TotalMalade").ReadOnly(true).AllowBlank(false)
+                                            )
+                                  )
+
+                    )
+    )//fin du formulaire
+
+    )@*fin de l'élément razor*@
+
+
+    @(
+ X.Container()
+        //Panel for print
+            .Items(X.Panel()
+                                .ID("Pdf")
+                                .Title(Resources.panelprintvalreceip)
+                                .Hidden(true)
+                                .Layout(LayoutType.HBox)
+                                .Flex(1)
+                                .Collapsible(true)
+                                .Padding(1)
+                                .AutoScroll(false)
+                                .Hidden(true)
+                                .MinHeight(500)
+                                .MinWidth(500)
+                                .Loader(
+                                   X.ComponentLoader()
+                                    .AutoLoad(false)
+                                    .Mode(LoadMode.Frame)
+                                    .LoadMask(lm =>
+                                        {
+                                            lm.ShowMask = true;
+                                            lm.Msg = Resources.MsgGenerateState;
+                                            lm.UseMsg = true;
+
+                                        })
+                                    )
+        )
+
+    )
+}

@@ -1,0 +1,453 @@
+﻿@using FatSod.Ressources;
+@using CABOPMANAGEMENT.Tools;
+@using FatSod.DataContext.Initializer;
+
+@model CABOPMANAGEMENT.Areas.Supply.ViewModel.ProductModel
+
+@{
+    ViewBag.Title = @Resources.b_GenericProduct;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var profile = (Session["UserProfile"] == null) ? 0 : (int)Session["UserProfile"];
+    var user = (Session["UserID"] == null) ? 0 : (int)Session["UserID"];
+
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+
+<div class="box box-primary box-body">
+    <!--<form id="FormAccountingSection">-->
+    @****************************@
+    @Html.AntiForgeryToken()
+
+    <h6>@Resources.RequireField<code>(*)</code>.</h6>
+    <hr>
+
+    <div class="box box-primary box-body">
+        <div class="row">
+            <!-- Left Side Begins Here -->
+            <div class="col-sm-6">
+                <div class="panel panel-default">
+                    <div class="panel-body1">
+                        <fieldset>
+                            <input type="hidden" id="ProductID" />
+
+
+                            <div class="row ipt">
+                                <!-- ProductCode -->
+                                <div class="col-sm-4">@Resources.Code<code>(*)</code></div>
+                                <div class="col-sm-8">
+                                    <input type="text" id="ProductCode" class="input-sm form-control" />
+                                </div>
+                            </div>
+                            <div class="row ipt">
+                                <!-- Date Operation -->
+                                <div class="col-sm-4">@Resources.Label<code>(*)</code></div>
+                                <div class="col-sm-8">
+                                    <input type="text" id="ProductLabel" class="input-sm form-control" />
+                                </div>
+                            </div>
+
+                            <div class="row ipt">
+                                <!-- ProductDescription -->
+                                <div class="col-sm-4">@Resources.Description<code>(*)</code></div>
+                                <div class="col-sm-8">
+                                    <textarea id="ProductDescription" class="input-sm form-control"></textarea>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+            </div>
+            <!-- Right Side Begins Here -->
+            <div class="col-sm-6">
+                <div class="panel panel-default">
+                    <div class="panel-body1">
+                        <fieldset style="border-left: 2px solid black">
+                            <div class="row ipt">
+                                <!-- Categories -->
+                                <div class="col-sm-4">@Resources.Categories<code>(*)</code></div>
+                                <div class="col-sm-8">
+                                    <select id="CategoryID" class="input-sm form-control"></select>
+                                </div>
+                            </div>
+                            <div class="row ipt">
+                                <!-- AccountNumber -->
+                                <div class="col-sm-4">@Resources.AccountNumber<code>(*)</code></div>
+                                <div class="col-sm-8">
+                                    <select id="AccountID" class="input-sm form-control"></select>
+                                </div>
+                            </div>
+
+                            <div class="row ipt">
+                                <div class="col-sm-4">@Resources.Stores<code>(*)</code></div>
+                                <div class="row ipt">
+                                    <div class="col-sm-8">
+                                        <select id="Stores" class="input-sm form-control"></select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row ipt">
+                                <!-- ProductCode -->
+                                <div class="col-sm-4">@Resources.Sellingprice</div>
+                                <div class="col-sm-8">
+                                    <input type="text" id="SellingPrice" class="input-sm form-control" />
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row ipt">
+            <div class="col-sm-4">
+                <button type="button" id="btnCancel" class="btn btn-primary">@Resources.ResetButton</button>
+            </div>
+            <div class="col-sm-8">
+                <button type="submit" class="btn btn-primary" id="btnSubmit">@Resources.SaveButton</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Ajout de la table contenant les data deja enregistrees-->
+<h2>@Resources.GenericProductList</h2>
+<div class="box box-body box-primary">
+
+    <table class="table" id="mainTable">
+        <thead>
+            <tr class="dataTableHead">
+                <th>
+                    ID
+                </th>
+                <th>
+                    @Resources.Code
+                </th>
+                <th>
+                    @Resources.Label
+                </th>
+                <th>
+                    @Resources.Category
+                </th>
+                <th>
+                    @Resources.AccountNumber
+                </th>
+
+                <th>
+                    @Resources.Description
+                </th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        @foreach (var item in Model.Products)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ProductID)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ProductCode)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ProductLabel)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Category.CategoryLabel)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Account.AccountLabel)
+                </td>
+
+                <td>
+                    @Html.DisplayFor(modelItem => item.ProductDescription)
+                </td>
+
+                <td>
+                    @if (!LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, @profile, CodeValue.Supply.GenericProduct_SM.CODE, db))
+                    {<a href=# onclick="UpdateItem(this)"><span class="glyphicon glyphicon-edit"></span></a> } |
+                    @if (!LoadAction.IsSubMenuActionAble(MenuAction.DELETE, @profile, CodeValue.Supply.GenericProduct_SM.CODE, db))
+                    {<a href=# onclick="DeleteItem(this)"><span class="glyphicon glyphicon-trash"></span></a> }
+                </td>
+            </tr>
+        }
+
+    </table>
+</div>
+
+
+<!--********** JavaScripts **********-->
+<script>
+   function populateCategory() {
+        $.get('@Url.Action("GetCategories", "GenericProduct")', {}, function (data) {
+            $('#CategoryID').empty();
+            $('#CategoryID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#CategoryID').append($("<option></option>").val(value.CategoryID).html(value.Name));
+            });
+        }, 'json');
+    }
+    function populateAccount()
+    {
+        $.get('@Url.Action("GetAccounts", "GenericProduct")', {}, function (data) {
+            $('#AccountID').empty();
+            $('#AccountID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#AccountID').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+    function populateStores() {
+        $.get('@Url.Action("GetStores", "GenericProduct")', {}, function (data) {
+            $('#Stores').empty();
+            $('#Stores').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#Stores').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+
+        }, 'json');
+    }
+    function UpdateItem(obj) {
+        var globalID = $(obj).parent().siblings(":first").text();
+        clearForm();
+        $.get('@Url.Action("InitializeProductFields", "GenericProduct")', { ID: globalID }, function (data) {
+            $.each(data, function (key, value) {
+                $('#ProductID').val(value.ProductID);
+                $('#ProductCode').val(value.ProductCode);
+                $('#ProductLabel').val(value.ProductLabel);
+                $('#ProductDescription').val(value.ProductDescription);
+
+                $('#CategoryID').val(value.CategoryID);
+                $('#AccountID').val(value.AccountID);
+                $('#Stores').val(value.Stores);
+                $('#SellingPrice').val(value.SellingPrice);
+                
+            });
+        }, 'json');
+    }
+
+    function clearForm() {
+
+        $('#ProductID').val('');
+        $('#ProductCode').val('');
+        $('#ProductLabel').val('');
+        $('#ProductDescription').val('');
+
+        $('#CategoryID').val('');
+        $('#AccountID').val('');
+        $('#Stores').val('');
+        $('#SellingPrice').val('0');
+        
+    }
+
+    function ValideProduct()
+    {
+        var isAllValid = true;
+
+
+        if ($('#CategoryID').val() == '0') {
+            isAllValid = false;
+            $("#CategoryID").addClass("invalid-data");
+        }
+        else {
+            $("#CategoryID").addClass("valid-data");
+        }
+
+        if ($('#AccountID').val() == '0') {
+            isAllValid = false;
+            $("#AccountID").addClass("invalid-data");
+        }
+        else {
+            $("#AccountID").addClass("valid-data");
+        }
+        if ($('#ProductCode').val() == '') {
+            isAllValid = false;
+            $("#ProductCode").addClass("invalid-data");
+        }
+        else {
+            $("#ProductCode").addClass("valid-data");
+        }
+
+        if ($('#Stores').val() == '0') {
+            isAllValid = false;
+            $("#Stores").addClass("invalid-data");
+        }
+        else {
+            $("#Stores").addClass("valid-data");
+        }
+
+        if ($('#ProductLabel').val().trim() == '') {
+            isAllValid = false;
+            $("#ProductLabel").addClass("invalid-data");
+        }
+        else {
+            $("#ProductLabel").addClass("valid-data");
+        }
+
+        if ($('#ProductDescription').val().trim() == '') {
+            isAllValid = false;
+            $("#ProductDescription").addClass("invalid-data");
+        }
+        else {
+            $("#ProductDescription").addClass("valid-data");
+        }
+
+        
+        if (isAllValid) {
+
+
+            var data = {
+
+                ProductID: $('#ProductID').val(),
+                CategoryID: $('#CategoryID').val(),
+                AccountID: $('#AccountID').val(),
+                ProductCode: $('#ProductCode').val().trim(),
+                Stores: $('#Stores').val().trim(),
+                ProductLabel: $('#ProductLabel').val(),
+                ProductDescription: $('#ProductDescription').val().trim(),
+                SellingPrice: $('#SellingPrice').val()
+            }
+            $(this).val('Please wait...');
+
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("AddManager", "GenericProduct")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        location.reload(true);
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                }
+            });
+        }
+    }
+
+    $(document).on('ready', function () {
+        populateCategory();
+        populateAccount();
+        populateStores();
+
+        $('#btnCancel').on('click', function () {
+            clearForm();
+        });
+
+
+        $('#mainTable').DataTable();
+
+        $('#btnSubmit').on('click', function () {
+            ValideProduct();
+        });
+    });
+    //supression commande en attente
+    function DeleteItem(obj) {
+        if (confirm("Do you want to Delete ?")) {
+            var globalID = $(obj).parent().siblings(":first").text();
+            //post to the server
+            $(this).val('Please wait...');
+            var data = {
+                ProductID: parseInt(globalID)
+            }
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("DeleteProduct", "GenericProduct")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        location.reload(true);
+                        //ClearForm();
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                }
+            });
+        }
+
+    }
+</script>
+
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 3px;
+        margin-left: 1px;
+    }
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin: 0;
+        min-width: 0;
+        padding: 10px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 300px;
+    }
+
+    .panel-body1 {
+        height: 120px;
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+</style>

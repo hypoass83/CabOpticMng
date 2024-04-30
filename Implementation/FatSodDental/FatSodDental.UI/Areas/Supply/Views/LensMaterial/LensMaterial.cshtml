@@ -1,0 +1,216 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Supply.Entities;
+@using FatSod.DataContext.Initializer;
+
+@{
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    //ViewBag.Title = FatSod.Ressources.Resources.a_LensMaterial;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+@section content
+{
+
+    <h1></h1>
+
+    <p>
+        @FatSod.Ressources.Resources.RequireField <code>(*)</code>.
+    </p>
+
+    @(
+
+            //Début du FormPanel
+            X.FormPanel()
+            //paramétrages du formpanel
+                .ID("LensMaterialForm")
+                .Collapsible(true)
+                .Layout(LayoutType.Column)
+                .Title(FatSod.Ressources.Resources.LensMaterialAddTitle)
+                .Frame(true)
+                .MarginSpec("0 20 20 20")
+                .BodyPadding(10)
+                .FieldDefaults(fd => { fd.LabelWidth = 120; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+                //buttons enregistrer et Réinitialiser
+                .Buttons(
+                    //buttons enregistrer
+                    X.Button()
+                        .ID("btnSave")
+                        .Text(FatSod.Ressources.Resources.SaveButton)
+                        .Disabled(true)
+                        .Icon(Icon.Disk)
+                        .Margin(10)
+                        //.DirectClickAction(addAction),
+                            .DirectEvents(
+                                de =>
+                                {
+                                    de.Click.Url = Url.Action("AddManager");
+                                    de.Click.EventMask.ShowMask = true;
+                                    de.Click.EventMask.Msg = FatSod.Ressources.Resources.EventMaskMsg;
+                                }
+                            ),
+                        //buttons Réinitialiser
+                        X.Button()
+                            .ID("btnReset")
+                            .Text(FatSod.Ressources.Resources.ResetButton)
+                            .Icon(Icon.ArrowRefresh)
+                            .MarginSpec("0 20 10 10")
+                            .DirectEvents(
+                                    de =>
+                                    {
+                                        de.Click.Url = Url.Action("Reset");
+                                        de.Click.EventMask.ShowMask = true;
+                                        de.Click.EventMask.Msg = FatSod.Ressources.Resources.EventMaskMsg;
+                                    }
+                            )
+                    )
+                    //listeners du formpanel
+                    .Listeners(
+                        ls =>
+                        {
+                            ls.FieldChange.Handler = "if(App.LensMaterialForm.isValid()){App.btnSave.setDisabled(false);}else{App.btnSave.setDisabled(true);}";
+                            ls.AfterRender.Handler = "if(App.LensMaterialForm.isValid()){App.btnSave.setDisabled(false);}else{App.btnSave.setDisabled(true);}";
+                        }
+                     )
+                    //les champs de saisie du formulaire                    
+                     .Items(
+                        X.Container() @*début du box contenant code et libellé*@
+                        .Layout(LayoutType.VBox)
+                        .Items(
+                        //identifiant
+                        X.TextField()
+                            .Name("LensMaterialID")
+                            .ID("LensMaterialID")
+                            .Hidden(true)
+                            ,
+                        //code
+                        X.TextField()
+                            .ID("LensMaterialCode")
+                            .Name("LensMaterialCode")
+                            .FieldLabel(FatSod.Ressources.Resources.Code)
+                            .MsgTarget(MessageTarget.Side)//le lieu d'affichage du message d'erreur lié à un défaut de validation
+                            .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                            .BlankText(FatSod.Ressources.Resources.InputBlankTextMessage)//message qui sera afficher si le champ reste vide
+                            .AllowBlank(false)//dit si oui ou non le champ peut etre vide
+                            .MinLength(3),
+                        //label
+                        X.TextField()
+                            .ID("LensMaterialLabel")
+                            .Name("LensMaterialLabel")
+                            .FieldLabel(FatSod.Ressources.Resources.Label)
+                            .MsgTarget(MessageTarget.Side)//le lieu d'affichage du message d'erreur lié à un défaut de validation
+                            .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :") //séparateur entre le texte du label et la zone de saisie
+                            .BlankText(FatSod.Ressources.Resources.InputBlankTextMessage)//message qui sera afficher si le champ reste vide
+                            .AllowBlank(false)//dit si oui ou non le champ peut etre vide
+                            ), @*début du box contenant code et libellé*@
+                        //description
+                        X.TextArea()
+                            .ID("LensMaterialDescription")
+                            .Name("LensMaterialDescription")
+                            .FieldLabel(FatSod.Ressources.Resources.Description)
+                            .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"></span> :")//séparateur entre le texte du label et la zone de saisie
+                        )
+                    @*Fin du FormPanel*@
+                 )
+    @*fin de la partie formulaire*@
+
+    @*Début du tableau*@
+        @(Html.X().GridPanel()
+        .Title(FatSod.Ressources.Resources.LensMaterialList)
+        .ID("LensMaterialList")
+        .Layout(LayoutType.Fit)
+        .MarginSpec("0 20 20 20")
+        .Frame(true)
+        .Collapsible(true)
+        .Store(
+            Html.X().Store()
+                .ID("LensMaterialListStore")
+                .AutoLoad(true)
+                .PageSize(10)
+                .GroupField("Light")
+                .Model(Html.X().Model()
+                    .Fields(
+                        new ModelField() { Name = "LensMaterialID", Type = ModelFieldType.Int },
+                        new ModelField() { Name = "LensMaterialCode", Type = ModelFieldType.String },
+                        new ModelField() { Name = "LensMaterialLabel", Type = ModelFieldType.String },
+                        new ModelField() { Name = "LensMaterialDescription", Type = ModelFieldType.String }                    
+                    )
+                )
+
+                .Proxy(X.AjaxProxy()
+                    .Url(Url.Action("GetAllCategories"))
+                    .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                    .Reader(X.JsonReader().RootProperty("data"))
+                )
+                
+            )
+
+        .ColumnModel(
+            Html.X().Column()
+                    .Text(FatSod.Ressources.Resources.Code)
+                    .DataIndex("LensMaterialCode")
+                    .Flex(1)
+                    ,
+            Html.X().Column()
+                .Text(FatSod.Ressources.Resources.Label)
+                .DataIndex("LensMaterialLabel")
+                .Flex(1)
+                ,
+            Html.X().Column()
+                .Text(FatSod.Ressources.Resources.Description)
+                .DataIndex("LensMaterialDescription")
+                .Flex(1),
+            Html.X().ImageCommandColumn()
+                        .Width(30)
+                        .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.DELETE, profile, CodeValue.Supply.LensMaterial_SM.CODE,db))
+                        .Commands(
+                            Html.X().ImageCommand()
+                                .CommandName("Delete")
+                                .IconCls("icon-delete")
+                                .ToolTip(tt =>
+                                    {
+                                        tt.Text = FatSod.Ressources.Resources.ConfirmDeleteMessage;
+                                        tt.Title = "Supression";
+                                    }
+                                 )
+                        )
+                        .DirectEvents(de =>
+                        {
+                            de.Command.Action = "DeleteLensMaterial";
+                            de.Command.Method = HttpMethod.POST;
+                            de.Command.Confirmation.ConfirmRequest = true;
+                            de.Command.Confirmation.Message = FatSod.Ressources.Resources.ConfirmDeleteMessage;
+                            de.Command.Confirmation.Title = FatSod.Ressources.Resources.ConfirmDeleteTitle;
+                            de.Command.ExtraParams.Add(new Parameter("LensMaterialID", "record.data.LensMaterialID", ParameterMode.Raw));
+                            de.Command.EventMask.ShowMask = true;
+                            de.Command.EventMask.Msg = FatSod.Ressources.Resources.EventMaskMsg;
+                        }),
+            Html.X().ImageCommandColumn()
+                    .Width(30)
+                    .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, profile, CodeValue.Supply.LensMaterial_SM.CODE,db))
+                    .Commands(
+                    Html.X().ImageCommand()
+                            .CommandName("Edit")
+                            .IconCls("icon-edit")
+                            .ToolTip(tt => tt.Text = "Modifier ?")
+                    )
+
+                    .DirectEvents(de =>
+                    {
+                        de.Command.Action = "UpdateLensMaterial";
+                        de.Command.Method = HttpMethod.GET;
+                        de.Command.ExtraParams.Add(new Parameter("LensMaterialID", "record.data.LensMaterialID", ParameterMode.Raw));
+                        de.Command.EventMask.ShowMask = true;
+                        de.Command.EventMask.Msg = FatSod.Ressources.Resources.EventMaskUpdate;
+                    })
+            )
+            .BottomBar(
+                 Html.X().PagingToolbar()
+            )
+        )
+    @*Fin du tableau*@
+}

@@ -1,0 +1,428 @@
+﻿@using FatSod.Ressources;
+
+@model FatSod.Report.WrapReports.RptReceipt
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+}
+
+<section id="pdf" class="invoice" style="font-size:1.05em;">
+
+    <div class="row row-header">
+        <div class="col-xs-2 logo">
+            <img id='img-upload' src="~/User/File?id=@Model.CompanyLogoID" style="" />
+        </div>
+        <div class="col-xs-10">
+            <div class="row">
+                <div class="col-xs-12">
+                    <span style="font-size:28px;"><b>@Model.CompanyName</b></span>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-xs-2">
+                    <span style="font-size:10px;"><b>B.P: @Model.BranchPOBox, @Model.CompanyTown</b></span>
+                </div>
+
+                <div class="col-xs-2">
+                    <span><i class="fa fa-phone bordero-i"></i></span> <span style="font-size:10px;"><b> @Model.BranchPhoneNumber</b></span>
+                </div>
+
+                <div class="col-xs-3">
+                    <span><i class="fa fa-envelope bordero-i"></i></span><span style="font-size:10px;"><b> @Model.BranchEmailAdress</b></span>
+                </div>
+
+                <div class="col-xs-5">
+                    <span><i class="fa fa-map-marker bordero-i"></i></span><span style="font-size:10px;"><b> @Model.AdressFullName</b></span>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-xs-2">
+                    <span style="font-size:10px;"><b>@Model.CompanyTradeRegister</b></span>
+                </div>
+                <div class="col-xs-2">
+                    <span style="font-size:9px;"><b>N<sup>o</sup> Cont.: @Model.CompanyCNI</b></span>
+                </div>
+                <div class="col-xs-2">
+                    <span style="font-size:10px;"><b>N<sup>o</sup> ONOC: @Model.ONOCNumber</b></span>
+                </div>
+            </div>
+            <div class="row " style="margin-top: 0px;">
+                <div class="col-xs-2">
+                    <span style="font-size:9px;"><b>Référence du Bordereau:</b></span>
+                </div>
+                <div class="col-xs-3">
+                    <span style="font-size:10px;"><b>@Model.Ref</b></span>
+                </div>
+            </div>
+
+            <div class="row" style="margin-bottom: 10px;">
+                <div class="col-xs-2">
+                    <span style="font-size:10px;"><b>Date de Transmission :</b></span>
+                </div>
+                <div class="col-xs-3">
+                    <span style="font-size:10px;"><b>@Model.SaleDateHours.ToString("dd/MM/yyyy HH:mm:ss")</b></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Table row -->
+    <div class="row">
+        <div class="col-xs-12 table-responsive">
+            <table class="table table-striped" border="1">
+                <thead style="text-align:center;">
+                    <tr style="border:1px solid;">
+                        <th style="border:1px solid;text-align:center;vertical-align: middle;padding:2px;">N<sup>o</sup> d'Ordre</th>
+                        <th style="border:1px solid;text-align:center;vertical-align: middle;padding:2px;">N<sup>o</sup> de Facture</th>
+                        <th style="border:1px solid;text-align:center;vertical-align: middle;padding:2px;">Date de Soins</th>
+                        <th style="border:1px solid;text-align:center;vertical-align: middle;padding:2px;">Matricule du <br />Patient</th>
+                        <th style="border:1px solid;text-align:center;vertical-align: middle;padding:2px;">Nom et Prénoms du Patient</th>
+                        <th style="border:1px solid;text-align:center;vertical-align: middle;padding:2px;">Montant Brute de <br /> la Prestation</th>
+                        <th style="border:1px solid;text-align:center;vertical-align: middle;padding:2px;">Ticket Modérateur</th>
+                        <th style="border: 1px solid;text-align: center;vertical-align: middle;padding: 2px;">Montant Net de <br /> la Prestation</th>
+                    </tr>
+                </thead>
+
+                <tbody style="border:1px solid">
+
+                    @foreach (var item in Model.ReceiptLines)
+                    {
+                        <tr style="border:1px dashed;">
+                            <td style="text-align:center;padding-top:0px;padding-bottom:1px;border:1px solid;width:7%;">
+                                @item.ReceiptLineID
+                            </td>
+                            <td style="text-align:center;padding-top:0px;padding-bottom:1px;padding-left:10px;width:10%;border:1px solid;">
+                                @item.NumeroFacture
+                            </td>
+                            <td style="text-align:center;padding-top:0px;padding-bottom:1px;padding-left:10px;width:10%;border:1px solid;">
+                                @item.TreatmentDate
+                            </td>
+                            <td style="text-align:center;padding-top:0px;padding-bottom:1px;padding-left:10px;width:10%;border:1px solid;">
+                                @item.MatriculePatient
+                            </td>
+                            <td style="text-align:left;padding-top:0px;padding-bottom:1px;padding-left:10px;width:23%;border:1px solid;">
+                                @item.ProducType
+                            </td>
+                            <td style="text-align:center;padding-top:0px;padding-bottom:1px;width:10%;border:1px solid;">
+                                @item.MontantBrut
+                            </td>
+
+                            <td style="text-align:center;padding-top:0px;padding-bottom:1px;padding-left:10px;width:7%;border:1px solid;">
+                                @item.TotalMalade
+                            </td>
+
+                            <td style="text-align:center;padding-top:0px;padding-bottom:1px;padding-left:10px;width:13%;border:1px solid;">
+                                @item.DetailQty
+                            </td>
+                        </tr>
+                    }
+
+
+
+                </tbody>
+                <tfoot style="text-align:center;">
+                    <tr style="border:1px solid;">
+                        <th colspan="5" style="text-align:center;vertical-align: middle; padding:3px;">TOTAL </th>
+                        <th style="border:1px solid;text-align:right;vertical-align:middle; padding-left:40px;width:15%">@Model.SommeMontantBrut</th>
+                        <th style="border:1px solid;text-align:right;vertical-align:middle; padding-left:40px;width:15%">@Model.SommeTotalMalade</th>
+                        <th style="border:1px solid;text-align:right;vertical-align:middle; padding-left:40px;width:15%">@Model.SommePlafond</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <div class="col-xs-12">
+            <div class="row">
+                <div class="col-xs-6">
+                    <table>
+                        <tr style="border:1px solid;">
+                            <th style="border:1px solid;text-align:center;vertical-align:middle;width: 19.5%;padding-left: 3px;">Total Montant Brute</th>
+                            <td style="border:1px solid;text-align:center;vertical-align:middle;width: 19.5%;padding-left: 3px;">@Model.SommeMontantBrut</td>
+                        </tr>
+                        <tr></tr>
+                        <tr style="border:1px solid;">
+                            <th style="border:1px solid;text-align:center;vertical-align:middle;width: 19.5%;padding-left: 3px;">Nombre Total de Factures</th>
+                            <td style="border:1px solid;text-align:center;vertical-align:middle;width: 19.5%;padding-left: 3px;">@Model.ReceiptLines.Count()</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="col-xs-12" style="margin-top: 20px; text-align:left;">
+                    <span style="font-size:1.2em">
+                        Arrêtée la présente facture à la somme de :
+                        <b style="text-transform: capitalize;"> @Model.MontantLettre</b>
+                    </span>
+                </div>
+
+                <div class="col-xs-offset-10 col-xs-2" style="margin-top: 20px; text-align:center;">
+                    <span style="font-size:1.0em; font-weight: 900; border-bottom:1px solid"><b>La Direction</b></span><br />
+                </div>
+            </div>
+        </div>
+
+        <!-- /.col -->
+    </div>
+    <br />
+
+    <br />
+
+
+    <!-- /.row -->
+    <!-- this row will not appear when printing -->
+    <div class="row no-print">
+        <div class="col-xs-12">
+            <a id="printBtn" href="#" onclick="window.focus(); window.print(); window.close();" target="_blank" class="btn btn-primary"><i class="fa fa-print"></i> Imprimer</a>
+            <a id="previousBtn" href="@Request.UrlReferrer" class="btn btn-warning"><i class="fa fa-angle-left"></i>@Resources.previous</a>
+            <a href="#" id="excelBtn" class="btn btn-primary"><i class="fa fa-print"></i> Excel</a>
+        </div>
+    </div>
+</section>
+
+<section hidden id="excel" class="invoice" style="font-size:1.05em;">
+    <div class="panel panel-default">
+        <div class="panel-body2">
+
+            <table class="table" id="mainTable">
+                <thead>
+                    <tr class="dataTableHead">
+                        <th>N<sup>o</sup> d'Ordre</th>
+                        <th>N<sup>o</sup> de Facture</th>
+                        <th>Date de Soins</th>
+                        <th>Matricule du <br />Patient</th>
+                        <th>Nom et Prénoms du Patient</th>
+                        <th>Montant Brute de <br /> la Prestation</th>
+                        <th>Ticket Modérateur</th>
+                        <th>Montant Net de <br /> la Prestation</th>
+                    </tr>
+                </thead>
+
+            </table>
+        </div>
+    </div>
+</section>
+
+<style>
+
+    .panel-body2 {
+        height: 200px;
+        margin-top: 10px;
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+
+    .invoice {
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+
+    .header {
+        height: 5px;
+    }
+
+    @@page {
+        margin-top: 200px;
+        margin-bottom: 120px;
+        size: landscape;
+    }
+
+    @@media print {
+        @@page {
+            size: landscape;
+        }
+
+        .bordero-i {
+            background-color: #1e7bc1;
+            border-radius: 50% !important;
+            border: 1px solid grey;
+            padding: 5px;
+            font-size: 10px;
+            margin-left: -5px;
+            color: white;
+        }
+    }
+
+
+    table {
+        page-break-inside: auto;
+    }
+
+    thead {
+        display: table-header-group;
+    }
+
+    tfoot {
+        display: table-row-group;
+    }
+
+    .row-header {
+        margin-top: 5px;
+    }
+
+    .logo {
+        text-align: center;
+    }
+
+    #img-upload {
+        /* width: 60%; */
+        position: relative;
+        top: 30px;
+        margin: auto;
+        display: block;
+    }
+
+    .bordero-i {
+        /*background-color: #1e7bc1;*/
+        border-radius: 50% !important;
+        border: 1px solid grey;
+        padding: 5px;
+        font-size: 10px;
+        margin-left: -5px;
+        /*color: white;*/
+    }
+
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 6px;
+    }
+
+    #img-upload {
+        width: 100%;
+    }
+
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin-left: 10px;
+        min-width: 0;
+        padding: 10px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 70px;
+    }
+
+    .panel-bodyfielset1 {
+        height: 350px;
+        margin-bottom: 2%;
+    }
+
+    .panel-bodyfielset2 {
+        height: 100px;
+    }
+
+    .panel-body1 {
+        height: 280px;
+        margin-top: 5px;
+        margin-bottom: 2%;
+    }
+
+    .panel-body2 {
+        height: 200px;
+        margin-top: 10px;
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+
+    .panel-body3 {
+        height: 75px;
+        margin-top: 5px;
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+
+    .panel-body4 {
+        height: 300px;
+        margin-left: 10px;
+    }
+</style>
+
+<script>
+
+    $(document).on('ready', function () {
+
+
+        $('#excelBtn').on('click', () => {
+            $('#pdf').prop('hidden', true);
+            $('#excel').prop('hidden', false);
+
+            fillDatatable();
+        });
+
+    });
+
+    function fillDatatable(test) {
+
+        var receiptLines = @Html.Raw(Json.Encode(Model.ReceiptLines));
+
+        if (test)
+        {
+            $('#mainTable').dataTable().fnDestroy();
+        }
+        var oTable = $('#mainTable');
+
+        oTable = $('#mainTable').dataTable({
+            fixedColumns: true,
+            "paging": true,
+            "pageLength": 4,
+            "lengthMenu": [[4, 8, 12, -1], [4, 8, 12, "All"]],
+            "searching": true,
+            "ordering": true,
+            "pagingType": "full_numbers",
+            // Ajax call
+            "data": receiptLines,
+            "columns": [
+                { "data": "ReceiptLineID", "width": "7%" },
+                { "data": "NumeroFacture", "width": "10%" },
+                { "data": "TreatmentDate", "width": "10%" },
+                { "data": "MatriculePatient", "width": "10%" },
+                { "data": "ProducType", "width": "23%" },
+                { "data": "MontantBrut", "width": "10%" },
+                { "data": "TotalMalade", "width": "7%" },
+                { "data": "DetailQty", "width": "13%" }
+            ],
+            dom: 'Bfrtip',
+            buttons: [
+                'copy', 'csv', 'excel'
+            ]
+        });
+    }
+
+</script>
+
+
+
+
+

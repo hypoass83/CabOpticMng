@@ -1,0 +1,822 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+
+@model System.Collections.IEnumerable
+
+@{
+
+    //ViewBag.Title = "Purchase";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    string labelSeparator = "  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :";
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+    String activateGeneralForm = @"if(App.ProductGiftForm.isValid() )
+                                    {
+                                        App.FormAddProductGiftLine.setDisabled(false);
+                                        App.ProductGiftLines.setDisabled(false);
+
+                                        if(App.IsCadyEmpty.getValue() == 0 )
+                                        {
+                                            App.btnSave.setDisabled(false);
+                                        }
+                                        else
+                                        {
+                                            App.btnSave.setDisabled(true);
+                                        }
+                                    }
+                                  else
+                                    {
+                                        App.FormAddProductGiftLine.setDisabled(true);
+                                        App.ProductGiftLines.setDisabled(true);
+                                    }
+                                    ";
+
+    String activateCadyForm = @"
+                                if(App.FormAddProductGiftLine.isValid())
+                                {
+                                    App.AddToCady.setDisabled(false);
+                                }
+                                else
+                                {
+                                    App.AddToCady.setDisabled(true);
+                                }
+                              ";
+}
+@section header
+{
+    <style>
+        .search-item {
+            font: normal 11px tahoma, arial, helvetica, sans-serif;
+            padding: 3px 10px 3px 10px;
+            border: 1px solid #fff;
+            border-bottom: 1px solid #eeeeee;
+            white-space: normal;
+            color: #555;
+        }
+
+            .search-item h3 {
+                display: block;
+                font: inherit;
+                font-weight: bold;
+                color: #222;
+                margin: 0px;
+            }
+
+        /*.search-item h3 span {
+                    float: right;
+                    font-weight: normal;
+                    margin: 0 0 5px 5px;
+                    width: 100px;
+                    display: block;
+                    clear: none;
+                }*/
+
+        p {
+            width: 650px;
+        }
+
+        .ext-ie .x-form-text {
+            position: static !important;
+        }
+    </style>
+}
+@section content
+{
+
+    @***********************************************************@
+    @(
+ X.FormPanel()
+            .ID("GeneralForm")
+            .Layout(LayoutType.Anchor)
+            .MarginSpec("10 10 10 10")
+            .Title("Transmission Informations")
+            .Buttons(
+                X.Button()
+                    .ID("btnSave")
+                    .Text("Send")
+                    .Disabled(true)
+                    .Icon(Icon.Disk)
+                    .DirectEvents(de =>
+                    {
+                        de.Click.Url = Url.Action("AddManager");
+                        de.Click.EventMask.ShowMask = true;
+                        de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                    }),
+                X.Button()
+                    .ID("btnPrint")
+                    .Disabled(true)
+                    .Text(Resources.PrintReceipt)
+                    .Icon(Icon.Printer)
+                    .OnClientClick("App.Pdf.setHidden(false)")
+                    .DirectEvents(de =>
+                    {
+                        de.Click.Url = Url.Action("PrintProductGiftReceipt");
+                        de.Click.EventMask.ShowMask = true;
+                        de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                    }),
+
+                X.Button()
+                    .ID("Cancel1")
+                    .Text("Cancel")
+                    .MarginSpec("0 20 10 10")
+                    .OnClientClick("App.Pdf.setHidden(true)")
+                    .DirectEvents(de =>
+                    {
+                        de.Click.Url = Url.Action("Reset");
+                        de.Click.Complete = "";
+                        de.Click.EventMask.ShowMask = true;
+                        de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                    })
+                    )
+                .Listeners(ls =>
+                {
+                    ls.FieldChange.Handler = activateGeneralForm;
+                })
+            .Items(//contain of genral form : begin
+                X.FormPanel()//transfer informations container
+                    .ID("ProductGiftForm")
+                    .Layout(LayoutType.HBox)
+                    .MarginSpec("10 10 0 10")
+                    .Items(//transfer informations content : begin
+                        X.TextField().Name("ProductGiftID").ID("ProductGiftID").Hidden(true),
+                        X.Container()//sender container
+                            .Layout(LayoutType.Anchor)
+                            .MarginSpec("10 10 0 10")
+                            .Items(//senders informations content : begin
+                                X.ComboBox()
+                                    .ID("BranchID")
+                                    .Name("BranchID")
+                                    .FieldLabel("Branch")
+                                    .AllowBlank(false)
+                                    .BlankText(Resources.Branches + " " + Resources.RequiredField)
+                                    .LabelSeparator(labelSeparator)
+                                    .EmptyText(Resources.Select)
+                                    .DisplayField("BranchName")
+                                    .ValueField("BranchID")
+                                    .DirectEvents(de =>
+                                    {
+                                        de.Change.Url = Url.Action("ChangeBusDay");
+                                        de.Change.ExtraParams.Add(new Parameter("BranchID", "this.getValue()", ParameterMode.Raw));
+                                        de.Change.EventMask.ShowMask = true;
+                                        de.Change.EventMask.Msg = Resources.EventMaskMsg;
+                                    })
+                                    .Store(
+                                        X.Store()
+                                        .AutoLoad(true)
+                                        .Model(
+                                            X.Model()
+                                                .IDProperty("BranchIDtore")
+                                                .Fields(
+                                                    new ModelField("BranchID", ModelFieldType.Int) { Mapping = "BranchID" },
+                                                    new ModelField("BranchName", ModelFieldType.String) { Mapping = "BranchName" }
+                                                )
+                                        )
+                                        .Proxy(
+                                            X.AjaxProxy()
+                                                .Url(Url.Action("OpenedBusday"))
+                                                .Reader(X.JsonReader().RootProperty("data"))
+                                        )
+                                    )
+                                    .Listeners(ls =>
+                                    {
+                                        //ls.Change.Handler = "App.ProductGiftGridStoreID.load();";
+                                    }),
+
+                                X.ComboBox()
+                                    .ID("AutorizedByID")
+                                    .Name("AutorizedByID")
+                                    .FieldLabel(Resources.AutorizedBy)
+                                    .Items(LoadComponent.Users)
+                                    .AllowBlank(false).ForceSelection(true)
+                                    .BlankText(Resources.PurchaseMode + " " + Resources.RequiredField)
+                                    .LabelSeparator(labelSeparator)
+                                    .EmptyText(Resources.Select)
+                                    .ReadOnly(false),
+
+                                X.TextField()
+                                    .ID("RegisteredByID")
+                                    .Name("RegisteredByID")
+                                    .FieldLabel(Resources.RegisteredBy)
+        //.Items(LoadComponent.Users)
+        //.Value(user)
+                                    .AllowBlank(false)//.ForceSelection(true)
+                                    .BlankText(Resources.PurchaseMode + " " + Resources.RequiredField)
+                                    .LabelSeparator(labelSeparator)
+                                    .EmptyText(Resources.Select)
+                                    .ReadOnly(true)
+                                    .Hidden(true)
+
+                                ),//senders informations content : end
+                                X.Container()//sender container
+                                    .Layout(LayoutType.Anchor)
+                                    .MarginSpec("10 10 0 10")
+                                    .Items(//other informations content : begin
+
+                                        X.TextField()
+                                            .ID("ProductGiftReference")
+                                            .Name("ProductGiftReference")
+                                            .FieldLabel("Reference")
+                                            .MarginSpec("0 0 5 0")
+                                            .AllowBlank(false)
+                                            .EnforceMaxLength(true),
+
+                                        X.DateField()
+                                            .FieldLabel(Resources.UIDateOperation)
+                                            .MarginSpec("5 0 0 0")
+                                            .AllowBlank(false)
+                                            .Name("ProductGiftDate")
+                                            .ID("ProductGiftDate")
+                                            .InputType(Ext.Net.InputType.DateTime)
+                                            .ReadOnly(true)
+                                    )//other informations content : end
+                            ),//transfer informations content : end
+
+                            X.Container()//Cady and cady grid container
+                                .Layout(LayoutType.HBox)
+                                .MarginSpec("10 10 10 10")
+                                .Items(//Cady and cady grid content : begin
+
+                                    X.FormPanel()
+                                        .ID("FormAddProductGiftLine")
+                                        .Title("Add One Product To Cady")
+                                        .Disabled(true)
+                                        .Layout(LayoutType.Anchor)
+                                        .Width(500)
+                                        .Listeners(ls =>
+                                        {
+                                            ls.FieldChange.Handler = activateCadyForm;
+                                        })
+                                        .Buttons(
+                                            X.Button()
+                                                .Text("Add To Cady")
+                                                .Disabled(true)
+                                                .ID("AddToCady")
+                                                .DirectEvents(de =>
+                                                {
+                                                    de.Click.Url = Url.Action("AddProductGiftLine");
+                                                    de.Click.EventMask.ShowMask = true;
+                                                    de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                                                }),
+                                            X.Button()
+                                                .ID("Cancel2")
+                                                .Text("Cancel")
+                                                .DirectEvents(de =>
+                                                {
+                                                    de.Click.Url = Url.Action("Reset2");
+                                                    de.Click.Complete = "";
+                                                    de.Click.EventMask.ShowMask = true;
+                                                    de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                                                })
+                                          )
+                                        .Items(//Cady form : begin
+
+                                            X.TextField().Name("IsCadyEmpty").ID("IsCadyEmpty").Hidden(true).Value(1),
+                                            X.TextField().Name("ProductGiftLineID").ID("ProductGiftLineID").Hidden(true),
+                                            X.TextField().Name("TMPID").ID("TMPID").Hidden(true).Value(0),
+                                            X.ComboBox()
+                                                .Name("LocalizationID")
+                                                .FieldLabel(Resources.Localization)
+                                                .AllowBlank(false)
+                                                .ForceSelection(true)
+                                                .BlankText(Resources.Localization + " " + Resources.RequiredField)
+                                                .ID("LocalizationID")
+                                                .LabelSeparator(labelSeparator)
+                                                .EmptyText(Resources.Select)
+                                                .DisplayField("LocalizationLabel")
+                                                .ValueField("LocalizationID")
+                                                .Store(
+                                                    X.Store()
+                                                    .AutoLoad(false)
+                                                    .Model(
+                                                        X.Model()
+                                                            .IDProperty("LocationIDtore")
+                                                            .Fields(
+                                                                new ModelField("LocalizationID", ModelFieldType.Int) { Mapping = "LocalizationID" },
+                                                                new ModelField("LocalizationLabel", ModelFieldType.String) { Mapping = "LocalizationLabel" }
+                                                            )
+                                                    )
+                                                    .Proxy(
+                                                        X.AjaxProxy()
+                                                            .Url(Url.Action("GetAllStockedLocations"))
+                                                            .Reader(X.JsonReader().RootProperty("data"))
+                                                    )
+                                                    .Parameters(ps =>
+                                                        ps.Add(new StoreParameter("BranchID", "App.BranchID.getValue()", ParameterMode.Raw))
+                                                    )
+                                                )
+                                                .Listeners(ls =>
+                                                {
+                                                    ls.Change.Handler = "/*App.ProductID.clearValue();App.ProductID.getStore().load();*/";
+                                                }),
+
+                                        X.FieldContainer().FieldLabel(Resources.Categories) //conteneur des choix pr la recherche d'un produit
+                                            .Layout(LayoutType.Anchor)
+                                            .LabelSeparator(labelSeparator)
+                                            .ID("ProductCategoryContent")
+                                                .Items(
+                                                    X.ComboBox().Name("ProductCategory") //category des produits
+                                                    .Items(LoadComponent.GetProductCategory())
+                                                    .ValueField("ProductCategory")
+                                                    .DisplayField("ProductCategory")
+                                                    .AllowBlank(false).ForceSelection(true)
+                                                    .ID("ProductCategoryID")
+                                                    .Width(200)
+                                                    .EmptyText(Resources.chooseCategories)
+                                                    .AutoSelect(false)
+                                                    .SelectOnFocus(true)
+                                                    .Listeners(ls => ls.Select.Handler = @"App.ProductID.clear();
+                                                                                App.LineQuantity.clear();App.StockQuantity.clear();
+                                                                                App.LineUnitPrice.clear();
+                                                                                App.ProductNumberID.clear();
+                                                                                //App.ProductNumberID.getStore().load();
+                                                                                App.ProductID.getStore().load();
+                                                                                "
+                                                                                        )
+                                                    .DirectEvents(de =>
+                                                        {
+                                                            //Chargement du combo des produits en fct du magasin, category et du numero du verre
+                                                            de.Select.Url = Url.Action("DisableNumero");
+                                                            de.Select.ExtraParams.Add(new Parameter("ProductCategoryID", "this.getValue()", ParameterMode.Raw));
+                                                        })
+                                                    ,
+
+                                                    //Custom Search Combo box : Begin
+                                                        X.Component().Width(10),
+                                                        X.Component().Width(10),
+
+                                                        X.ComboBox()
+                                                            .Name("ProductNumberID")
+                                                            .ID("ProductNumberID")
+                                                            .EmptyText(Resources.SelectNumber)
+                                                            .DisplayField("LensNumberFullCode")
+                                                            .ValueField("LensNumberID")
+                                                            .TypeAhead(false)
+                                                            .Width(300)
+                                                            .PageSize(10)
+                                                            .HideTrigger(true)
+                                                            .MinChars(0)
+                                                            .TriggerAction(TriggerAction.Query)
+                                                            .ListConfig(Html.X().BoundList()
+                                                                            .LoadingText("Searching...")
+                                                                            .ItemTpl(Html.X().XTemplate()
+                                                                            .Html(@<text>
+                                                                                <div class="search-item">
+                                                                                    <h3><span>{LensNumberFullCode}</span></h3>
+                                                                                </div>
+                                                                            </text>)
+                                                                )
+                                                            )
+                                                            .Store(Html.X().Store()
+                                                                .AutoLoad(false)
+                                                                .Proxy(Html.X().AjaxProxy()
+                                                                    .Url(Url.Action("GetAllPagingNumbers"))
+                                                                    .ActionMethods(am => am.Read = HttpMethod.POST)
+                                                                    .Reader(Html.X().JsonReader().RootProperty("data"))
+                                                                )
+                                                                .Model(Html.X().Model()
+                                                                    .Fields(
+                                                                        Html.X().ModelField().Name("LensNumberID").Type(ModelFieldType.Int),
+                                                                        Html.X().ModelField().Name("LensNumberFullCode").Type(ModelFieldType.String)
+                                                                    )
+                                                                )
+
+                                                                .Parameters(ps =>
+                                                                        { //en fct du magasin et de la category
+                                                                            ps.Add(new StoreParameter("ProductCategory", "App.ProductCategoryID.getValue()", ParameterMode.Raw));
+                                                                            ps.Add(new StoreParameter("localization", "App.LocalizationID.getValue()", ParameterMode.Raw));
+                                                                        })
+
+                                                            )
+                                                            .DirectEvents(de =>
+                                                                {
+                                                                    //recuperation des qtes du produit en fonction du magasin et du produit
+                                                                    de.Select.Url = Url.Action("OnLensNumberSelected");
+                                                                    de.Select.ExtraParams.Add(new Parameter("Localization", "App.LocalizationID.getValue()", ParameterMode.Raw));
+                                                                    de.Select.ExtraParams.Add(new Parameter("ProductNumberID", "this.getValue()", ParameterMode.Raw));
+                                                                    de.Select.ExtraParams.Add(new Parameter("ProductCategoryID", "App.ProductCategoryID.getValue()", ParameterMode.Raw));
+                                                                })
+                                                            .Listeners(ls =>
+                                                                {
+                                                                    ls.Select.Handler = @"App.LineQuantity.clear();App.StockQuantity.clear();
+                                                                            App.LineUnitPrice.clear();App.ProductID.clear();
+                                                                            App.ProductID.getStore().load();
+
+                                                                            ";
+                                                                }),
+
+
+                                                        X.Component().Width(10),
+                                                        X.Component().Width(10),
+                                                    //Custom Search Combo box : Begin
+
+                                                    X.Component().Width(10)
+
+                                                ),
+
+                                                X.FieldContainer().FieldLabel(Resources.Productlabel)
+                                .Layout(LayoutType.HBox)
+                                .LabelSeparator(labelSeparator)
+                                .ID("ProductlabelContent")
+                                    .Items(
+                                        X.ComboBox().Name("ProductID")
+                                        //.FieldLabel(Resources.Productlabel)
+                                        .Width(270)
+                                        .AllowBlank(false)
+                                        .ForceSelection(true)
+                                        .BlankText(Resources.Localization + " " + Resources.RequiredField)
+                                        .ID("ProductID")
+                                        .LabelSeparator(labelSeparator)
+                                        .EmptyText(Resources.Select)
+                                        //.SelectOnFocus(true)
+                                        //.HideBaseTrigger(false)
+                                        .HideTrigger(true)
+                                        //.TypeAhead(false)
+                                        //.PageSize(10)
+                                        .DisplayField("ProductCode")
+                                        .ValueField("ProductID")
+                                        .DirectEvents(de =>
+                                            {
+                                                //recuperation des qtes du produit en fonction du magasin et du produit
+                                                de.Select.Url = Url.Action("OnProductSelected");
+                                                de.Select.ExtraParams.Add(new Parameter("Localization", "App.LocalizationID.getValue()", ParameterMode.Raw));
+                                                de.Select.ExtraParams.Add(new Parameter("CurrentProduct", "this.getValue()", ParameterMode.Raw));
+                                            })
+                                        .TriggerAction(TriggerAction.Query)
+                                        .QueryMode(DataLoadMode.Local)
+                                        .ListConfig(Html.X().BoundList()
+                                            .LoadingText("Searching...")
+                                            .ItemTpl(Html.X().XTemplate()
+                                            .Html(@<text>
+                                                <div class="search-item">
+                                                    <h3><span>{ProductQuantity}</span>{ProductCode}</h3>
+                                                    {ProductLabel}
+                                                </div>
+                                            </text>)
+                                                    )
+                                                )
+
+                                                .Store(
+                                                    X.Store()
+        //.PageSize(10)
+                                                    .AutoLoad(true)
+                                                    .Model(
+                                                        X.Model()
+                                                        .IDProperty("ProductIDP")
+                                                        .Fields(
+                                                            new ModelField("ProductID", ModelFieldType.Int) { Mapping = "ProductID" },
+                                                            new ModelField("ProductCode", ModelFieldType.String) { Mapping = "ProductCode" },
+                                                            new ModelField("ProductLabel", ModelFieldType.String) { Mapping = "ProductLabel" },
+                                                            new ModelField("ProductQuantity", ModelFieldType.Float) { Mapping = "ProductQuantity" }
+                                                        )
+                                                    )
+                                                    .Proxy(
+                                                        X.AjaxProxy()
+                                                        .Url(Url.Action("GetAllProducts"))
+                                                        .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                                                        .Reader(X.JsonReader().RootProperty("data"))
+                                                    )
+                                                    .Parameters(ps =>
+                                                        {
+                                                            ps.Add(new StoreParameter("LocalizationID", "App.LocalizationID.getValue()", ParameterMode.Raw));
+                                                            ps.Add(new StoreParameter("ProductCategoryID", "App.ProductCategoryID.getValue()", ParameterMode.Raw));
+                                                            ps.Add(new StoreParameter("ProductNumberID", "App.ProductNumberID.getValue()", ParameterMode.Raw));
+                                                        }
+                                                    )
+                                                ),
+                                            X.Component().Width(10),
+                                            X.NumberField()
+                                                .InputType(Ext.Net.InputType.Number)
+                                                .AllowDecimals(true)
+                                                .ID("StockQuantity")
+                                                .AllowBlank(false)
+                                                .Width(50)
+                                                .ReadOnly(true)
+                                            ),
+                                        X.NumberField().FieldLabel(Resources.Quantity)
+                                            .Name("LineQuantity")
+                                            .InputType(Ext.Net.InputType.Number)
+                                            .MinValue(0.5)
+                                            .AllowDecimals(true)
+                                            .ID("LineQuantity")
+                                            .LabelSeparator(labelSeparator)
+                                            .BlankText(Resources.Quantity + " " + Resources.RequiredField)
+                                            .AllowBlank(false)
+                                        ,
+
+                                        X.Container()
+                                            .Layout(LayoutType.HBox)
+                                            .ID("EyeSide")
+                                            .Items(
+                                                    X.Radio().BoxLabel(Resources.RightSide).Name("OeilDroiteGauche").ID("OD").InputValue("0").Checked(true).FieldLabel(Resources.EyeSide),
+                                                    X.Radio().BoxLabel(Resources.LeftSide).Name("OeilDroiteGauche").ID("OG").InputValue("1").LabelWidth(10).FieldLabel("    ").LabelSeparator(""),
+                                                    X.Radio().BoxLabel(Resources.RightLeftSide).Name("OeilDroiteGauche").ID("ODG").InputValue("2").InputType(Ext.Net.InputType.Radio)
+                                                    .LabelWidth(10).FieldLabel("    ").LabelSeparator("")
+                                            ),
+                                   X.NumberField()
+                                          .FieldLabel(Resources.SaleAmount)
+                                          .Name("LineUnitPrice")
+                                         .InputType(Ext.Net.InputType.Number)
+                                         .ID("LineUnitPrice")
+                                         .LabelSeparator(labelSeparator)
+                                         .BlankText(Resources.SaleAmount + " " + Resources.RequiredField)
+                                         .AllowBlank(false)
+
+                                             ,
+                                       X.TextArea()
+                                              .FieldLabel(Resources.Reason)
+                                              .Name("ProductGiftReason")
+                                             .ID("ProductGiftReason")
+                                             .LabelSeparator(labelSeparator)
+                                             .BlankText(Resources.Reason + " " + Resources.RequiredField)
+                                             .AllowBlank(false)
+                                                ),//Cady form : end
+
+                                                X.Component().Width(10),//Espace entre les éléments du cady
+
+                                                X.GridPanel()
+                                                    .Title("Cady Content")
+                                                    .Disabled(true)
+                                                    .ID("ProductGiftLines")
+                                                    .Layout(LayoutType.Fit)
+                                                    .MarginSpec("0 0 0 0")
+                                                    .Frame(true)
+                                                    .Collapsible(true)
+                                                    .Width(500)
+                                                    .Store(
+                                                        X.Store()
+                                                            .GroupField("Light")
+                                                            .PageSize(10)
+                                                            .AutoLoad(true)
+                                                            .ID("ProductGiftLinesStore")
+                                                            .Model(
+                                                                X.Model()
+                                                                    .Fields(
+                                                                        new ModelField() { Name = "TMPID", Type = ModelFieldType.Int },
+                                                                        new ModelField() { Name = "ProductLabel", Type = ModelFieldType.String },
+                                                                        new ModelField() { Name = "ProductGiftReason", Type = ModelFieldType.String },
+                                                                        new ModelField() { Name = "Localization", Type = ModelFieldType.String },
+                                                                        new ModelField() { Name = "LineQuantity", Type = ModelFieldType.Float },
+                                                                        new ModelField() { Name = "LineUnitPrice", Type = ModelFieldType.Float }
+                                                                    )
+                                                            )
+                                                            .ServerProxy(
+                                                                    X.AjaxProxy()
+                                                                    .Url(Url.Action("ProductGiftLines"))
+                                                                    .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                                                                    .Reader(X.JsonReader().RootProperty("data"))
+                                                            )
+                                                    )
+
+                                                    .ColumnModel(
+                                                        Html.X().Column()
+                                                            .Text(Resources.Designation)
+                                                            .DataIndex("ProductLabel")
+                                                            .Flex(1),
+                                                        Html.X().Column()
+                                                            .Text(Resources.Reason)
+                                                            .DataIndex("ProductGiftReason")
+                                                            .Flex(1),
+                                                        Html.X().Column()
+                                                            .Text(Resources.Localization)
+                                                            .DataIndex("Localization")
+                                                            .Flex(1),
+                                                        Html.X().Column()
+                                                            .Text(Resources.Quantity)
+                                                            .DataIndex("LineQuantity")
+                                                            .Flex(1),
+                                                        Html.X().Column()
+                                                            .Text(Resources.Amount)
+                                                                .DataIndex("LineUnitPrice")
+                                                            .Flex(1),
+                                                        Html.X().ImageCommandColumn()
+                                                            .Width(30)
+                                                            .Hidden(LoadAction.IsMenuActionAble(MenuAction.DELETE, profile, CodeValue.Supply.ProductGift.CODE, db))
+                                                            .Commands(
+                                                                Html.X().ImageCommand()
+                                                                    .CommandName("Delete")
+                                                                    .IconCls("icon-delete")
+                                                                    .ToolTip(tt =>
+                                                                        {
+                                                                            tt.Text = "Voulez-vous supprimer ?";
+                                                                            tt.Title = "Supression";
+                                                                        }
+                                                                        )
+                                                            )
+                                                            .DirectEvents(de =>
+                                                            {
+                                                                de.Command.Action = "RemoveProductGiftLine";
+                                                                de.Command.Confirmation.ConfirmRequest = true;
+                                                                de.Command.Confirmation.Message = Resources.ConfirmDeleteMessage;
+                                                                de.Command.Confirmation.Title = Resources.ConfirmDeleteTitle;
+                                                                de.Command.ExtraParams.Add(new Parameter("TMPID", "record.data.TMPID", ParameterMode.Raw));
+                                                                de.Command.EventMask.ShowMask = true;
+                                                                de.Command.EventMask.Msg = Resources.EventMaskMsg;
+                                                            }),
+                                                        Html.X().ImageCommandColumn()
+                                                                .Width(30)
+                                                                .Hidden(LoadAction.IsMenuActionAble(MenuAction.UPDATE, profile, CodeValue.Supply.ProductGift.CODE, db))
+                                                                .Commands(
+                                                                Html.X().ImageCommand()
+                                                                        .CommandName("Edit")
+                                                                        .IconCls("icon-edit")
+                                                                        .ToolTip(tt => tt.Text = "Modifier ?")
+                                                                )
+
+                                                                .DirectEvents(de =>
+                                                                {
+                                                                    de.Command.Action = "UpdateProductGiftLine";
+                                                                    de.Command.ExtraParams.Add(new Parameter("TMPID", "record.data.TMPID", ParameterMode.Raw));
+                                                                    de.Command.EventMask.ShowMask = true;
+                                                                    de.Command.EventMask.Msg = Resources.EventMaskUpdate;
+                                                                })
+                                                        )
+                                                            .BottomBar(
+                                X.PagingToolbar()
+                        )
+
+                                        )//Cady and cady grid content : End
+
+
+                    )//content of genral form : end
+    )@*Eng of General form*@
+
+    @(
+ X.FormPanel()
+    .ID("PostSupForm")
+    .Frame(true)
+    .MarginSpec("0 20 0 20")
+    .BodyPadding(10)
+        .Title("Choose Operation Date")
+    .Items(
+        X.DateField().FieldLabel(Resources.UIDateOperation)
+        .AllowBlank(false).Name("ReloadProductGiftDate")
+        .ID("ReloadProductGiftDate")
+        .Format("dd/MM/yyyy")
+        .Value((DateTime)ViewBag.BusnessDayDate)
+        .MarginSpec("25 0 10 0")
+        .InputType(Ext.Net.InputType.DateTime)
+        .DirectEvents(de =>
+        {
+            de.Change.Action = "ReloadProductGiftListStore";
+            de.Change.Method = HttpMethod.POST;
+            de.Change.EventMask.ShowMask = true;
+            de.Change.EventMask.Msg = Resources.EventMaskUpdate;
+        })
+
+        )
+
+    )
+    @(
+ X.GridPanel()
+            .Title("Pending List")
+            .ID("TransmissionGrid")
+            .Layout(LayoutType.Fit)
+            .MarginSpec("0 20 20 20")
+            .Frame(true)
+            .Collapsible(true)
+            .Store(Html.X().Store().AutoLoad(true)
+        //.GroupField("Light")
+                .PageSize(10)
+                .ID("ProductGiftGridStoreID")
+                .Model(Html.X().Model()
+                    .Fields(
+                        new ModelField("ProductGiftID", ModelFieldType.Int),
+                        new ModelField("ProductGiftReference", ModelFieldType.String),
+                        new ModelField("ProductGiftDate", ModelFieldType.Date),
+                        new ModelField("Branch", ModelFieldType.String),
+                        new ModelField("AutorizedByID", ModelFieldType.String),
+                        new ModelField("RegisteredBy", ModelFieldType.String)
+                    )
+                )
+                .DataSource(Model)
+                .ServerProxy(
+                    X.AjaxProxy()
+                    .Url(Url.Action("GetAllPendingProductGifts"))
+                    .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                    .Reader(X.JsonReader().RootProperty("data"))
+                )
+                .Parameters(ps =>
+                    {
+                        ps.Add(new StoreParameter("BranchID", "App.BranchID.getValue()", ParameterMode.Raw));
+                        ps.Add(new StoreParameter("ReloadProductGiftDate", "App.ReloadProductGiftDate.getValue()", ParameterMode.Raw));
+                    }
+
+                )
+            )
+
+            .ColumnModel(
+
+                Html.X().Column()
+                    .Text("Reference")
+                    .DataIndex("ProductGiftReference")
+                    .Flex(1),
+                Html.X().DateColumn()
+                    .Text("Date")
+                    .DataIndex("ProductGiftDate")
+                    .Flex(1),
+                Html.X().Column()
+                    .Text(Resources.Branch)
+                    .DataIndex("Branch")
+                    .Flex(1),
+                Html.X().Column()
+                    .Text("Autorized By")
+                    .DataIndex("AutorizedByID")
+                    .Flex(1),
+                Html.X().Column()
+                    .Text("Registered By")
+                    .DataIndex("RegisteredBy")
+                    .Flex(1),
+               Html.X().ImageCommandColumn()
+                    .Width(30)
+                    .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.DELETE, profile, CodeValue.Supply.ProductGift.CODE, db))
+                    .Commands(
+                        Html.X().ImageCommand()
+                            .CommandName("Delete")
+                            .IconCls("icon-delete")
+                            .ToolTip(tt =>
+                                {
+                                    tt.Text = FatSod.Ressources.Resources.ConfirmDeleteMessage;
+                                    tt.Title = "Supression";
+                                }
+                                )
+                    )
+                    .DirectEvents(de =>
+                    {
+                        de.Command.Action = "DeleteProductGift";
+                        de.Command.Method = HttpMethod.POST;
+                        de.Command.Confirmation.ConfirmRequest = true;
+                        de.Command.Confirmation.Message = FatSod.Ressources.Resources.ConfirmDeleteMessage;
+                        de.Command.Confirmation.Title = FatSod.Ressources.Resources.ConfirmDeleteTitle;
+                        de.Command.ExtraParams.Add(new Parameter("ProductGiftID", "record.data.ProductGiftID", ParameterMode.Raw));
+                        de.Command.EventMask.ShowMask = true;
+                        de.Command.EventMask.Msg = FatSod.Ressources.Resources.EventMaskMsg;
+                    }),
+
+                Html.X().ImageCommandColumn()
+                .Width(30)
+                .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, profile, CodeValue.Supply.ProductGift.CODE, db))
+                .Commands(
+                Html.X().ImageCommand()
+                        .CommandName("Edit")
+                        .IconCls("icon-edit")
+                        .ToolTip(tt => tt.Text = "Modifier ?")
+                )
+
+                .DirectEvents(de =>
+                {
+                    de.Command.Action = "UpdateProductGift";
+                    de.Command.Method = HttpMethod.GET;
+                    de.Command.ExtraParams.Add(new Parameter("ProductGiftID", "record.data.ProductGiftID", ParameterMode.Raw));
+                    de.Command.EventMask.ShowMask = true;
+                    de.Command.EventMask.Msg = FatSod.Ressources.Resources.EventMaskUpdate;
+                })
+            )
+        /*.Features(
+                X.GroupingSummary()
+                    .ID("GroupingSummary1")
+                )*/
+                .Plugins(
+                    X.FilterHeader()
+                )
+                    .BottomBar(
+                                X.PagingToolbar()
+                        )
+    )@*fin du bloc pour le grid panel*@
+    @(
+ X.Container()
+        //Panel for print
+            .Items(X.Panel()
+                                .ID("Pdf")
+                                .Title(Resources.panelprintvalreceip)
+                                .Hidden(true)
+                                .Layout(LayoutType.HBox)
+                                .Flex(1)
+                                .Collapsible(true)
+                                .Padding(1)
+                                .AutoScroll(false)
+                                .Hidden(true)
+                                .MinHeight(500)
+                                .MinWidth(500)
+                                .Loader(
+                                   X.ComponentLoader()
+                                    .AutoLoad(false)
+                                    .Mode(LoadMode.Frame)
+                                    .LoadMask(lm =>
+                                        {
+                                            lm.ShowMask = true;
+                                            lm.Msg = Resources.MsgGenerateState;
+                                            lm.UseMsg = true;
+
+                                        })
+                                    )
+        )
+
+    )
+}

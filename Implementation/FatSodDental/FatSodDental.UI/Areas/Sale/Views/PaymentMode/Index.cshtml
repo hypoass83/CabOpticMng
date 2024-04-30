@@ -1,0 +1,207 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.Ressources;
+@model System.Collections.IEnumerable
+@{
+    //ViewBag.Title = "Utilisateur";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+
+@section content
+{
+    <h1>@Resources.PaymentModeAdminText</h1>
+
+    <p>
+        @Resources.RequireField <code>(*)</code>
+    </p>
+    @(
+ X.Container()
+             .Layout(LayoutType.HBox)
+             .MarginSpec("0 0 10")
+             .Items(
+                X.FieldSet()
+                 .Flex(1)
+                 .Layout(LayoutType.Anchor)
+                 .Border(false)
+                 .DefaultAnchor("100%")
+                 .Items(
+                        X.FormPanel()
+                                .ID("PaymentModeForm")
+                                .Title(Resources.PaymentModeAddText)
+                                .Frame(true)
+                                .MarginSpec("0 20 20 20")
+                                .Width(350)
+                                .BodyPadding(10)
+                                .FieldDefaults(fd => { fd.LabelWidth = 120; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+                                .Buttons(
+                                    X.Button()
+                                        .ID("btnSave")
+                                        .Text(Resources.SaveButton)
+                                        .Disabled(true)
+                                        .Icon(Icon.Disk)
+                                        .Margin(5)
+                                        .DirectEvents(de =>
+                                        {
+                                            de.Click.Url = Url.Action("Add", "PaymentMode");
+                                            de.Click.EventMask.ShowMask = true;
+                                            de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                                        }),
+
+                                    X.Button()
+                                        .Text(Resources.ResetButton)
+                                        .MarginSpec("0 20 10 10")
+                                        .OnClientClick("this.up('form').reset();")
+                                )
+                                .Listeners(
+                                    ls =>
+                                    {
+                                        ls.FieldChange.Handler = "if(App.PaymentModeForm.isValid()){App.btnSave.setDisabled(false);}else{App.btnSave.setDisabled(true);}";
+                                    }
+                                )
+                                .Items(
+                                    X.Container()
+                                        .Layout(LayoutType.HBox)
+                                        .MarginSpec("0 0 10")
+                                        .Items(
+                                            X.FieldSet()
+                                                .Flex(1)
+                                                .Title(Resources.PaymentModeFieldSetText)
+                                                .Layout(LayoutType.Anchor)
+                                                .Height(130)
+                                                .DefaultAnchor("100%")
+                                                .Items(
+                                                    X.TextField().Name("PaymentModeID").ID("PayementModeID").Hidden(true),
+                                                    X.TextField().FieldLabel(Resources.PersonName)
+                                                                 .Name("PaymentModeLabel")
+                                                                 .MsgTarget(MessageTarget.Side)
+                                                                 .LabelSeparator("<span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                                                 .ID("PaymentModeLabel").BlankText("Vous devez renseigner un nom")
+                                                                 .AllowBlank(false).MinLength(4)
+                                                    ,
+                                                    X.TextField().FieldLabel(Resources.PaymentModeCode)
+                                                        .Name("PaymentModeCode")
+                                                        .ID("PaymentModeCode")
+                                                        .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                                        .BlankText("Vous devez renseigner un code")
+                                                        .AllowBlank(false)
+                                                    ,
+                                                    X.TextField().FieldLabel("Description")
+                                                        .Name("PaymentModeDescription")
+                                                        .ID("PaymentModeDescription")
+                                                        .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                                        .BlankText("Vous devez renseigner une description")
+                                                        .AllowBlank(false)
+                                                ),
+
+                                           X.Component().Width(20)
+                                        )
+                                )
+                 )
+
+             ,
+        ////
+             X.FieldSet()
+              .Flex(1)
+              .Layout(LayoutType.Anchor)
+              .Border(false)
+              .DefaultAnchor("100%")
+              .Items(
+
+                    Html.X().GridPanel()
+                            .Title(Resources.PaymentModeList)
+                            .ID("PurchasseList")
+                            .Layout(LayoutType.Fit)
+                            .MarginSpec("0 20 20 20")
+                            .Frame(true)
+                            .Collapsible(true)
+                            .Store(Html.X().Store()
+                                .GroupField("Light")
+                                .Model(Html.X().Model()
+                                    .Fields(
+                                        new ModelField() { Name = "PaymentModeID", Type = ModelFieldType.Int },
+                                        new ModelField() { Name = "PaymentModeCode", Type = ModelFieldType.String },
+                                        new ModelField() { Name = "PaymentModeLabel", Type = ModelFieldType.String },
+                                        new ModelField() { Name = "PaymentModeDescription", Type = ModelFieldType.String }
+
+
+                                    )
+                                ).DataSource(Model)
+                            )
+
+                            .ColumnModel(
+                                Html.X().Column()
+                                        .Text("Identifiant")
+                                        .DataIndex("PaymentModeID")
+                                        .Flex(1)
+                                        ,
+                                Html.X().Column()
+                                    .Text("Code")
+                                    .DataIndex("PaymentModeCode")
+                                    .Flex(1)
+                                    ,
+                                Html.X().Column()
+                                    .Text(Resources.PersonName)
+                                    .DataIndex("PaymentModeLabel")
+                                    .Flex(1),
+                                Html.X().Column()
+                                    .Text("Decription")
+                                    .DataIndex("PaymentModeDescription")
+                                    .Flex(1),
+                                Html.X().ImageCommandColumn()
+                                            .Width(30)
+                                            .Hidden(LoadAction.Utilisateur(MenuAction.DELETE, profile,db))
+                                            .Commands(
+                                                Html.X().ImageCommand()
+                                                    .CommandName("Delete")
+                                                    .IconCls("icon-delete")
+                                                    .ToolTip(tt =>
+                                                        {
+                                                            tt.Text = "Voulez-vous supprimer ?";
+                                                            tt.Title = "Supression";
+                                                        }
+                                                     )
+                                            )
+                                            .DirectEvents(de =>
+                                            {
+                                                de.Command.Action = "Delete";
+                                                de.Command.Confirmation.ConfirmRequest = true;
+                                                de.Command.Confirmation.Message = Resources.ConfirmDeleteMessage;
+                                                de.Command.Confirmation.Title = Resources.ConfirmDeleteTitle;
+                                                de.Command.ExtraParams.Add(new Parameter("ID", "record.data.PaymentModeID", ParameterMode.Raw));
+                                                de.Command.EventMask.ShowMask = true;
+                                                de.Command.EventMask.Msg = Resources.EventMaskMsg;
+                                            }),
+                                Html.X().ImageCommandColumn()
+                                        .Width(30)
+                                        .Hidden(LoadAction.Utilisateur(MenuAction.UPDATE, profile,db))
+                                        .Commands(
+                                        Html.X().ImageCommand()
+                                                .CommandName("Edit")
+                                                .IconCls("icon-edit")
+                                                .ToolTip(tt => tt.Text = "Modifier ?")
+                                        )
+
+                                        .DirectEvents(de =>
+                                        {
+                                            de.Command.Action = "InitializeFields";
+                                            de.Command.ExtraParams.Add(new Parameter("ID", "record.data.PaymentModeID", ParameterMode.Raw));
+                                            de.Command.EventMask.ShowMask = true;
+                                            de.Command.EventMask.Msg = Resources.EventMaskUpdate;
+                                        })
+
+
+                                )
+                                .BottomBar(
+                                     Html.X().PagingToolbar()
+                                )
+                       )
+                 )
+    )
+}

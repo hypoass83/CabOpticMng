@@ -1,0 +1,134 @@
+﻿@using System.Threading;
+@using FatSod.Ressources;
+@{
+    var X = Html.X();
+
+    Boolean Etat1;
+    Boolean Etat2;
+
+    if (Resources.Culture.ToString() == "en-US")
+  
+    { Etat1 = true; Etat2 = false; }
+    else
+    { Etat1 = false; Etat2 = true; }
+
+    DateTime now = DateTime.Now;
+    String date = now.Hour + ":" + now.Minute + ":" + now.Second;
+}
+
+@(
+    X.Panel()
+        .Region(Region.North)
+        .BodyStyle("background-color:transparent;")
+        .Border(false)
+        .Items(
+            X.Panel()
+                .BodyStyle("background-color:transparent;")
+                .ItemID("north")
+                .Header(false)
+                .Border(false)
+                .Items(
+                    X.Toolbar()
+                        .Items(
+                                X.ToolbarSpacer(10),
+                                X.Label()
+                                    .Text(Resources.Logged_in + ": ")
+                                    ,
+                                X.Button().ID("lb_connecte")
+                                    .Icon(Icon.StatusOnline)
+                                    .IconAlign(IconAlign.Left)
+                                    //.Text(Model.Nom_utilisateur + " (" + Model.role + ") (" + Model.Nombre_connecte + ")")
+                                    .Bin(
+                                        X.TaskManager()
+                                            .Tasks(
+                                                X.Task()
+                                                    .WaitPreviousRequest(true)
+                                                    .Interval(60000)
+                                                    .DirectEvents(des =>
+                                                    {
+                                                        des.Update.Url = Url.Action("Refresh_connected");
+                                                    })
+                                            )
+                                    ),
+
+                                X.ToolbarSpacer(),
+                                X.ToolbarSeparator(),
+                                X.ToolbarSpacer(),
+
+                            X.Button()
+        //.IconCls("icon-disconnect")
+                                .Icon(Icon.Disconnect)
+                                .IconAlign(IconAlign.Left)
+                                .Text(Resources.Log_out)
+                                .ToolTip(Resources.Log_out)
+                                .DirectEvents(de =>
+                                {
+                                    de.Click.Url = Url.Action("Deconnexion", "Session");
+                                    de.Click.Confirmation.ConfirmRequest = true;
+                                    de.Click.Confirmation.Title =Resources.Confirm;
+                                    de.Click.Confirmation.Message = Resources.Msg_Box_Confirm;
+                                }),
+
+                                    /*X.Button()
+                                    .ID("lb_WorkBackdate")
+                                    .Icon(Icon.ApplicationForm)
+                                    .IconAlign(IconAlign.Left)
+                                    .Text(Resources.WorkingBackDate)
+                                    .ToolTip(Resources.WorkingBackDate)
+                                    .DirectEvents(de =>
+                                    {
+                                        de.Click.Url = Url.Action("WorkBackdate", "Main");
+                                        de.Click.Confirmation.ConfirmRequest = true;
+                                        de.Click.Confirmation.Title =Resources.Confirm;
+                                        de.Click.Confirmation.Message = Resources.Msg_Box_Confirm;
+                                    }),*/
+        ////////////////////////////////////////////////////////////////////////////////////////////
+                            X.ToolbarFill(),
+        ////////////////////////////////////////////////////////////////////////////////////////////
+
+                            X.Radio()
+                                .ID("en")
+                                .Name("lang")
+                                .Checked(Etat1),
+                            X.Image().ImageUrl(@Url.Content("~/Content/Images/png/Icon-English.png")).Height(14).Width(33),
+
+                            X.ToolbarSpacer(),
+                            X.ToolbarSeparator(),
+                            X.ToolbarSpacer(),
+
+                            X.Radio()
+                                .ID("fr")
+                                .Name("lang")
+                                .Checked(Etat2)
+                                .DirectEvents(de =>
+                                {
+                                    de.Change.Action = "ChangeLanguage";
+                                }),
+                            X.Image().ImageUrl(@Url.Content("~/Content/Images/png/Icon-French.png")).Height(14).Width(33),
+
+                            X.ToolbarSpacer(),
+                            X.ToolbarSeparator(),
+                            X.ToolbarSpacer(),
+
+                            
+                            // -- Gestion de l'afficharge de l'horloge -- //
+                            X.Label().ID("lb_horloge")
+                                .Text(date)
+                                .ComponentCls("style_heure")
+                                .Bin(
+                                    X.TaskManager()
+                                        .Tasks(
+                                            X.Task()
+                                                .WaitPreviousRequest(true)
+                                                .Interval(60000)
+                                                .Listeners(ls =>
+                                                    ls.Update.Fn = "onTaskUpdate"
+                                                )
+                                     )
+                                ),
+                                
+                            X.ToolbarSpacer(10)
+                        )
+                )
+        )
+)

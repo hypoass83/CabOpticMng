@@ -1,0 +1,173 @@
+﻿@using FatSod.DataContext.Concrete
+@using FatSod.Ressources
+@using FatSod.Security.Entities
+@using Microsoft.AspNet.Identity
+@using FatSod.DataContext.Initializer;
+
+@* 
+ This partial controls the left menu of the AdminLTE dashboard and is called automatically by _AdminLteLayout
+    This is where you can add, modify, or remove navigation options in your app
+    TODO: This preserves the links as-is for the demo, which lead to broken pages!
+    It's up to you to make sure these links either get deleted or lead somewhere REAL!
+*@
+
+
+@{
+    Layout = null;
+    int personID = (Session["UserID"] == null) ? 0 : (int)Session["UserID"];
+    //int personID = Convert.ToInt32(User.Identity.GetUserName());
+    EFDbContext context = new EFDbContext();
+    User userConnect = (personID==0) ? context.Users.Where(u=>u.UserLogin== "userLogin").FirstOrDefault() : context.Users.Where(u => u.GlobalPersonID == personID).FirstOrDefault();
+    var culture = Resources.Culture;
+}
+
+
+
+<aside class="main-sidebar">
+    <!-- sidebar: style can be found in sidebar.less -->
+    <section class="sidebar">
+        <!-- Sidebar user panel -->
+        <div class="user-panel">
+            <div class="pull-left image">
+                @*<img src="/Content/AdminLTE/img/user2-160x160.jpg" class="img-circle" alt="User Image" />*@
+              
+            </div>           
+        </div>
+        
+        <!-- sidebar menu: : style can be found in sidebar.less -->
+        <ul class="sidebar-menu">
+            <li class="header">NAVIGATION PRINCIPALE</li>
+            <li class="treeview-menu">
+                <a href="~/Home/Index">
+                    <i class="fa fa-dashboard"></i> <span>Tableau de Bord</span> <i class="fa fa-angle-left pull-right"></i>
+                </a>
+            </li>
+            <li class="active">
+                <a href="~/Home/Index">
+                    <i class="fa fa-dashboard"></i> <span>Tableau de Bord</span>
+                </a>
+            </li>
+
+                @foreach (var module in context.Modules.Join(context.Menus, mo => mo.ModuleID, me => me.ModuleID, (mo, me) => new { mo, me })
+                .Join(context.ActionMenuProfiles, mome => mome.me.MenuID, ap => ap.MenuID, (mome, ap) => new { mome, ap })
+                .Where(m => m.ap.ProfileID == userConnect.ProfileID)
+                .Select(s => new
+                {
+                    ModuleCode = s.mome.mo.ModuleCode,
+                    ModuleID = s.mome.mo.ModuleID,
+                    AppearanceOrder = s.mome.mo.AppearanceOrder
+                }).Distinct().ToList().OrderBy(m => m.AppearanceOrder))
+                {
+                    
+                    <li class="treeview">
+                        
+                        <a href="#">
+                            <i class="fa fa-list-alt"></i> <span> @Resources.ResourceManager.GetString(module.ModuleCode, culture)</span>
+                            <i class="fa fa-angle-left pull-right"></i>
+                        </a>
+                        
+                        
+                        @foreach (var menusOfModule in context.ActionMenuProfiles.Join(context.Menus, a => a.MenuID, m => m.MenuID,
+                        (a, m) => new { a, m })
+                        .Where(am => am.a.ProfileID == userConnect.ProfileID && am.m.ModuleID == module.ModuleID)
+                        .Select(s => new
+                        {
+                            MenuID = s.m.MenuID,
+                            MenuCode = s.m.MenuCode,
+                            MenuController = s.m.MenuController,
+                            MenuPath = s.m.MenuPath,
+                            Module = s.m.Module,
+                            SubMenu = s.m.SubMenus,
+                            AppearanceOrder = s.m.AppearanceOrder
+                        })
+                        .ToList().OrderBy(m => m.AppearanceOrder))
+                        {
+                            <ul class="treeview-menu">
+                                @if (menusOfModule.SubMenu.Count == 0)
+                                {
+                                    var menupath = Url.Action(menusOfModule.MenuPath, menusOfModule.MenuController, new { area = menusOfModule.Module.ModuleArea });
+
+                                    if (menusOfModule.MenuCode == CodeValue.CCM.ComplaintResolution.CODE)
+                                    {
+                                        menupath += "?Step=resolve";
+                                    }
+
+                                    if (menusOfModule.MenuCode == CodeValue.CCM.ComplaintControlled.CODE)
+                                    {
+                                        menupath += "?Step=control";
+                                    }
+
+                                    <li><a href=@menupath><i class="fa fa-circle-o"></i> @Resources.ResourceManager.GetString(menusOfModule.MenuCode, culture) </a></li>
+                                }
+                                else
+                                {
+                                    <li class="treeview">
+                                        <a href="#">
+                                            <i class="fa fa-th-large"></i> <span> @Resources.ResourceManager.GetString(menusOfModule.MenuCode, culture)</span>
+                                            <i class="fa fa-angle-left pull-right"></i>
+                                        </a>
+                                        
+                                    @foreach (var subMenus in context.ActionSubMenuProfiles.Join(context.SubMenus, am => am.SubMenuID, sm => sm.SubMenuID,
+                                    (am, sm) => new { am, sm })
+                                    .Where(asm => asm.sm.MenuID == menusOfModule.MenuID && asm.am.ProfileID == userConnect.ProfileID)
+                                    .Select(s => new
+                                    {
+                                        SubMenuID = s.sm.SubMenuID,
+                                        SubMenuCode = s.sm.SubMenuCode,
+                                        SubMenuLabel = s.sm.SubMenuLabel,
+                                        SubMenuController = s.sm.SubMenuController,
+                                        SubMenuPath = s.sm.SubMenuPath,
+                                        Menu = s.sm.Menu,
+                                        AppearanceOrder = s.sm.AppearanceOrder
+                                    })
+                                    .ToList().OrderBy(s => s.AppearanceOrder))
+                                    {
+                                        string submenuPath = Url.Action(subMenus.SubMenuPath, subMenus.SubMenuController, new { area = subMenus.Menu.Module.ModuleArea });
+                                        // var submenuPath = "../../" + subMenus.Menu.Module.ModuleArea + "/" + subMenus.SubMenuController + "/" + subMenus.SubMenuPath;
+                                        if (subMenus.SubMenuCode == CodeValue.CRM.OrderStockOrderLenses.Code)
+                                        {
+                                            submenuPath += "?StockType=2";
+                                        }
+
+                                        if (subMenus.SubMenuCode == CodeValue.CRM.OrderRXLenses.Code)
+                                        {
+                                            submenuPath += "?StockType=3";
+                                        }
+
+                                        if (subMenus.SubMenuCode == CodeValue.CRM.SpecialOrderReception.Code)
+                                        {
+                                            submenuPath += "?StockType=3";
+                                        }
+
+                                        if (subMenus.SubMenuCode == CodeValue.CRM.StockOrderReception.Code)
+                                        {
+                                            submenuPath += "?StockType=2";
+                                        }
+
+                                        if (subMenus.SubMenuCode == CodeValue.CRM.RXLensesRpt.Code)
+                                        {
+                                            submenuPath += "?StockType=3";
+                                        }
+
+                                        if (subMenus.SubMenuCode == CodeValue.CRM.StockOrderRpt.Code)
+                                        {
+                                            submenuPath += "?StockType=2";
+                                        }
+
+                                        <ul class="treeview-menu">
+                                                <li><a href="@submenuPath"><i class="fa fa-circle-o"></i> @Resources.ResourceManager.GetString(subMenus.SubMenuCode, culture) </a></li>
+                                            </ul>
+                                        }
+                                    </li>
+                                }
+
+                            </ul>
+                        }
+                 </li>
+                }
+        </ul>
+    </section>
+    <!-- /.sidebar -->
+</aside>
+
+

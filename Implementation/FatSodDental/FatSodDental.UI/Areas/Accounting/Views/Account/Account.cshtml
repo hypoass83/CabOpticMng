@@ -1,0 +1,324 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSod.Ressources;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.DataContext.Initializer;
+
+@model System.Collections.IEnumerable
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+
+@section content
+{
+    @(
+ X.Container()
+.Layout(LayoutType.HBox)
+.MarginSpec("0 0 10")
+.Items(
+X.FieldSet()
+.Flex(1)
+.Layout(LayoutType.Anchor)
+.Border(false)
+.DefaultAnchor("90%")
+.Items(
+X.FormPanel()
+.ID("Account")
+.Items(
+X.PanelTitle()
+.ID("PanelTitle")
+.Border(true)
+.Padding(2)
+.Content(
+        @<header>
+            <h6>@Resources.RequireField <code>(*)</code></h6>
+        </header>
+                            )
+                                )
+                                        .Title(Resources.AccountAddTitle)
+                                        .Frame(true)
+                                        .MarginSpec("0 20 20 20")
+                                        .Width(350)
+                                        .BodyPadding(10)
+                                        .FieldDefaults(fd => { fd.LabelWidth = 150; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+                                        .Buttons(
+                                        X.Button()
+                                        .ID("btnSave")
+                                        .Text(Resources.SaveButton)
+                                        .Disabled(true)
+                                        .Icon(Icon.Disk)
+                                        .Margin(5)
+                                        .OnClientClick("App.PanelReport.setHidden(true)")
+                                        .DirectEvents(de =>
+                                        {
+                                            de.Click.Url = Url.Action("AddAccount", "Account");
+                                            de.Click.Before = @"if (!#{Account}.getForm().isValid()) { return false; }";
+                                            de.Click.EventMask.ShowMask = true;
+                                            de.Click.EventMask.Msg = FatSod.Ressources.Resources.EventMaskMsg;
+
+
+                                        }),
+                                        X.Button()
+                                        .Text(Resources.UIPrint)
+                                        .ID("IDShowGeneric")
+                                        .Icon(Icon.Printer)
+                                        .OnClientClick("App.PanelReport.setHidden(false)")
+                                        .DirectEvents(de =>
+                                        {
+                                            de.Click.Url = Url.Action("PrintReport", "Account");
+                                            de.Click.EventMask.ShowMask = true;
+                                            de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                                        }),
+                                        X.Button()
+                                            .Text(FatSod.Ressources.Resources.ResetButton)
+                                            .MarginSpec("0 20 10 10")
+                                            .Icon(Icon.ArrowRefresh)
+                                            .ID("btnReset")
+                                            .DirectEvents(
+                                                de =>
+                                                {
+                                                    de.Click.Url = Url.Action("ResetAccountForm");
+                                                    de.Click.EventMask.ShowMask = true;
+                                                    de.Click.EventMask.Msg = FatSod.Ressources.Resources.EventMaskMsg;
+                                                }
+                                            )
+                                        )
+                                        .Listeners(
+                                        ls =>
+                                        {
+                                            ls.FieldChange.Handler = "if(App.Account.isValid()){App.btnSave.setDisabled(false);}else{App.btnSave.setDisabled(true);}";
+                                        }
+                                        )
+                                        .Items(
+                                            X.Container()
+                                            .Layout(LayoutType.HBox)
+                                            .MarginSpec("0 0 10")
+                                            .Items(
+                                                X.FieldSet()
+                                                .Flex(1)
+                                                .Title(FatSod.Ressources.Resources.AccountFieldSetTitle)
+                                                .Layout(LayoutType.Anchor)
+                                                .Height(180)
+                                                //.DefaultAnchor("80%")
+                                                    .Items(
+                                                        X.TextField().Name("AccountID").ID("AccountID").Hidden(true),
+                                                        X.FieldContainer().FieldLabel(Resources.UINumero)
+                                                            .Layout(LayoutType.HBox)
+                                                            .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                                            .ID("AccountNumberCol")
+                                                            .MsgTarget(MessageTarget.Side)
+                                                                .Items(
+                                                                    X.ComboBox().Name("CollectifAccountID")//.FieldLabel(Resources.UICollectifAccount)
+                                                                    .Items(LoadComponent.GetCollectifAccounts)
+                                                                    .ValueField("CollectifAccountID")
+                                                                    .AllowBlank(false).ForceSelection(true)
+                                                                    .ID("CollectifAccountID")
+                                                                    .Width(200)
+                                                                    .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                                                    .EmptyText(Resources.choosecollectiveAccount)
+                                                                    .AutoSelect(false)
+                                                                    .DirectEvents(de =>
+                                                                    {
+                                                                        de.Select.Action = "generateAccount";
+                                                                        de.Select.ExtraParams.Add(new Parameter("CollectifAccountID", "this.getValue()", ParameterMode.Raw));
+                                                                    }),
+                                                                    X.Component().Width(5),
+                                                                    X.TextField().Width(100).ID("AccountNumber").Name("AccountNumber")
+                                                                    .BlankText(Resources.UINumero + " " + Resources.RequiredField)
+                                                                    .AllowBlank(false).MaxLength(9)
+                                                                    .EnforceMaxLength(true).ReadOnly(true)
+                                                                ),
+                                                        X.TextField().FieldLabel(Resources.UINom)
+                                                        .Name("AccountLabel")
+                                                        .ID("AccountLabel")
+                                                        .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                                        .BlankText(Resources.UINom + " " + Resources.RequiredField)
+                                                        .AllowBlank(false)
+                                                        //.Width(300)
+                                                                ,
+                                                            X.Radio().BoxLabel(Resources.Yess).Name("isManualPosting").ID("isManualPosting").InputValue("1").FieldLabel(Resources.UIisManualPosting),
+                                                            X.Radio().BoxLabel(Resources.No).Name("isManualPosting").ID("isManualPostingNO").InputValue("0").Checked(true)
+                                                            .InputType(Ext.Net.InputType.Radio)
+                                                            .LabelWidth(150).FieldLabel("    ").LabelSeparator("")
+                                                            
+                                                        //)//,
+                                                    //X.Component().Width(20)
+                                                    )
+                                                ) //fin item conteneur
+                                            ) //fin item fieldset 1
+                                            ,
+                                                        X.FieldSet()
+                                                        .Flex(1)
+                                                        .Layout(LayoutType.Anchor)
+                                                        .Border(false)
+                                                        //.DefaultAnchor("80%")
+                                                        .Items(
+                                                             X.FieldContainer().FieldLabel(Resources.SearchCriteria)
+                                                            .Layout(LayoutType.HBox)
+                                                            .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                                            .ID("SearchCriteria")
+                                                            .MsgTarget(MessageTarget.Side)
+                                                                .Items(
+                                                                    X.ComboBox().Name("Seach Option")//.FieldLabel(Resources.UICollectifAccount)
+                                                                    .Items(new ListItem(Resources.UIAccount, "AC"),
+                                                                            new ListItem(Resources.UIAccountName, "AN"))
+                                                                    .Value("AC")
+                                                                    .ValueField("SearchOption")
+                                                                    .AllowBlank(false).ForceSelection(true)
+                                                                    .ID("SearchOption")
+                                                                    .Width(150)
+                                                                    .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                                                    .EmptyText("Choose Search Option")
+                                                                    .AutoSelect(false)
+                                                                    ,
+                                                                    X.Component().Width(5),
+                                                                    X.TextField().Width(300).ID("SearchValue").Name("SearchValue")
+                                                                    .BlankText("Type Search Value")
+                                                                    .AllowBlank(false)
+                                                                    .DirectEvents(de =>
+                                                                    {
+                                                                        de.Change.Action = "loadGrid";
+                                                                    })
+                                                                )
+                                                                ,
+                                                        Html.X().GridPanel()
+                                                                            .Title(Resources.UIAccountlist)
+                                                                            .Layout(LayoutType.Fit)
+                                                                            .MarginSpec("0 20 20 20")
+                                                                            .Frame(true)
+                                                                            .Collapsible(true)
+                                                                            .AutoScroll(true)
+                                                                                .Store(Html.X().Store()
+                                                                                .ID("Store")
+                                                                                //.RemoteFilter(true)
+                                                                                .RemotePaging(true)
+                                                                                .AutoLoad(true)
+                                                                                .PageSize(10)
+                                                                                .DataSource(Model)
+                                                                                .Model(Html.X().Model()
+                                                                                .Fields(
+                                                                                        new ModelField() { Name = "UICollectifAccountNumber", Type = ModelFieldType.String },
+                                                                                        new ModelField() { Name = "CollectifAccountID", Type = ModelFieldType.Int },
+                                                                                        new ModelField() { Name = "AccountID", Type = ModelFieldType.Int },
+                                                                                        new ModelField() { Name = "AccountNumber", Type = ModelFieldType.Int },
+                                                                                        new ModelField() { Name = "AccountLabel", Type = ModelFieldType.String },
+                                                                                        new ModelField() { Name = "isManualPosting", Type = ModelFieldType.Boolean }
+                                                                                    )
+                                                                                )
+                                                                                .Sorters(
+                                                                                    X.DataSorter()
+                                                                                    .Property("AccountNumber")
+                                                                                    .Direction(Ext.Net.SortDirection.ASC)
+                                                                                )
+                                                                                .ServerProxy(
+                                                                                    X.AjaxProxy()
+                                                                                    .Url(Url.Action("GetListAccount"))
+                                                                                    .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                                                                                    .Reader(X.JsonReader().RootProperty("data"))
+                                                                                )
+                                                                                .Parameters(ps =>
+                                                                                    {
+                                                                                        ps.Add(new StoreParameter("SearchOption", "App.SearchOption.getValue()", ParameterMode.Raw));
+                                                                                        ps.Add(new StoreParameter("SearchValue", "App.SearchValue.getValue()", ParameterMode.Raw));
+                                                                                    }
+                                                                                    )
+
+                                                                            )
+
+                                                .ColumnModel(
+                                                X.Column().Align(Alignment.Center).Text(Resources.UICollectifAccount).DataIndex("UICollectifAccountNumber").Flex(1).Filterable(true),
+                                                X.Column().Align(Alignment.Left).Text(Resources.UINumero).DataIndex("AccountNumber").Flex(1).Filterable(false),
+                                                X.Column().Align(Alignment.Left).Text(Resources.UINom).DataIndex("AccountLabel").Flex(1).Filterable(false),
+                                                X.Column().Align(Alignment.Left).Text(Resources.UIisManualPosting).DataIndex("isManualPosting").Flex(1).Filterable(true),
+                                                Html.X().ImageCommandColumn()
+                                                .Width(30)
+                                                .Hidden(LoadAction.IsMenuActionAble(MenuAction.DELETE, profile, CodeValue.Accounting.Account.CODE,db))
+                                                .Commands(
+                                                        Html.X().ImageCommand()
+                                                        .CommandName("Delete")
+                                                        .IconCls("icon-delete")
+                                                        .ToolTip(tt =>
+                                                                        {
+                                                                            tt.Text = Resources.ConfirmDeleteMessage;
+                                                                            tt.Title = "Supression";
+                                                                        }
+                                                            )
+                                                )
+                                                .DirectEvents(de =>
+                                                {
+                                                    de.Command.Action = "DeleteAccount";
+                                                    de.Command.Confirmation.ConfirmRequest = true;
+                                                    de.Command.Confirmation.Message = Resources.ConfirmDeleteMessage;
+                                                    de.Command.Confirmation.Title = Resources.ConfirmDeleteTitle;
+                                                    de.Command.ExtraParams.Add(new Parameter("ID", "record.data.AccountID", ParameterMode.Raw));
+                                                    de.Command.EventMask.ShowMask = true;
+                                                    de.Command.EventMask.Msg = Resources.EventMaskMsg;
+                                                }),
+                                                Html.X().ImageCommandColumn()
+                                                        .Width(30)
+                                                        .Hidden(LoadAction.IsMenuActionAble(MenuAction.UPDATE, profile, CodeValue.Accounting.Account.CODE,db))
+                                                        .Commands(
+                                                        Html.X().ImageCommand()
+                                                            .CommandName("Edit")
+                                                            .IconCls("icon-edit")
+                                                            .ToolTip(tt => tt.Text = "Modifier ?")
+                                                        )
+
+                                                        .DirectEvents(de =>
+                                                        {
+                                                            de.Command.Action = "IniatializeFieldAccount";
+                                                            de.Command.ExtraParams.Add(new Parameter("ID", "record.data.AccountID", ParameterMode.Raw));
+                                                            de.Command.EventMask.ShowMask = true;
+                                                            de.Command.EventMask.Msg = Resources.EventMaskUpdate;
+                                                        })
+
+
+                                                )
+                                                .Plugins(
+                                                    X.FilterHeader()
+                                                )
+                                                                .BottomBar(
+                                    X.PagingToolbar()
+                            )
+
+                                            )//fin fieldset grid
+                                        )//fin conteneur de depart
+        )
+    )
+    @(
+ X.Container()
+        //Panel for print
+    .Items(X.Panel()
+        .ID("PanelReport")
+        .MarginSpec("0 0 -100 0")
+        .Title(Resources.PanelPreview)
+        .Hidden(true)
+        .Layout(LayoutType.HBox)
+        .Flex(1)
+        .Collapsible(true)
+        .Padding(1)
+        .AutoScroll(false)
+        .Hidden(true)
+        .MinHeight(500)
+        .MinWidth(500)
+        .Loader(
+            X.ComponentLoader()
+            .AutoLoad(false)
+            .Mode(LoadMode.Frame)
+            .LoadMask(lm =>
+                {
+                    lm.ShowMask = true;
+                    lm.Msg = Resources.MsgGenerateState;
+                    lm.UseMsg = true;
+
+                })
+            )
+        )
+    )
+}

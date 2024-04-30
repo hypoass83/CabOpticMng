@@ -1,0 +1,33 @@
+﻿@using System.Linq;
+
+<style>
+    .west-cls {
+        background-image: url(../../Content/Images/bdWest.png);
+    }
+</style>
+
+@(Html.X().Panel()
+    .Region(Region.West)
+    .ID("WestGeneralPanel")
+    .Layout(LayoutType.Fit)
+    .Width(180)
+    .Hidden(true)
+    .BodyCls("west-cls")
+    .Header(false)
+    .Collapsible(false)
+    .Split(false)
+    .Loader(
+        Html.X().ComponentLoader()
+        .AutoLoad(true)
+        //.Url(Url.Action("InitReport", "Security"))
+        .Mode(LoadMode.Frame)
+        .LoadMask(lm =>
+        {
+            lm.ShowMask = true;
+            lm.Msg = "Initialisation du raport ...";
+            lm.UseMsg = true;
+
+        })
+    )    
+    .Border(false)
+)

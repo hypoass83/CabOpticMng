@@ -1,0 +1,642 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+@using FatSod.Supply.Entities;
+@model System.Collections.IEnumerable
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    string labelSeparator = "  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :";
+    string cashRegisterCode = CodeValue.Accounting.DefaultCodeAccountingSection.CODECAIS;
+    string bank = CodeValue.Accounting.DefaultCodeAccountingSection.CODEBANK;
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+    String handler_extra_price = @"
+            var valueOperation = App.InitialHT.getValue();
+            var ReductionAmount = App.ReductionAmount.getValue();
+            var DiscountAmount = App.DiscountAmount.getValue();
+            var reduction = App.Reduction.getValue();
+            var discount = App.Discount.getValue();
+            var transport = App.Transport.getValue();
+            var new_HT_price = valueOperation;
+            var remise = 0;
+            var escompte = 0;
+            var vatRate =  App.VatRate.getValue();
+            var netFin = valueOperation;
+            var NetCom = valueOperation;
+            var avance=0;
+            //Réduction
+            if (reduction > 0)
+            {
+                remise = Math.round((reduction / 100) * valueOperation);
+                new_HT_price -= remise;
+                NetCom -= remise;
+                netFin = NetCom;
+            }
+
+                if (discount > 0)
+                {
+                    escompte = Math.round((discount / 100) * new_HT_price);
+                    new_HT_price -= escompte;
+                netFin = new_HT_price;
+                }
+
+                if (transport > 0)
+                {
+                    new_HT_price += transport;
+                }
+
+
+            var tva_amount = Math.round(new_HT_price * vatRate);
+
+            if(ReductionAmount != remise){
+            App.ReductionAmount.setValue(remise);
+            }
+
+            if(escompte != DiscountAmount){
+            App.DiscountAmount.setValue(escompte);
+            }
+
+            App.NetCom.setValue(NetCom);
+            App.TotalPriceHT.setValue(netFin);
+            App.TVAAmount.setValue(tva_amount);
+            App.TotalPriceTTC.setValue(new_HT_price+tva_amount);
+            App.SliceAmount.setValue(avance);
+            var remaingAmount =  App.TotalPriceTTC.getValue() - App.SliceAmount.getValue();
+            App.RemaingAmount.setValue(remaingAmount);
+    ";
+}
+
+@section content
+{
+    @************************************************ Sales form informations ********************************@
+    @(
+ X.FormPanel()
+        .ID("Unknow")
+        //.Title(Resources.FormUserAddTitle)
+        .Items(
+             X.PanelTitle()
+              .ID("PanelTitl555e")
+              .Border(true)
+              .Padding(1)
+              .Content(
+            @<header>
+                <h4>@Resources.ValidSaleOpe</h4>
+            </header>
+                                    )
+                                )
+                                .Frame(true)
+                                .MarginSpec("-50 0 -10 0")
+                                .BodyPadding(10)
+    )
+
+        @(
+         X.FormPanel()
+            .ID("PostSupForm")
+            .Frame(true)
+            .MarginSpec("-50 0 -10 0")
+            .BodyPadding(10)
+                //.Title(Resources.FormUserAddTitle)
+            .Items(
+                X.DateField().FieldLabel("Sold Date")
+                .AllowBlank(false).Name("SoldDate")
+                .ID("SoldDate")
+                .Format("dd/MM/yyyy")
+                .Value((DateTime)ViewBag.BusnessDayDate)
+                .MarginSpec("25 0 10 0")
+                .InputType(Ext.Net.InputType.DateTime)
+                .DirectEvents(de =>
+                {
+                    de.Change.Action = "ReloadSalesListStore";
+                    de.Change.Method = HttpMethod.POST;
+                    de.Change.EventMask.ShowMask = true;
+                    de.Change.EventMask.Msg = Resources.EventMaskUpdate;
+                })
+
+                )
+
+        )
+
+
+
+
+    @***********************  Sale form  ***************************@
+
+
+    @*************************************************** Sales list *************************************************************@
+    @(X.GridPanel()
+            //.Title(Resources.SaleList)
+        .ID("SaleList")
+        .Layout(LayoutType.Fit)
+        .MarginSpec("0 0 10 0")
+        .Margin(5)
+        .Frame(false)
+        .Collapsible(false)
+        .Store(X.Store()
+            .GroupField("Old sales list")
+            .ID("CommadListStore")
+            .RemotePaging(true)
+            .AutoLoad(true)
+            .PageSize(5)
+            .Model(
+                X.Model()
+                    .IDProperty("CustomerOrderID")
+                    .Fields(
+                        new ModelField("SaleDate", ModelFieldType.Date),
+                        new ModelField("SaleID", ModelFieldType.Int),
+                        new ModelField("SaleTotalPrice", ModelFieldType.Float),
+                        new ModelField("AdressEmail", ModelFieldType.String),
+                        new ModelField("SaleReceiptNumber", ModelFieldType.String),
+                        new ModelField("AdressPhoneNumber", ModelFieldType.String),
+                        new ModelField("CustomerFullName", ModelFieldType.String),
+                        new ModelField("Representant", ModelFieldType.String)
+
+                    )
+            )
+            .DataSource(Model)
+            .ServerProxy(
+                X.AjaxProxy()
+                .Url(Url.Action("ReturnAbleSales"))
+                .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                .Reader(X.JsonReader().RootProperty("data"))
+            )
+            .Parameters(ps =>
+                ps.Add(new StoreParameter("SoldDate", "App.SoldDate.getValue()", ParameterMode.Raw))
+            )
+            .Sorters(
+                X.DataSorter()
+                .Property("CustomerFullName")
+                .Direction(Ext.Net.SortDirection.ASC)
+            )
+        )
+
+        .ColumnModel(
+            X.RowNumbererColumn()
+            ,
+
+            X.DateColumn()
+                .Text("Sold Date")
+                .DataIndex("SaleDate")
+                .Flex(1),
+
+           X.Column()
+                .Text(Resources.Customer)
+                .DataIndex("CustomerFullName")
+                .Flex(1),
+
+        X.Column()
+                .Text(Resources.Representant)
+                .DataIndex("Representant")
+                .Flex(1)
+                ,
+
+            X.Column()
+                .Text(Resources.Commandref)
+                .DataIndex("SaleReceiptNumber")
+                .Flex(1)
+                ,
+
+            X.Column()
+                .Text(Resources.CustorderEstimation)
+                .DataIndex("SaleTotalPrice")
+                .Flex(1),
+             Html.X().ImageCommandColumn()
+                        .Width(30)
+                        .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.DELETE, profile, CodeValue.CashRegister.MENU_SALE_RECEIPT,db))
+                        .Commands(
+                            Html.X().ImageCommand()
+                                .CommandName("Delete")
+                                .IconCls("icon-delete")
+                                .ToolTip(tt =>
+                                    {
+                                        tt.Text = "Voulez-vous supprimer ?";
+                                        tt.Title = "Supression";
+                                    }
+                                 )
+                        )
+                        .DirectEvents(de =>
+                        {
+                            de.Command.Action = "Delete";
+                            de.Command.Method = HttpMethod.POST;
+                            de.Command.Confirmation.ConfirmRequest = true;
+                            de.Command.Confirmation.Message = Resources.ConfirmDeleteMessage;
+                            de.Command.Confirmation.Title = Resources.ConfirmDeleteTitle;
+                            de.Command.ExtraParams.Add(new Parameter("SaleID", "record.data.SaleID", ParameterMode.Raw));
+                            de.Command.EventMask.ShowMask = true;
+                            de.Command.EventMask.Msg = Resources.EventMaskMsg;
+                        }),
+                    X.ImageCommandColumn()
+                .Width(30)
+                .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, profile, CodeValue.CashRegister.MENU_SALE_RECEIPT, db))
+                .Commands(
+                X.ImageCommand()
+                        .CommandName("Edit")
+                        .IconCls("icon-edit")
+                )
+                .DirectEvents(de =>
+                {
+                    de.Command.Action = "InitializeFields";
+                    de.Command.Method = HttpMethod.POST;
+                    de.Command.ExtraParams.Add(new Parameter("SaleID", "record.data.SaleID", ParameterMode.Raw));
+                    de.Command.EventMask.ShowMask = true;
+                    de.Command.EventMask.Msg = Resources.EventMaskUpdate;
+                })
+
+            )
+                    .Plugins(
+                        X.FilterHeader()
+                    )
+                    .BottomBar(
+                            X.PagingToolbar()
+                    )
+    )
+    @***********************  Sale form  ***************************@
+    @(
+ X.FormPanel()
+        .ID("GlobalSaleForm")
+        .MarginSpec("0 0 0 0")
+        .Padding(0)
+        .FieldDefaults(fd => { fd.LabelWidth = 110; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+        .Buttons(
+            X.Button()
+                    .ID("btnDeliveryOrder")
+                    .Text(Resources.PrintDatailReceipt)
+                    .Icon(Icon.Printer)
+        //.Disabled(true)
+                    .OnClientClick("App.SliceAmountForm.setHidden(true);App.SaleLineForm.setHidden(true);App.FormCustomerIdentification.setHidden(true);App.Pdf.setHidden(false);App.CommandOderLines.load()")
+                    .DirectEvents(de =>
+                    {
+                        de.Click.Url = Url.Action("PrintDepositReceipt");
+                        de.Click.EventMask.ShowMask = true;
+                        de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                        de.Click.ExtraParams.Add(new Parameter("detail", "oui", ParameterMode.Value));
+                    }),
+
+            X.Button()
+                .ID("btnReceipt")
+                .Text(Resources.PrintReceipt)
+                .Icon(Icon.Printer)
+                //.Disabled(true)
+                .OnClientClick("App.SliceAmountForm.setHidden(true);App.SaleLineForm.setHidden(true);App.FormCustomerIdentification.setHidden(true);App.Pdf.setHidden(false);App.CommandOderLines.load()")
+                .DirectEvents(de =>
+                {
+                    de.Click.Url = Url.Action("PrintDepositReceipt");
+                    de.Click.EventMask.ShowMask = true;
+                    de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                    de.Click.ExtraParams.Add(new Parameter("detail", "non", ParameterMode.Value));
+                }),
+
+            X.Button()
+                .Text(Resources.ResetButton)
+                .MarginSpec("0 20 10 10")
+                .OnClientClick("this.up('form').reset();App.SliceAmountForm.setHidden(false);App.SaleLineForm.setHidden(false);App.FormCustomerIdentification.setHidden(false);App.Pdf.setHidden(true);App.CommandOderLines.load()")
+        )
+        .Items(
+            X.FormPanel()
+                .ID("FormCustomerIdentification")
+                .MarginSpec("0 0 0 0")
+                .Title(Resources.CustomerIdentification)
+                .Items(
+        //Top Fields, sale information
+                    X.Container()
+                     .MarginSpec("0 0 0 0")
+                     //.Title(" ")
+                     .Layout(LayoutType.Column)
+                     .LayoutConfig(new ColumnLayoutConfig { DefaultValueMode = DefaultValueMode.RenderExplicit })
+                     .Items(
+        //heure de la vente
+                        X.TextField().Name("heureVente").ID("heureVente").Hidden(true),
+                        X.TextField().Name("StatutSale").ID("StatutSale").Hidden(true).Value(SalePurchaseStatut.Delivered),
+                        X.TextField().Name("OldStatutSale").ID("OldStatutSale").Hidden(true).Value(SalePurchaseStatut.Ordered),
+                        X.TextField().Name("SaleValidate").ID("SaleValidate").Hidden(true).Value(true),
+                        X.TextField().Name("SaleDeliver").ID("SaleDeliver").Hidden(true),
+                        X.TextField().Name("SaleID").ID("SaleID").Hidden(true),
+                        X.TextField().ID("ReceiveAmoungID").Value(1).Hidden(true).Name("ReceiveAmoungID"),
+                        X.TextField().ID("SavingSaleID").Value(1).Hidden(true).Name("SavingSaleID"),
+                        X.TextField().Name("BranchID").Hidden(true).ID("BranchID"),
+                        //X.TextField().Name("CustomerID").FieldLabel(Resources.Customer).Hidden(true).ID("CustomerID"),
+                        X.TextField().Name("CustomerName")
+                         .FieldLabel(Resources.Customer)
+                         .ID("CustomerName")
+                         .MarginSpec("5 0 10 0")
+                         .ReadOnly(true),
+                            X.DateField().FieldLabel("Sold Date")
+                            .AllowBlank(false).Name("SaleDate")
+                            .ID("SaleDate")
+                            .ReadOnly(true)
+                            .ReadOnly(true)
+                            .MarginSpec("5 0 10 0")
+                            .InputType(Ext.Net.InputType.DateTime)
+                        ,
+                        X.DateField().FieldLabel(Resources.Deliverydate)
+                            .AllowBlank(false)
+                            .Name("SaleDeliveryDate")
+                            .ReadOnly(true)
+                            .ID("SaleDeliveryDate")
+                            .MarginSpec("5 0 10 0")
+                            .InputType(Ext.Net.InputType.DateTime),
+                        X.TextField().FieldLabel(Resources.SaleRef)
+                            .MarginSpec("5 0 10 0")
+                            .Name("SaleReceiptNumber")
+                            .AllowBlank(false)
+                            .ID("SaleReceiptNumber")
+                            .MinLength(2)
+                            .ReadOnly(true),
+                          X.TextField().FieldLabel(Resources.IsCashCustomer)
+                            .MarginSpec("5 0 10 0")
+                            .ID("CashCustomer")
+                            .ReadOnly(true)
+                       )
+                     )
+                     ,
+        //SaleLine form and grid that present saleline of current sale
+                     X.FormPanel()
+                        .Layout(LayoutType.HBox)
+                        .ID("SaleLineForm")
+                        .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                        .MarginSpec("0 0 0 0")
+                        .Items(
+        //Grid of sale lines
+                            X.GridPanel()
+                                .Title(Resources.Commandline)
+                                .Disabled(true)
+                                .ID("CommandLinesGrid")
+                                .MarginSpec("0 0 0 10")
+                                .Flex(1)
+                                .MarginSpec("0 0 0 0")
+                                .Frame(true)
+                                .Collapsible(true)
+                                .Store(
+                                    X.Store()
+                                        .RemotePaging(true)
+                                        .AutoLoad(false)
+                                        .PageSize(5)
+                                        .ID("CommandOderLines")
+                                        .ServerProxy(
+                                           X.AjaxProxy()
+                                            .Url(Url.Action("SaleLines"))
+                                            .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                                            .Reader(X.JsonReader().RootProperty("data"))
+                                        )
+                                        .Model(
+                                            X.Model()
+                                             .Fields(
+                                                new ModelField() { Name = "SaleLineID", Type = ModelFieldType.Int },
+                                                new ModelField() { Name = "ProductLabel", Type = ModelFieldType.String },
+                                                new ModelField() { Name = "LineUnitPrice", Type = ModelFieldType.Int },
+                                                new ModelField() { Name = "LineQuantity", Type = ModelFieldType.Float },
+                                                new ModelField() { Name = "LineAmount", Type = ModelFieldType.Int }
+                                                )
+                                        )
+                                )
+                                .ColumnModel(
+                                    X.Column()
+                                        .Text(Resources.Productlabel)
+                                        .DataIndex("ProductLabel")
+                                        .Flex(1),
+                                    X.Column()
+                                        .Text(Resources.Sellingprice)
+                                        .DataIndex("LineUnitPrice")
+                                        .Flex(1)
+                                        ,
+                                    X.Column()
+                                        .Text(Resources.Quantity)
+                                        .DataIndex("LineQuantity")
+                                        .Flex(1),
+                                    X.Column()
+                                        .Text(Resources.Partialprice)
+                                        .DataIndex("LineAmount")
+                                        .Flex(1)
+                                    )
+                                    .BottomBar(
+                                            X.PagingToolbar()
+                                    )
+                            ,
+        //End Grid of sale line
+        //Sale amount informations
+                            X.FormPanel()
+                                .Title(Resources.SaleAmount)
+                                .Disabled(true)
+                                .Layout(LayoutType.Anchor)
+                                .ID("CommandTotalAmount")
+                                .Width(300)
+                                .DefaultAnchor("90%")
+                                .Items
+                                (
+                                    X.NumberField().Name("GridState").ID("GridState").Hidden(true).Value(0),
+                                        X.NumberField().ID("InitialHT").Hidden(false).FieldLabel(Resources.GrossAmount).Width(280).ReadOnly(true)
+                                        ,
+                                        X.NumberField().ID("InitialTTC").Hidden(true),
+                                        X.FieldContainer().FieldLabel(Resources.Reduction + "(%)")
+                                     .MarginSpec("0 0 0 0")
+                                     .Layout(LayoutType.HBox)
+                                         .Items
+                                         (
+                                               X.NumberField().ID("Reduction").Width(80).MinValue(0).Name("RateReduction")
+                                               .MaxValue(100).EnforceMaxLength(true)
+                                               .Value(0).AllowBlank(false).DecimalPrecision(8).AllowDecimals(true)
+                                                  .ReadOnly(true)
+                                          ,
+
+                                         X.NumberField().ID("ReductionAmount")
+                                          .Name("ReductionAmount")
+                                              .Value(0).AllowBlank(false)
+                                            .ReadOnly(true)
+                                     )
+                                    ,
+
+                                        X.NumberField().FieldLabel(Resources.NetCom)
+                                            .MarginSpec("5 0 0 0").Width(280)
+                                            .ReadOnly(true)
+                                            .ID("NetCom")
+                                            .Name("NetCom")
+                                            .AllowBlank(false)
+                                        ,
+                                        X.FieldContainer().FieldLabel(Resources.Discount + "(%)")
+                                     .MarginSpec("5 0 0 0")
+                                     .Layout(LayoutType.HBox)
+                                     .Items(
+                                         X.NumberField().ID("Discount").Width(80).MinValue(0).Name("RateDiscount")
+                                          .MaxValue(100).EnforceMaxLength(true)
+                                             .Value(0).AllowBlank(false).DecimalPrecision(8).AllowDecimals(true)
+                                                .ReadOnly(true)
+                                          ,
+                                         X.NumberField().ID("DiscountAmount")
+                                          .Name("DiscountAmount")
+                                              .Value(0).AllowBlank(false)
+                                                .ReadOnly(true)
+                                     )
+                                     ,
+                                            X.NumberField().FieldLabel(Resources.NetFin)
+                                            .MarginSpec("5 0 0 0")
+                                            .ID("TotalPriceHT")
+                                            .ReadOnly(true)
+                                            .Width(280).Name("TotalPriceHT")
+                                            .AllowBlank(false)
+                                  ,
+                                        X.NumberField().FieldLabel("Transport")
+                                            .MarginSpec("5 0 0 0").Name("Transport")
+                                            .ID("Transport")
+                                            .MinValue(0)
+                                            .Value(0)
+                                            .AllowBlank(false)
+                                            .Width(280)
+                                            .Listeners(ls =>
+                                            {
+                                                ls.Change.Handler = handler_extra_price;
+                                            })
+                                        ,
+                                        X.FieldContainer().FieldLabel(Resources.TVA + "(%)")
+                                     .MarginSpec("5 0 0 0")
+                                     .Layout(LayoutType.HBox)
+                                     .Items(
+                                         X.NumberField().ID("VatRate").Width(80).MinValue(0).Name("VatRate")
+                                          .MaxValue(100).EnforceMaxLength(true)
+                                             .Value(0).AllowBlank(false).DecimalPrecision(8).AllowDecimals(true)
+                                                .ReadOnly(true)
+                                          ,
+                                         X.NumberField().ID("TVAAmount")
+                                              .Name("TVAAmount")
+                                              .Value(0).AllowBlank(false)
+                                                .ReadOnly(true)
+                                         )
+                                         ,
+                                            X.NumberField().FieldLabel(Resources.PriceTTC).Name("TotalPriceTTC")
+                                            .MarginSpec("5 0 0 0")
+                                            .ReadOnly(true)
+                                            .ID("TotalPriceTTC")
+                                            .AllowBlank(false)
+                                            .Width(280)
+                                            .ReadOnly(true)
+                                          ,
+
+                                        X.NumberField().FieldLabel(Resources.AdvancedAmount)
+                                            .MarginSpec("5 0 0 0")
+                                            .ID("SliceAmount")
+                                            .Name("SliceAmount")
+                                            .MinValue(0)
+                                            .EnableKeyEvents(true)
+                                            .Listeners(ls =>
+                                            {
+                                                ls.KeyUp.Handler = @"
+                                                                  var remaingAmount =  App.TotalPriceTTC.getValue() - App.SliceAmount.getValue();
+                                                                  App.RemaingAmount.setValue(remaingAmount);
+                                                              ";
+                                                ls.Blur.Handler = "OnSliceAmountChanged();";
+                                            })
+                                            .AllowBlank(false)
+                                            .Width(280)
+                                        ,
+                                        X.NumberField().FieldLabel(Resources.RemainingAmount)
+                                            .MarginSpec("5 0 0 0")
+                                            .ID("RemaingAmount")
+                                            .MinValue(0)
+                                            .AllowBlank(false)
+                                            .ReadOnly(true)
+                                            .Width(280)
+                                )
+        //End sale amount informations
+
+                        )
+                        ,
+        //Sale reglement
+                     X.Container()
+                     .MarginSpec("0 0 0 0")
+                     //.Title(" ")
+                     .Layout(LayoutType.Column)
+                     .Disabled(true)
+                     .ID("SliceAmountForm")
+                     .LayoutConfig(new ColumnLayoutConfig { DefaultValueMode = DefaultValueMode.RenderExplicit })
+                     .Items(
+                        X.TextField().ID("CashRegisterCode").Value(cashRegisterCode).Hidden(true),
+                        X.TextField().ID("bank").Value(bank).Hidden(true),
+                        X.NumberField().Name("PaymentDelay").FieldLabel(Resources.Paymentperiod)
+                                    .AllowBlank(false)
+                                    .BlankText(Resources.PurchaseMode + " " + Resources.RequiredField)
+                                    .ID("BuyField")
+                                    .On("click", new JFunction("alert('The Number is clicked');"))
+                                    .Width(170)
+                                    .MarginSpec("5 0 10 0")
+                                    .MinValue(0)
+                                    .MaxValue(90)
+                                    .Listeners(ls =>
+                                    {
+                                        ls.Change.Handler = @"
+                                                                if(this.getValue()>0){
+                                                                   
+                                                                }else{
+                                                                    
+                                                                    App.SliceAmount.setHidden(false);
+                                                                    
+                                                                }
+                                                            ";
+                                    })
+                                    .LabelSeparator(labelSeparator)
+                                    .EmptyText(Resources.Select)
+                                    .Hidden(true)
+        //.Value(ViewBag.PaymentDelay)
+                            ,
+                            X.ComboBox().Name("BuyType").FieldLabel(Resources.PaymentMethod)
+                                        .ID("BuyType")
+                                        .Disable(false)
+                                        .ForceSelection(true)
+                                        .MarginSpec("5 0 10 0")
+                                        .LabelSeparator(labelSeparator)
+                                        .ForceSelection(true)
+                                        .AutoSelect(false)
+                                        .EmptyText(Resources.Select)
+                                        .AllowBlank(false)
+                                        .BlankText(Resources.RequiredField)
+                                        .Items(LoadComponent.PaymentMethods),
+                            X.ComboBox().Name("DeviseID")
+                                        .FieldLabel(Resources.UIDevise)
+                                        .EmptyText(Resources.Select)
+                                        .LabelSeparator(labelSeparator)
+                                        .MarginSpec("5 0 10 0")
+                                        .AllowBlank(false)
+                                        .ForceSelection(true)
+                                        .BlankText(Resources.RequiredField)
+                                        .ID("DeviseID")
+                                        .Value(1)
+                                        .Items(LoadComponent.GetDevise)
+                                        .AutoSelect(false),
+                            X.TextField().Name("Representant").ID("Representant").FieldLabel(Resources.Representant).MarginSpec("5 0 0 0"),
+                            X.NumberField().ID("Guaranteed").Name("Guaranteed").FieldLabel(Resources.Guaranteed).MinValue(0).AllowDecimals(false).Value(0).Hidden(true)
+        
+                       )
+                       ,
+        //Panel for print
+                        X.Container()
+                        .ID("Pdf")
+                        //.Title(Resources.panelprintvalreceip)
+                        .Hidden(true)
+                        .Layout(LayoutType.HBox)
+                        .Flex(1)
+                        //.Collapsible(true)
+                        .Padding(20)
+                        .AutoScroll(false)
+                        .Hidden(true)
+                        .MinHeight(500)
+                        .Loader(
+                           X.ComponentLoader()
+                            .AutoLoad(false)
+                            .Mode(LoadMode.Frame)
+                            .LoadMask(lm =>
+                                {
+                                    lm.ShowMask = true;
+                                    lm.Msg = Resources.MsgGenerateState;
+                                    lm.UseMsg = true;
+
+                                })
+                            )
+                     )
+
+                        //End sale regelement
+    )
+
+}

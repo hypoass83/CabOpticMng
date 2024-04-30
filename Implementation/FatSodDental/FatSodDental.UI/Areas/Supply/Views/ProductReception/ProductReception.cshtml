@@ -1,0 +1,396 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+
+@model System.Collections.IEnumerable
+
+@{
+
+    //ViewBag.Title = "Purchase";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    string labelSeparator = "  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :";
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+    String activateGeneralForm = @"if(App.TransferForm.isValid() )
+                                    {
+                                        App.ProductTransfertLines.setDisabled(false);
+                                        App.btnSave.setDisabled(false);
+                                    }
+                                  else
+                                    {
+                                        App.ProductTransfertLines.setDisabled(true);
+                                        App.btnSave.setDisabled(true);
+
+                                    }
+                                    ";
+
+}
+
+@section content
+{
+    @***********************************************************@
+    @(
+ X.FormPanel()
+            .ID("GeneralForm")
+            .Layout(LayoutType.Anchor)
+            .MarginSpec("10 10 10 10")
+            .Title("Transmission Informations")
+            .Buttons(
+                X.Button()
+                    .ID("btnSave")
+                    .Text("Receive")
+                    .Disabled(true)
+                    .Icon(Icon.Disk)
+                    .DirectEvents(de =>
+                    {
+                        de.Click.Url = Url.Action("AddManager");
+                        de.Click.EventMask.ShowMask = true;
+                        de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                    }),
+
+                X.Button()
+                    .ID("Cancel1")
+                    .Text("Cancel")
+                    .MarginSpec("0 20 10 10")
+                    .DirectEvents(de =>
+                    {
+                        de.Click.Url = Url.Action("Reset");
+                        de.Click.Complete = "";
+                        de.Click.EventMask.ShowMask = true;
+                        de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                    })
+                    )
+                .Listeners(ls =>
+                {
+                    ls.FieldChange.Handler = activateGeneralForm;
+                })
+            .Items(//contain of genral form : begin
+                X.FormPanel()//transfer informations container
+                    .ID("TransferForm")
+                    .Layout(LayoutType.HBox)
+                    .MarginSpec("10 10 0 10")
+                    .Items(//transfer informations content : begin
+                        X.TextField().Name("ProductTransfertID").ID("ProductTransfertID").Hidden(true),
+                        X.TextField().Name("ArrivalBranchID").ID("ArrivalBranchID").Hidden(true),
+                        X.Container()//sender container
+                            .Layout(LayoutType.Anchor)
+                            .MarginSpec("10 10 0 10")
+                            .Items(//senders informations content : begin
+                                X.TextField()
+                                    .ID("DepartureBranchID")
+                                    .Name("DepartureBranchID")
+                                    .FieldLabel("Departure Branch")
+                                    .ReadOnly(true),
+
+                                X.TextField()
+                                    .ID("OrderedByID")
+                                    .Name("OrderedByID")
+                                    .FieldLabel("Ordered By")
+                                    .ReadOnly(true),
+
+                                X.TextField()
+                                    .ID("RegisteredByID")
+                                    .Name("RegisteredByID")
+                                    .FieldLabel("Registered By")
+                                    .ReadOnly(true)
+
+                                ),//senders informations content : end
+                            X.Container()//sender container
+                                .Layout(LayoutType.Anchor)
+                                .MarginSpec("10 10 0 10")
+                                .Items(//Receivers informations content : begin
+
+                                    X.TextField()
+                                        .ID("ArrivalBranchName")
+                                        .Name("ArrivalBranchName")
+                                        .FieldLabel("Arrival Branch")
+                                        .ReadOnly(true),
+
+                                    X.TextField()
+                                        .ID("AskedByID")
+                                        .Name("AskedByID")
+                                        .FieldLabel("Asked By")
+                                        .ReadOnly(true),
+                                        
+                                    X.ComboBox()
+                                        .ID("ReceivedID")
+                                        .Name("ReceivedID")
+                                        .FieldLabel("Received By")
+                                        .Items(LoadComponent.Users)
+                                        .Value(user)
+                                        .AllowBlank(false).ForceSelection(true)
+                                        .BlankText(Resources.PurchaseMode + " " + Resources.RequiredField)
+                                        .LabelSeparator(labelSeparator)
+                                        .EmptyText(Resources.Select)
+                                        .ReadOnly(true)
+                                   
+                                ),//Receivers informations content : end
+
+                                X.Container()//sender container
+                                    .Layout(LayoutType.Anchor)
+                                    .MarginSpec("10 10 0 10")
+                                    .Items(//other informations content : begin
+
+                                        X.TextField()
+                                            .ID("ProductTransfertReference")
+                                            .Name("ProductTransfertReference")
+                                            .FieldLabel("Reference")
+                                            .MarginSpec("0 0 5 0")
+                                            .ReadOnly(true)
+                                            .EnforceMaxLength(true),
+
+                                        X.DateField()
+                                            .FieldLabel("Send Date")
+                                            .MarginSpec("5 0 0 0")
+                                            .Name("ProductTransfertDate")
+                                            .ID("ProductTransfertDate")
+                                            .InputType(Ext.Net.InputType.DateTime)
+                                            .ReadOnly(true),
+                                        X.DateField()
+                                            .FieldLabel("Received Date")
+                                            .MarginSpec("5 0 0 0")
+                                            .Name("ReceivedDate")
+                                            .ID("ReceivedDate")
+                                            .InputType(Ext.Net.InputType.DateTime)
+                                            .ReadOnly(true),
+
+                                        X.ComboBox()
+                                        .Name("ArrivalLocalizationID")
+                                        .FieldLabel("Arrival Location")
+                                        .AllowBlank(false).ForceSelection(true)
+                                        .BlankText(Resources.Localization + " " + Resources.RequiredField)
+                                        .ID("ArrivalLocalizationID")
+                                        .LabelSeparator(labelSeparator)
+                                        .EmptyText(Resources.Select)
+                                        .DisplayField("LocalizationLabel")
+                                        .ValueField("LocalizationID")
+                                        .Store(
+                                            X.Store()
+                                            .ID("ArrivallLocationStoreID")
+                                            .AutoLoad(false)
+                                            .Model(
+                                                X.Model()
+                                                    .IDProperty("ArrivalIDStore")
+                                                    .Fields(
+                                                        new ModelField("LocalizationID", ModelFieldType.Int) { Mapping = "LocalizationID" },
+                                                        new ModelField("LocalizationLabel", ModelFieldType.String) { Mapping = "LocalizationLabel" }
+                                                    )
+                                            )
+                                            .Proxy(
+                                                X.AjaxProxy()
+                                                    .Url(Url.Action("GetAllArrivalLocations"))
+                                                    .Reader(X.JsonReader().RootProperty("data"))
+                                            )
+                                            .Parameters(ps =>
+                                                ps.Add(new StoreParameter("ArrivalBranchID", "App.ArrivalBranchID.getValue()", ParameterMode.Raw))
+                                            )
+                                        )
+                                            
+                                    )//other informations content : end
+                            ),//transfer informations content : end
+
+                            X.Container()//Cady and cady grid container
+                                .Layout(LayoutType.HBox)
+                                .MarginSpec("10 10 10 10")
+                                .Items(//Cady and cady grid content : begin
+                                        
+                                                X.GridPanel()
+                                                    .Title("Cady Content")
+                                                    .Disabled(true)
+                                                    .ID("ProductTransfertLines")
+                                                    .Layout(LayoutType.Fit)
+                                                    .MarginSpec("0 0 0 0")
+                                                    .Frame(true)
+                                                    .Collapsible(true)
+                                                    .Width(500)
+                                                    .Store(
+                                                        X.Store()
+                                                            .GroupField("Light")
+                                                            .PageSize(5)
+                                                            .AutoLoad(true)
+                                                            .ID("ProductTransfertLinesStore")
+                                                            .Model(
+                                                                X.Model()
+                                                                    .Fields(
+                                                                        new ModelField() { Name = "TMPID", Type = ModelFieldType.Int },
+                                                                        new ModelField() { Name = "ProductLabel", Type = ModelFieldType.String },
+                                                                        new ModelField() { Name = "DepartureLocation", Type = ModelFieldType.String },
+                                                                        //new ModelField() { Name = "ArrivalLocation", Type = ModelFieldType.String },
+                                                                        new ModelField() { Name = "LineQuantity", Type = ModelFieldType.Int },
+                                                                        new ModelField() { Name = "LineUnitPrice",Type=ModelFieldType.Float }
+                                                                    )
+                                                            )
+                                                            .ServerProxy(
+                                                                    X.AjaxProxy()
+                                                                    .Url(Url.Action("ProductTransfertLines"))
+                                                                    .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                                                                    .Reader(X.JsonReader().RootProperty("data"))
+                                                            )
+                                                            
+                                                    )
+
+                                                    .ColumnModel(
+                                                        Html.X().Column()
+                                                            .Text("Designation")
+                                                            .DataIndex("ProductLabel")
+                                                            .Flex(1),
+                                                        Html.X().Column()
+                                                            .Text("Departure Location")
+                                                            .DataIndex("DepartureLocation")
+                                                            .Flex(1),
+
+                                                        //Html.X().Column()
+                                                        //    .Text("Arrival Location")
+                                                        //    .DataIndex("ArrivalLocation")
+                                                        //    .Flex(1),
+
+                                                        Html.X().Column()
+                                                            .Text("Quantity")
+                                                            .DataIndex("LineQuantity")
+                                                            .Flex(1)
+                                                       
+                                                        )
+                                                            .BottomBar(
+                            X.PagingToolbar()
+                    )
+
+                                        )//Cady and cady grid content : End
+
+
+                    )//content of genral form : end
+    )@*Eng of General form*@
+
+    @(
+ Html.X().GridPanel()
+        .Title("Pending Transfer List")
+        .ID("TransmissionGrid")
+        .Layout(LayoutType.Fit)
+        .MarginSpec("0 20 20 20")
+        .Frame(true)
+        .Collapsible(true)
+        .Store(Html.X().Store().AutoLoad(true)
+            .GroupField("Light")
+            .ID("TransmissionGridStoreID")
+            .Model(Html.X().Model()
+                .Fields(
+                    new ModelField("ProductTransfertID", ModelFieldType.Int),
+                    new ModelField("ProductTransfertReference", ModelFieldType.String),
+                    new ModelField("ProductTransfertDate", ModelFieldType.Date),
+                    new ModelField("DepartureBranch", ModelFieldType.String),
+                    new ModelField("ArrivalBranch", ModelFieldType.String),
+                    new ModelField("OrderedBy", ModelFieldType.String),
+                    new ModelField("AskedBy", ModelFieldType.String),
+                    new ModelField("OrderedBy", ModelFieldType.String),
+                    new ModelField("RegisteredBy", ModelFieldType.String)
+                )
+            )
+            .DataSource(Model)
+            .ServerProxy(
+                X.AjaxProxy()
+                .Url(Url.Action("GetAllDeparturePendingTransfers"))
+                .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                .Reader(X.JsonReader().RootProperty("data"))
+            )
+            .Parameters(ps =>
+                ps.Add(new StoreParameter("DepartureBranchID", "App.DepartureBranchID.getValue()", ParameterMode.Raw))
+            )
+        )
+
+        .ColumnModel(
+
+            Html.X().Column()
+                .Text("Reference")
+                .DataIndex("ProductTransfertReference")
+                .Flex(1),
+            Html.X().DateColumn()
+                .Text("Date")
+                .DataIndex("ProductTransfertDate")
+                .Flex(1),
+            Html.X().Column()
+                .Text("Departure Branch")
+                .DataIndex("DepartureBranch")
+                .Flex(1),
+            Html.X().Column()
+                .Text("Arrival Branch")
+                .DataIndex("ArrivalBranch")
+                .Flex(1),
+            Html.X().Column()
+                .Text("Asked By")
+                .DataIndex("AskedBy")
+                .Flex(1),
+            Html.X().Column()
+                .Text("Ordered By")
+                .DataIndex("OrderedBy")
+                .Flex(1),
+            Html.X().Column()
+                .Text("RegisteredBy")
+                .DataIndex("RegisteredBy")
+                .Flex(1),
+           Html.X().ImageCommandColumn()
+                .Width(30)
+                .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.DELETE, profile, CodeValue.Supply.ProductTransmission_SM.CODE,db))
+                .Commands(
+                    Html.X().ImageCommand()
+                        .CommandName("Delete")
+                        .IconCls("icon-delete")
+                        .ToolTip(tt =>
+                            {
+                                tt.Text = FatSod.Ressources.Resources.ConfirmDeleteMessage;
+                                tt.Title = "Supression";
+                            }
+                            )
+                )
+                .DirectEvents(de =>
+                {
+                    de.Command.Action = "DeleteTransfer";
+                    de.Command.Method = HttpMethod.POST;
+                    de.Command.Confirmation.ConfirmRequest = true;
+                    de.Command.Confirmation.Message = FatSod.Ressources.Resources.ConfirmDeleteMessage;
+                    de.Command.Confirmation.Title = FatSod.Ressources.Resources.ConfirmDeleteTitle;
+                    de.Command.ExtraParams.Add(new Parameter("ProductTransfertID", "record.data.ProductTransfertID", ParameterMode.Raw));
+                    de.Command.EventMask.ShowMask = true;
+                    de.Command.EventMask.Msg = FatSod.Ressources.Resources.EventMaskMsg;
+                }),
+
+            Html.X().ImageCommandColumn()
+            .Width(30)
+            .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, profile, CodeValue.Supply.ProductTransmission_SM.CODE,db))
+            .Commands(
+            Html.X().ImageCommand()
+                    .CommandName("Edit")
+                    .IconCls("icon-edit")
+                    .ToolTip(tt => tt.Text = "Modifier ?")
+            )
+
+            .DirectEvents(de =>
+            {
+                de.Command.Action = "UpdateTransfer";
+                de.Command.Method = HttpMethod.GET;
+                de.Command.ExtraParams.Add(new Parameter("ProductTransfertID", "record.data.ProductTransfertID", ParameterMode.Raw));
+                de.Command.EventMask.ShowMask = true;
+                de.Command.EventMask.Msg = FatSod.Ressources.Resources.EventMaskUpdate;
+            })
+        )
+        /*.Features(
+                X.GroupingSummary()
+                    .ID("GroupingSummary1")
+                )*/
+            .Plugins(
+                X.FilterHeader()
+            )
+            .BottomBar(
+                X.PagingToolbar()
+                    .Plugins(
+                        X.ProgressBarPager()
+                    )
+                    .HideRefresh(true)
+            )
+    )@*fin du bloc pour le grid panel*@
+
+    }

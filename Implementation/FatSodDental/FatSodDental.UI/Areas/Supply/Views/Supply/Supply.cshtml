@@ -1,0 +1,573 @@
+﻿﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    string labelSeparator = "  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :";
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+    String hideMoralFields = @"
+                             //1-
+                              App.CompanyCapital.setHidden(true);
+                              App.CompanyTradeRegister.setHidden(true);
+                              App.CompanySigle.setHidden(true);
+                              App.CompanySlogan.setHidden(true);  
+                              App.Description.setHidden(true);
+                              App.Name.setHidden(true);
+                            
+                              //2-
+                              App.CompanyTradeRegister.allowBlank = true;
+                              App.CompanySigle.allowBlank = true;
+
+                              ";
+
+    String displayMoralFields = @"
+                            //1-
+                                  App.CompanyCapital.setHidden(false);
+                                  App.CompanyTradeRegister.setHidden(false);
+                                  App.CompanySigle.setHidden(false);
+                                  App.Description.setHidden(false);
+                                  App.Name.setHidden(false);
+                                  App.CNI.setHidden(false);
+                                  App.CompanySlogan.setHidden(false);
+                            //2-
+                                  App.CompanyTradeRegister.allowBlank = false;
+                                  App.CompanySigle.allowBlank = false;
+                             //3-
+                                App.Description.setFieldLabel(" + "'Description'" + @");
+                                App.CNI.setFieldLabel(" + "'Contribuable Number'" + @");
+                           
+                              ";
+
+    String hidePhysicalFields = @"
+                            //1-
+                              App.Name.setHidden(true);
+                              App.CNI.setHidden(true);
+                              App.Masculin.setHidden(true);
+                              App.Feminin.setHidden(true);
+                              App.Description.setHidden(true); 
+                            //2-
+                              App.Masculin.allowBlank = true;
+                              App.Feminin.allowBlank = true;
+
+
+                              ";
+
+    String displayPhysicalFields = @"
+                                //1-
+                                  App.Name.setHidden(false);
+                                  App.CNI.setHidden(false);
+                                  App.Masculin.setHidden(false);
+                                  App.Feminin.setHidden(false);
+                                  App.Description.setHidden(false); 
+                                //2-
+                                  App.CNI.allowBlank = false;
+                                  App.Masculin.allowBlank = false;
+                                  App.Feminin.allowBlank = false;
+                                //3-
+                                App.Description.setFieldLabel('" + Resources.PersonSurname + @"');
+                                App.CNI.setFieldLabel('" + Resources.PersonCNI + @"');
+
+                              ";
+
+    String managePhysicalAndMoral = @"if(this.getValue() == 1)
+                                    {
+                                        //activation des champs liés à une personne physique
+                                        //1-On masque d'abord les champs liés à une personne Moral.
+                                            " + hideMoralFields +
+                                        @"
+                                            //2-On affiche maintenant les champs liés à une personne physique.
+                                            " + displayPhysicalFields +
+                                    "}" +
+
+                                    @"if(this.getValue() == 2)
+                                    {
+                                        //activation des champs liés à une personne Moral
+                                        //1-On masque d'abord les champs liés à une personne Physique.
+                                            " + hidePhysicalFields +
+                                            @"
+                                                //2-On affiche maintenant les champs liés à une personne Moral.
+                                            " + displayMoralFields + 
+                                    "}";
+
+    //var Name = @Resources.PersonName;
+}
+@section content
+{
+
+    <h3>@*@Resources.SupplierFormTitle*@ Suppliers Management</h3>
+    <hr />
+    <p>
+        @Resources.RequireField <code>(*)</code>.
+    </p>
+
+    @(X.FormPanel()
+        .ID("SupplierForm")
+        .Title("Add New Supplier")
+        .Frame(true)
+        .MarginSpec("0 20 20 20")
+        .BodyPadding(10)
+        .FieldDefaults(fd => { fd.LabelWidth = 120; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+        .Buttons(
+            X.Button()
+                .ID("btnSave")
+                .Text(Resources.SaveButton)
+                .Disabled(true)
+                .Icon(Icon.Disk)
+                .Margin(10)
+                .DirectEvents(de =>
+                {
+                    de.Click.Url = Url.Action("Add", "Supply");
+                    de.Click.EventMask.ShowMask = true;
+                    de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                }),
+
+            X.Button()
+                .Text(Resources.ResetButton)
+                .MarginSpec("0 20 10 10")
+                .OnClientClick("this.up('form').reset();")
+        )
+        .Listeners(
+            ls =>
+            {
+                ls.FieldChange.Handler = "if(App.SupplierForm.isValid()){App.btnSave.setDisabled(false);}else{App.btnSave.setDisabled(true);}";
+            }
+        )
+        .Items(
+            X.Container()
+                .Layout(LayoutType.HBox)
+                .MarginSpec("0 0 10")
+                .Items(
+                
+            //Informations sur une personne physique
+                    X.FieldSet()
+                        .ID("PhysicalPersonFieldSet")
+                        .Flex(1)
+                        .Title(Resources.PersonIdentificationForm)
+                        .Layout(LayoutType.Anchor)
+                        .Height(300)
+                        .DefaultAnchor("100%")
+                        .Items(
+                            X.ComboBox()
+                                .FieldLabel("Person Type")
+                                .EmptyText(Resources.Select)
+                                .LabelSeparator(labelSeparator)
+                                .MarginSpec("0 0 10 0")
+                                .AllowBlank(false)
+                                .ForceSelection(true)
+                                .BlankText(Resources.RequiredField)
+                                .ID("PersonType")
+                                .Name("PersonType")
+                                .Items(LoadComponent.GetPersonType)
+                                .AutoSelect(false)
+                                    .Listeners(ls =>
+                                    {
+                                        ls.Change.Handler = managePhysicalAndMoral;
+                                        ls.Select.Handler = managePhysicalAndMoral;
+               
+                                    }
+                                ),
+
+                            X.TextField().Name("GlobalPersonID").ID("GlobalPersonID").Hidden(true),
+                            X.TextField().FieldLabel(Resources.PersonName)
+                                .Name("Name")
+                                .MsgTarget(MessageTarget.Side)
+                                .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                .ID("Name").BlankText("Vous devez renseigner un nom")
+                                .AllowBlank(false).MinLength(4)
+                                .Hidden(true),
+                            X.TextField().FieldLabel(Resources.PersonSurname).Name("Description").ID("Description").BlankText("Vous devez renseigner un prénom").Hidden(true),
+                            X.TextField().FieldLabel(Resources.PersonCNI)
+                                .Name("CNI")
+                                .ID("CNI")
+                                .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                .BlankText("Vous devez renseigner un numéro de CNI")
+                                .AllowBlank(false)
+                                .Hidden(true),
+                            X.Radio().BoxLabel("Homme").Name("SexID").ID("Masculin").InputID("Homme").InputValue("1").FieldLabel(Resources.PersonSex).Checked(true).Hidden(true),
+                            X.Radio().BoxLabel("Femme").Name("SexID").ID("Feminin").InputValue("2").InputType(Ext.Net.InputType.Radio).LabelWidth(110).FieldLabel("    ").LabelSeparator("").Hidden(true),
+                                
+                            //Début des Informations sur une personne morale
+                                                               
+                                     X.NumberField().FieldLabel("Capital")
+                                        .Hidden(true)
+                                        .Name("CompanyCapital")
+                                        .ID("CompanyCapital")
+                                        .Value(0)
+                                        .MinValue(0)
+                                        .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                        .AllowBlank(true)
+                                      
+                                     ,    
+                                    
+                                    X.TextField().FieldLabel("Trade Register")
+                                                    .Name("CompanyTradeRegister")
+                                                    .MsgTarget(MessageTarget.Side)
+                                                    .LabelSeparator("<span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                                    .ID("CompanyTradeRegister")
+                                                    .BlankText(Resources.RequiredField)
+                                                    .AllowBlank(false).MinLength(4)
+                                                    .Hidden(true)
+                                    ,
+                                    X.TextField().FieldLabel("Sigle")
+                                                    .Name("CompanySigle")
+                                                    .MsgTarget(MessageTarget.Side)
+                                                    .LabelSeparator("<span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                                    .ID("CompanySigle")
+                                                    .BlankText(Resources.RequiredField)
+                                                    .AllowBlank(false).MinLength(3)
+                                                    .Hidden(true)
+                                    ,
+                                    X.TextField().FieldLabel("Slogan")
+                                                    .Name("CompanySlogan")
+                                                    .MsgTarget(MessageTarget.Side)
+                                                    .LabelSeparator("<span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                                    .ID("CompanySlogan")
+                                                    .BlankText(Resources.RequiredField)
+                                                    .AllowBlank(true).MinLength(4)
+                                                    .Hidden(true)
+                                //Fin des Informations sur une personne morale
+
+
+                                                    
+
+                        ),
+
+                    X.Component().Width(10),
+
+                    X.FieldSet()
+                        .Flex(1)
+                        .Title(Resources.PersonAdressForm)
+                        .Layout(LayoutType.Anchor)
+                        .DefaultAnchor("100%")
+                        .Height(300)
+                        .Items(
+                            X.TextField().Name("AdressID").ID("AdressID").Hidden(true),
+
+                            X.TextField().FieldLabel(Resources.PersonMobile).Name("AdressPhoneNumber").ID("AdressPhoneNumber"),
+                            X.TextField().FieldLabel("Email")
+                                         .InputType(Ext.Net.InputType.Email)
+                                         .Name("AdressEmail").ID("AdressEmail")
+                                         .AllowBlank(true)
+                                         .ErrorMsgCls("has-error")
+                                         .MsgTarget(MessageTarget.Side)
+                                         .VtypeText("Cette adresse email n'est pas valide. Exemple : \"dental-support@fatsodgroup.com\"")
+                                         .Vtype("email")
+                                         ,
+                            X.TextField().FieldLabel(Resources.PersonBox).Name("AdressPOBox").ID("AdressPOBox"),
+                            X.TextField().FieldLabel("Fax").Name("AdressFax").ID("AdressFax"),
+                            X.ComboBox().Name("Country").FieldLabel(Resources.AdressCountry)
+                                        .Items(LoadComponent.Countries)
+                                        .AllowBlank(false).ForceSelection(true)
+                                        .ID("Country")
+                                        .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                        .EmptyText("Selectionner un pays")
+                                        .Listeners(ls =>
+                                            ls.Select.Handler = "App.Region.setDisabled(false);App.Town.setDisabled(true);App.Quarter.setDisabled(true);App.Region.clearValue();App.Town.clearValue(); App.Quarter.clearValue(); App.Region.getStore().load();"
+                                        )
+                                        ,
+                            X.ComboBox().Name("Region").ID("Region")
+                                        .FieldLabel(Resources.AdressRegion)
+                                        .AutoSelect(false)
+                                        .EmptyText("Selectionner une région")
+                                        .AllowBlank(false).ForceSelection(true)
+                                        .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                        .Disabled(true)
+                                        .Listeners(ls =>
+                                        {
+                                            ls.Change.Handler = "App.Town.setDisabled(false);";
+                                            ls.Select.Handler = "App.Town.setDisabled(false);App.Town.clearValue(); App.Quarter.clearValue(); App.TownStoreID/*.getStore()*/.load()";
+                                        }
+                                        )
+                                        .ValueField("RegionID").ValueNotFoundText("Aucune région trouvée")//.EmptyText("Chargement...")
+                                        .DisplayField("RegionLabel")
+                                        .Store(
+                                            X.Store()
+                                             .AutoLoad(false)
+                                             .ID("RegionStoreID")
+                                             .Model(
+                                                X.Model()
+                                                 .IDProperty("RegionID")
+                                                 .Fields(
+                                                       new ModelField("RegionID", ModelFieldType.Int) { Mapping = "RegionID" },
+                                                       new ModelField("RegionLabel", ModelFieldType.String) { Mapping = "RegionLabel" }
+                                                 )
+                                             )
+                                            .Proxy(
+                                                X.AjaxProxy()
+                                                 .Url(Url.Action("Regions"))
+                                                 .Reader(X.JsonReader().RootProperty("data"))
+                                             )
+                                            .Parameters(ps =>
+                                                 ps.Add(new StoreParameter("countryID", "App.Country.getValue()", ParameterMode.Raw))
+                                            )
+
+                                        )
+                                        ,
+                            X.ComboBox().Name("Town").FieldLabel(Resources.AdressTown)
+                                        .Listeners(ls =>
+                                        {
+                                            ls.Change.Handler = "App.Quarter.setDisabled(false);";
+                                            ls.Select.Handler = "App.Quarter.setDisabled(false);App.Quarter.clearValue(); App.QuarterStoreID/*.getStore()*/.load()";
+                                        }
+                                         )
+                                        .ID("Town")
+                                        .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                        .Disabled(true)
+                                        .AutoSelect(false).ForceSelection(true)
+                                        .EmptyText("Selectionner une ville")
+                                        .AllowBlank(false)
+                                        .DisplayField("TownLabel")
+                                        .ValueField("TownID")
+                                        .ValueNotFoundText("Aucune ville trouvée")//.EmptyText("Chargement...")
+                                        .Store(
+                                                X.Store()
+                                                 .ID("TownStoreID")
+                                                 .AutoLoad(false)
+                                                 .Model(
+                                                     X.Model()
+                                                      .IDProperty("TownID")
+                                                      .Fields(
+                                                           new ModelField("TownID", ModelFieldType.Int) { Mapping = "TownID" },
+                                                           new ModelField("TownLabel", ModelFieldType.String) { Mapping = "TownLabel" }
+                                                      )
+                                                  )
+                                                  .Proxy(
+                                                      X.AjaxProxy()
+                                                       .Url(Url.Action("Towns"))
+                                                       .Reader(X.JsonReader().RootProperty("data"))
+                                                  )
+                                                  .Parameters(ps =>
+                                                       ps.Add(new StoreParameter("regionID", "App.Region.getValue()", ParameterMode.Raw))
+                                                  )
+            //                                                  .Listeners(ls =>
+            //                                                      ls.Load.Handler = @"var combo = App.Town;
+            //                                                        if(App.GlobalPersonID.getValue() == 0){combo.setValue(records[0].get(combo.valueField));}
+            //                                                        else{combo.setValue(App.TownID1.getValue());}"
+            //                                                    )
+
+                                         )
+                                        ,
+                            X.ComboBox().Name("QuarterID")
+                                        .FieldLabel(Resources.AdressQuarter)
+                                        .Disabled(true)
+                                        .EmptyText("Selectionner un quartier")
+                                        .AutoSelect(false)
+                                        .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                        .AllowBlank(false).ForceSelection(true)
+                                        .BlankText("Vous devez renseigner un quartier")
+                                        .ID("Quarter")
+                                        .DisplayField("QuarterLabel")
+                                        .ValueField("QuarterID")
+                                        .ValueNotFoundText("Aucun quartier trouvé")//.EmptyText("Chargement...")
+                                        .Store(
+                                               X.Store()
+                                                .ID("QuarterStoreID")
+                                                .AutoLoad(false)
+                                                .Model(
+                                                   X.Model()
+                                                    .IDProperty("QuarterID")
+                                                     .Fields(
+                                                           new ModelField("QuarterID", ModelFieldType.Int) { Mapping = "QuarterID" },
+                                                           new ModelField("QuarterLabel", ModelFieldType.String) { Mapping = "QuarterLabel" }
+                                                     )
+                                                )
+                                                .Proxy(
+                                                    X.AjaxProxy()
+                                                        .Url(Url.Action("Quarters"))
+                                                        .Reader(X.JsonReader().RootProperty("data"))
+                                                )
+                                                .Parameters(ps =>
+                                                    ps.Add(new StoreParameter("townID", "App.Town.getValue()", ParameterMode.Raw))
+                                                )
+            //                                                .Listeners(ls =>
+            //                                                    ls.Load.Handler = @"var combo = App.Quarter;
+            //                                                           if(App.GlobalPersonID.getValue() == 0){combo.setValue(records[0].get(combo.valueField));}
+            //                                                        else{combo.setValue(App.QuarterID1.getValue());}"
+            //                                                                )
+
+                                          )
+
+                        ),
+                   X.Component().Width(10),
+
+                   X.FieldSet()
+                        .Flex(1)
+                        .Title(Resources.CustomerCountFormTitle)
+                        .Layout(LayoutType.Anchor)
+                        .Height(300)
+                        .DefaultAnchor("100%")
+                        .Items(
+                            //X.TextField().Name("Code").FieldLabel("Code").AllowBlank(false).MinLength(4).LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :"),  
+                            X.TextField().FieldLabel(Resources.SupplierNumber)
+                                    .Name("SupplierNumber")
+                                    .MsgTarget(MessageTarget.Side)
+                                    .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                    .ID("SupplierNumber").BlankText("Vous devez renseigner un numéro")
+                                    .AllowBlank(false).MinLength(4).MaxLength(9).EnforceMaxLength(true)
+
+                                    ,
+                                    X.ComboBox().Name("Account")
+                                        .FieldLabel(Resources.CollectifAccount)
+                                        .AutoSelect(false).ForceSelection(true)
+                                        .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                        .Items(LoadComponent.CollectifAccounts(FatSod.DataContext.Initializer.CodeValue.Accounting.DefaultCodeAccountingSection.CODEFOURN))
+                                        .ID("Account")
+                                        .AllowBlank(false)
+                        )
+                   ,
+                   X.FieldSet()
+                    .ID("ImageSection")
+                    .Title("Image representation")
+                    //.Flex(1)
+                    .Width(170)
+                    .Height(300)
+                    .Items(
+                        X.TextField().Name("FileID").ID("FileID").Hidden(true)
+                        ,
+                        X.FileUploadField().FieldLabel("Choose image")
+                            .Name("UploadImage").ID("UploadImage")
+                            .LabelAlign(LabelAlign.Top)
+                            //.BlankText(Resources.PersonSurname + " " + Resources.RequiredField)
+                            .AllowBlank(true) 
+                        ,                        
+                        X.Image()
+                         .ID("ImageID")
+                         .Hidden(true)
+                         .MarginSpec("0 0 0 40")
+                         .Width(100)
+                         .Height(150)                                            
+                    )
+                    //.Width(30)
+                   ,                        
+                   X.Component().Width(20)
+                )
+        )
+    )
+
+    @(Html.X().GridPanel()
+            .Title(/*Resources.SupplierList*/"Supplier List")
+        .ID("SupplierList")
+        .Layout(LayoutType.Fit)
+        .MarginSpec("0 20 20 20")
+        .Frame(true)
+        .Collapsible(true)
+        .Store(Html.X().Store()
+            .GroupField("Light")
+            .ID("SupplierListStore")
+            .Model(Html.X().Model()
+                .Fields(
+                    new ModelField("Name", ModelFieldType.String),
+                    new ModelField("Description", ModelFieldType.String),
+                    new ModelField("CNI", ModelFieldType.String),
+                    //new ModelField("SexLabel1", ModelFieldType.String),
+                    new ModelField("AdressPhoneNumber1", ModelFieldType.String),
+                    new ModelField("AdressPOBox1", ModelFieldType.String),
+                    new ModelField("AdressEmail1", ModelFieldType.String),
+                    new ModelField("AccountLabel1", ModelFieldType.String),
+                    new ModelField("GlobalPersonID", ModelFieldType.Int)
+
+                )
+            ).DataSource(Model)
+            .ServerProxy(
+                X.AjaxProxy()
+                .Url(Url.Action("GetAllSuppliers"))
+                .ActionMethods(ac => ac.Read = HttpMethod.GET)
+                .Reader(X.JsonReader().RootProperty("data"))
+            )
+        )
+
+        .ColumnModel(
+                                        Html.X().Column()
+                                                            .Text(Resources.PersonCNI)
+                                                            .DataIndex("CNI")
+                                                            .Flex(1)
+                                                            ,
+                                        Html.X().Column()
+                                                            .Text(Resources.PersonName)
+                                                            .DataIndex("Name")
+                                                            .Flex(1)
+                                                            ,
+            Html.X().Column()
+                .Text(Resources.Description)
+                .DataIndex("Description")
+                .Flex(1),
+
+                                        //Html.X().Column()
+                                        //                    .Text("Sexe")
+                                        //                    .DataIndex("SexLabel1")
+                                        //                    .Flex(1),
+                                        Html.X().Column()
+                                                            .Text(Resources.PersonMobile)
+                                                            .DataIndex("AdressPhoneNumber1")
+                                                            .Flex(1),
+                                        Html.X().Column()
+                                                            .Text("Email")
+                                                            .DataIndex("AdressEmail1")
+                                                            .Flex(1),
+                                        Html.X().Column()
+                                                            .Text(Resources.PersonBox)
+                                                            .DataIndex("AdressPOBox1")
+                                                            .Flex(1),
+                                        Html.X().Column()
+                                                            .Text("AccountLabel1")
+                                                            .DataIndex("AccountLabel1")
+                                                            .Flex(1),
+            Html.X().ImageCommandColumn()
+                        .Width(30)
+                        .Hidden(LoadAction.IsMenuActionAble(MenuAction.DELETE, profile, CodeValue.Supply.SupplyMenu.CODE,db))
+                        .Commands(
+                            Html.X().ImageCommand()
+                                .CommandName("Delete")
+                                .IconCls("icon-delete")
+                                .ToolTip(tt =>
+                                    {
+                                        tt.Text = "Voulez-vous supprimer ?";
+                                        tt.Title = "Supression";
+                                    }
+                                 )
+                        )
+                        .DirectEvents(de =>
+                        {
+                            de.Command.Action = "Delete";
+                            de.Command.Method = HttpMethod.POST;
+                            de.Command.Confirmation.ConfirmRequest = true;
+                            de.Command.Confirmation.Message = Resources.ConfirmDeleteMessage;
+                            de.Command.Confirmation.Title = Resources.ConfirmDeleteTitle;
+                            de.Command.ExtraParams.Add(new Parameter("ID", "record.data.GlobalPersonID", ParameterMode.Raw));
+                            de.Command.EventMask.ShowMask = true;
+                            de.Command.EventMask.Msg = Resources.EventMaskMsg;
+                        }),
+            Html.X().ImageCommandColumn()
+                    .Width(30)
+                    .Hidden(LoadAction.IsMenuActionAble(MenuAction.UPDATE, profile, CodeValue.Supply.SupplyMenu.CODE,db))
+                    .Commands(
+                    Html.X().ImageCommand()
+                            .CommandName("Edit")
+                            .IconCls("icon-edit")
+                            .ToolTip(tt => tt.Text = "Modifier ?")
+                    )
+
+                    .DirectEvents(de =>
+                    {
+                        de.Command.Action = "InitializeFields";
+                        de.Command.Method = HttpMethod.POST;
+                        de.Command.ExtraParams.Add(new Parameter("ID", "record.data.GlobalPersonID", ParameterMode.Raw));
+                        de.Command.EventMask.ShowMask = true;
+                        de.Command.EventMask.Msg = Resources.EventMaskUpdate;
+                    })
+
+
+            )
+            .BottomBar(
+                 Html.X().PagingToolbar()
+            )
+    )
+
+}

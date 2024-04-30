@@ -1,0 +1,55 @@
+﻿@using FatSod.DataContext.Concrete
+@using FatSod.Ressources
+@using Microsoft.AspNet.Identity
+@using FatSod.Security.Entities
+
+@if (Request.IsAuthenticated) {
+    using (Html.BeginForm("LogOff", "Session", new { area = "" }, FormMethod.Post, new { id = "logoffForm", @class = "navbar-right" }))
+    {
+        @Html.AntiForgeryToken()
+
+
+        int personID = Convert.ToInt32( User.Identity.GetUserName());
+        EFDbContext db = new EFDbContext();
+        var fullname =  db.Users.Where(u => u.GlobalPersonID == personID).First().Name;
+        Session["UserConnect"] = fullname;
+        DateTime dateBusDay;
+        List<BusinessDay> bdDay = (List<BusinessDay>)Session["UserBusDays"];
+        if (bdDay == null || bdDay.Count == 0)
+        {
+            dateBusDay = DateTime.Today.Date;
+        }
+        else
+        {
+            dateBusDay = bdDay.FirstOrDefault().BDDateOperation.Date;
+        }
+
+        <ul class="nav navbar-nav navbar-right">
+            <li>
+                <a class="lang-btn" href="@Url.Action("SetCulture","Base", new { area = "" ,culture= "en-US" })">
+                    <img src="~/Content/images/png/icon-English.png" width="50" height="20" alt="English" />
+                </a>
+            </li>
+            <li>
+                <a class="lang-btn" href="@Url.Action("SetCulture","Base", new { area = "" ,culture="fr-FR"})">
+                    <img src="~/Content/images/png/icon-French.png" width="50" height="20" alt="French" />
+                </a>
+            </li>
+            <li>
+                @Html.ActionLink(Resources.welcome + " " + fullname + ". " +Resources.a_BusinessDay + " " + String.Format("{0:yyyy-MM-dd}", dateBusDay), "Index", "Manage", routeValues: null, htmlAttributes: new { title = "Manage" })     
+            </li>
+            <li><a href="javascript:document.getElementById('logoffForm').submit()"><span class="glyphicon glyphicon-off"></span></a></li>
+        </ul>
+    }
+}
+else {
+    <ul class="nav navbar-nav navbar-right">
+        <li>@Html.ActionLink("Log in", "Login", "Session", routeValues: null, htmlAttributes: new { id = "loginLink" })</li>
+    </ul>
+}
+
+<style type="text/css">
+    .lang-btn {
+        text-decoration: none;
+    }
+</style>

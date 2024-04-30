@@ -1,0 +1,524 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+
+@model System.Collections.IEnumerable
+
+@{
+
+    //ViewBag.Title = "Purchase";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    string labelSeparator = "  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :";
+
+}
+@section header
+{
+    <style>
+        .search-item {
+            font: normal 11px tahoma, arial, helvetica, sans-serif;
+            padding: 3px 10px 3px 10px;
+            border: 1px solid #fff;
+            border-bottom: 1px solid #eeeeee;
+            white-space: normal;
+            color: #555;
+        }
+
+            .search-item h3 {
+                display: block;
+                font: inherit;
+                font-weight: bold;
+                color: #222;
+                margin: 0px;
+            }
+
+        /*.search-item h3 span {
+                    float: right;
+                    font-weight: normal;
+                    margin: 0 0 5px 5px;
+                    width: 100px;
+                    display: block;
+                    clear: none;
+                }*/
+
+        p {
+            width: 650px;
+        }
+
+        .ext-ie .x-form-text {
+            position: static !important;
+        }
+    </style>
+}
+@section content
+{
+
+    @***********************************************************@
+    @(
+ X.FormPanel()
+            .ID("GeneralForm")
+            .Layout(LayoutType.Anchor)
+            .MarginSpec("10 10 10 10")
+            .Title("Transmission Informations")
+            .Buttons(
+                X.Button()
+                    .ID("btnSave")
+                    .Text(Resources.UIDisplayEntries)
+                    .OnClientClick("App.PanelReport.setHidden(true)")
+                    .Icon(Icon.Disk)
+                    .DirectEvents(de =>
+                    {
+                        de.Click.Url = Url.Action("DisplayEntries", "StockInput");
+                        de.Click.EventMask.ShowMask = true;
+                        de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                    }),
+                X.Button()
+                    .ID("btnPrint")
+                    .Text(Resources.UIPrint)
+                    .Icon(Icon.Printer)
+                    .OnClientClick("App.PanelReport.setHidden(false)")
+                    .DirectEvents(de =>
+                    {
+                        de.Click.Url = Url.Action("PrintReport", "StockInput");
+                        de.Click.EventMask.ShowMask = true;
+                        de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                    }),
+
+                X.Button()
+                    .ID("Cancel1")
+                    .Text("Cancel")
+                    .MarginSpec("0 20 10 10")
+                    .OnClientClick("App.PanelReport.setHidden(true)")
+                    .DirectEvents(de =>
+                    {
+                        de.Click.Url = Url.Action("Reset");
+                        de.Click.Complete = "";
+                        de.Click.EventMask.ShowMask = true;
+                        de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                    })
+                    )
+
+            .Items(//contain of genral form : begin
+                X.FormPanel()//transfer informations container
+                    .ID("StockInputForm")
+                    .Layout(LayoutType.VBox)
+                    .MarginSpec("10 10 0 10")
+                    .Items(//transfer informations content : begin
+                        X.TextField().Name("StockInputID").ID("StockInputID").Hidden(true),
+                        X.Container()//sender container
+                            .Layout(LayoutType.HBox)
+                            .MarginSpec("10 10 0 10")
+                            .Items(//senders informations content : begin
+                                X.ComboBox()
+                                    .ID("BranchID")
+                                    .Name("BranchID")
+                                    .FieldLabel("Branch")
+                                    .MarginSpec("0 10 10 0")
+                                    .AllowBlank(false)
+                                    .BlankText(Resources.Branches + " " + Resources.RequiredField)
+                                    .LabelSeparator(labelSeparator)
+                                    .EmptyText(Resources.Select)
+                                    .DisplayField("BranchName")
+                                    .ValueField("BranchID")
+                                    .DirectEvents(de =>
+                                    {
+                                        de.Change.Url = Url.Action("ChangeBusDay");
+                                        de.Change.ExtraParams.Add(new Parameter("BranchID", "this.getValue()", ParameterMode.Raw));
+                                        de.Change.EventMask.ShowMask = true;
+                                        de.Change.EventMask.Msg = Resources.EventMaskMsg;
+                                    })
+                                    .Store(
+                                        X.Store()
+                                        .AutoLoad(true)
+                                        .Model(
+                                            X.Model()
+                                                .IDProperty("BranchIDtore")
+                                                .Fields(
+                                                    new ModelField("BranchID", ModelFieldType.Int) { Mapping = "BranchID" },
+                                                    new ModelField("BranchName", ModelFieldType.String) { Mapping = "BranchName" }
+                                                )
+                                        )
+                                        .Proxy(
+                                            X.AjaxProxy()
+                                                .Url(Url.Action("OpenedBusday"))
+                                                .Reader(X.JsonReader().RootProperty("data"))
+                                        )
+                                    ),
+                                    X.DateField().FieldLabel(Resources.UIBeginDate)
+                                    .AllowBlank(false)
+                                    .Name("BeginDate")
+                                    .ID("BeginDate")
+                                    .MarginSpec("0 10 10 0")
+                                    .LabelSeparator(labelSeparator)
+                                    .InputType(Ext.Net.InputType.DateTime)
+                                    ,
+                                    X.DateField().FieldLabel(Resources.UIEndDate)
+                                    .AllowBlank(false)
+                                    .Name("EndDate")
+                                    .ID("EndDate")
+                                    .MarginSpec("0 10 10 0")
+                                    .LabelSeparator(labelSeparator)
+                                    .InputType(Ext.Net.InputType.DateTime)
+                                    )
+                                    ,
+                            X.Container()//sender container
+                            .Layout(LayoutType.HBox)
+                            .MarginSpec("10 10 0 10")
+                            .Items(
+                                    X.TextField().FieldLabel(Resources.TotalInputQuantity).MarginSpec("0 10 10 0").ReadOnly(true).ID("TotalQty").Hidden(false)
+                                    .Width(200)
+                                )//senders informations content : end
+
+                            ),//transfer informations content : end
+
+                            X.Container()//Cady and cady grid container
+                                .Layout(LayoutType.HBox)
+                                .MarginSpec("10 10 10 10")
+                                .Items(//Cady and cady grid content : begin
+
+                                    X.FormPanel()
+                                        .ID("FormAddStockInputLine")
+                                        .Title("Choose Product Information")
+                                        .Layout(LayoutType.Anchor)
+                                        .Width(500)
+                                        .Items(//Cady form : begin
+                                            X.TextField().Name("TMPID").ID("TMPID").Hidden(true).Value(0),
+                                            X.ComboBox()
+                                                .Name("LocalizationID")
+                                                .MarginSpec("5 10 0 10")
+                                                .FieldLabel(Resources.Localization)
+                                                .AllowBlank(false)
+                                                .ForceSelection(true)
+                                                .BlankText(Resources.Localization + " " + Resources.RequiredField)
+                                                .ID("LocalizationID")
+                                                .LabelSeparator(labelSeparator)
+                                                .EmptyText(Resources.Select)
+                                                .DisplayField("LocalizationLabel")
+                                                .ValueField("LocalizationID")
+                                                .Store(
+                                                    X.Store()
+                                                    .AutoLoad(false)
+                                                    .Model(
+                                                        X.Model()
+                                                            .IDProperty("LocationIDtore")
+                                                            .Fields(
+                                                                new ModelField("LocalizationID", ModelFieldType.Int) { Mapping = "LocalizationID" },
+                                                                new ModelField("LocalizationLabel", ModelFieldType.String) { Mapping = "LocalizationLabel" }
+                                                            )
+                                                    )
+                                                    .Proxy(
+                                                        X.AjaxProxy()
+                                                            .Url(Url.Action("GetAllStockedLocations"))
+                                                            .Reader(X.JsonReader().RootProperty("data"))
+                                                    )
+                                                    .Parameters(ps =>
+                                                        ps.Add(new StoreParameter("BranchID", "App.BranchID.getValue()", ParameterMode.Raw))
+                                                    )
+                                                )
+                                                ,
+
+                                        X.FieldContainer().FieldLabel(Resources.Categories) //conteneur des choix pr la recherche d'un produit
+                                            .Layout(LayoutType.Anchor)
+                                            .LabelSeparator(labelSeparator)
+                                            .MarginSpec("5 10 0 10")
+                                            .ID("ProductCategoryContent")
+                                                .Items(
+                                                    X.ComboBox().Name("ProductCategory") //category des produits
+                                                    .Items(LoadComponent.GetProductCategory())
+                                                    .ValueField("ProductCategory")
+                                                    .DisplayField("ProductCategory")
+                                                    .AllowBlank(false).ForceSelection(true)
+                                                    .ID("ProductCategoryID")
+                                                    .Width(200)
+                                                    .EmptyText(Resources.chooseCategories)
+                                                    .AutoSelect(false)
+                                                    .SelectOnFocus(true)
+                                                    .Listeners(ls => ls.Select.Handler = @"App.ProductID.clear();
+                                                                                        App.ProductNumberID.clear();
+                                                                                        App.ProductID.getStore().load();
+                                                                                        "
+                                                                                        )
+                                                    .DirectEvents(de =>
+                                                        {
+                                                            //Chargement du combo des produits en fct du magasin, category et du numero du verre
+                                                            de.Select.Url = Url.Action("DisableNumero");
+                                                            de.Select.ExtraParams.Add(new Parameter("ProductCategoryID", "this.getValue()", ParameterMode.Raw));
+                                                        })
+                                                    ,
+
+                                                    //Custom Search Combo box : Begin
+                                                        X.Component().Width(10),
+                                                        X.Component().Width(10),
+
+                                                        X.ComboBox()
+                                                            .Name("ProductNumberID")
+                                                            .ID("ProductNumberID")
+                                                            .EmptyText(Resources.SelectNumber)
+                                                            .DisplayField("LensNumberFullCode")
+                                                            .ValueField("LensNumberID")
+                                                            .TypeAhead(false)
+                                                            .Width(300)
+                                                            .PageSize(10)
+                                                            .HideTrigger(true)
+                                                            .MinChars(0)
+                                                            .TriggerAction(TriggerAction.Query)
+                                                            .ListConfig(Html.X().BoundList()
+                                                                            .LoadingText("Searching...")
+                                                                            .ItemTpl(Html.X().XTemplate()
+                                                                            .Html(@<text>
+                                                                                <div class="search-item">
+                                                                                    <h3><span>{LensNumberFullCode}</span></h3>
+                                                                                </div>
+                                                                            </text>)
+                                                                )
+                                                            )
+                                                            .Store(Html.X().Store()
+                                                                .AutoLoad(false)
+                                                                .Proxy(Html.X().AjaxProxy()
+                                                                    .Url(Url.Action("GetAllPagingNumbers"))
+                                                                    .ActionMethods(am => am.Read = HttpMethod.POST)
+                                                                    .Reader(Html.X().JsonReader().RootProperty("data"))
+                                                                )
+                                                                .Model(Html.X().Model()
+                                                                    .Fields(
+                                                                        Html.X().ModelField().Name("LensNumberID").Type(ModelFieldType.Int),
+                                                                        Html.X().ModelField().Name("LensNumberFullCode").Type(ModelFieldType.String)
+                                                                    )
+                                                                )
+
+                                                                .Parameters(ps =>
+                                                                        { //en fct du magasin et de la category
+                                                                            ps.Add(new StoreParameter("ProductCategory", "App.ProductCategoryID.getValue()", ParameterMode.Raw));
+                                                                            ps.Add(new StoreParameter("localization", "App.LocalizationID.getValue()", ParameterMode.Raw));
+                                                                        })
+
+                                                            )
+                                                            .DirectEvents(de =>
+                                                                {
+                                                                    //recuperation des qtes du produit en fonction du magasin et du produit
+                                                                    de.Select.Url = Url.Action("OnLensNumberSelected");
+                                                                    de.Select.ExtraParams.Add(new Parameter("Localization", "App.LocalizationID.getValue()", ParameterMode.Raw));
+                                                                    de.Select.ExtraParams.Add(new Parameter("ProductNumberID", "this.getValue()", ParameterMode.Raw));
+                                                                    de.Select.ExtraParams.Add(new Parameter("ProductCategoryID", "App.ProductCategoryID.getValue()", ParameterMode.Raw));
+                                                                })
+                                                            .Listeners(ls =>
+                                                                {
+                                                                    ls.Select.Handler = @"App.ProductID.clear();
+                                                                            App.ProductID.getStore().load();
+                                                                            ";
+                                                                }),
+
+
+                                                        X.Component().Width(10),
+                                                        X.Component().Width(10),
+                                                    //Custom Search Combo box : Begin
+
+                                                    X.Component().Width(10)
+
+                                                ),
+
+                                X.FieldContainer().FieldLabel(Resources.Productlabel)
+                                .Layout(LayoutType.HBox)
+                                .LabelSeparator(labelSeparator)
+                                .MarginSpec("5 10 0 10")
+                                .ID("ProductlabelContent")
+                                    .Items(
+                                        X.ComboBox().Name("ProductID")
+                                        //.FieldLabel(Resources.Productlabel)
+                                        .Width(270)
+                                        .AllowBlank(false)
+                                        .ForceSelection(true)
+                                        .BlankText(Resources.Localization + " " + Resources.RequiredField)
+                                        .ID("ProductID")
+                                        .LabelSeparator(labelSeparator)
+                                        .EmptyText(Resources.Select)
+                                        //.SelectOnFocus(true)
+                                        //.HideBaseTrigger(false)
+                                        .HideTrigger(true)
+                                        //.TypeAhead(false)
+                                        //.PageSize(10)
+                                        .DisplayField("ProductCode")
+                                        .ValueField("ProductID")
+                                        .DirectEvents(de =>
+                                            {
+                                                //recuperation des qtes du produit en fonction du magasin et du produit
+                                                de.Select.Url = Url.Action("OnProductSelected");
+                                                de.Select.ExtraParams.Add(new Parameter("Localization", "App.LocalizationID.getValue()", ParameterMode.Raw));
+                                                de.Select.ExtraParams.Add(new Parameter("CurrentProduct", "this.getValue()", ParameterMode.Raw));
+                                            })
+                                        .TriggerAction(TriggerAction.Query)
+                                        .QueryMode(DataLoadMode.Local)
+                                        .ListConfig(Html.X().BoundList()
+                                            .LoadingText("Searching...")
+                                            .ItemTpl(Html.X().XTemplate()
+                                            .Html(@<text>
+                                                <div class="search-item">
+                                                    <h3><span>{ProductCode}</span></h3>
+                                                    {ProductLabel}
+                                                </div>
+                                            </text>)
+                                                    )
+                                                )
+
+                                                .Store(
+                                                    X.Store()
+        //.PageSize(10)
+                                                    .AutoLoad(true)
+                                                    .Model(
+                                                        X.Model()
+                                                        .IDProperty("ProductIDP")
+                                                        .Fields(
+                                                            new ModelField("ProductID", ModelFieldType.Int) { Mapping = "ProductID" },
+                                                            new ModelField("ProductCode", ModelFieldType.String) { Mapping = "ProductCode" },
+                                                            new ModelField("ProductLabel", ModelFieldType.String) { Mapping = "ProductLabel" }
+                                                        )
+                                                    )
+                                                    .Proxy(
+                                                        X.AjaxProxy()
+                                                        .Url(Url.Action("GetAllProducts"))
+                                                        .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                                                        .Reader(X.JsonReader().RootProperty("data"))
+                                                    )
+                                                    .Parameters(ps =>
+                                                        {
+                                                            ps.Add(new StoreParameter("LocalizationID", "App.LocalizationID.getValue()", ParameterMode.Raw));
+                                                            ps.Add(new StoreParameter("ProductCategoryID", "App.ProductCategoryID.getValue()", ParameterMode.Raw));
+                                                            ps.Add(new StoreParameter("ProductNumberID", "App.ProductNumberID.getValue()", ParameterMode.Raw));
+                                                        }
+                                                    )
+                                                )
+                                            )
+                                        )
+                                    )//Cady and cady grid content : End
+                        )//content of genral form : end
+    )@*Eng of General form*@
+
+    @(
+ X.GridPanel()
+            .Title("Pending List")
+            .ID("TransmissionGrid")
+            .Layout(LayoutType.Fit)
+            .MarginSpec("0 20 20 20")
+            .Frame(true)
+            .Collapsible(true)
+            .Store(Html.X().Store().AutoLoad(true)
+                .PageSize(10)
+                .ID("StockInputGridStoreID")
+                .Model(Html.X().Model()
+                    .Fields(
+                            new ModelField() { Name = "RptGeneSaleID", Type = ModelFieldType.Float },
+                            new ModelField() { Name = "CustomerName", Type = ModelFieldType.String },
+                            new ModelField() { Name = "CodeClient", Type = ModelFieldType.String },
+                            new ModelField() { Name = "NomClient", Type = ModelFieldType.String },
+                            new ModelField() { Name = "CustomerOrderNumber", Type = ModelFieldType.String },
+                            new ModelField() { Name = "OrderStatut", Type = ModelFieldType.String },
+                            new ModelField() { Name = "CustomerOrderDate", Type = ModelFieldType.Date },
+                            new ModelField() { Name = "LineQuantity", Type = ModelFieldType.Float },
+                            new ModelField() { Name = "Code", Type = ModelFieldType.Int },
+                            new ModelField() { Name = "ProductID", Type = ModelFieldType.Int },
+                            new ModelField() { Name = "ProductCode", Type = ModelFieldType.String },
+                            new ModelField() { Name = "PostByID", Type = ModelFieldType.String },
+                            new ModelField() { Name = "OperatorID", Type = ModelFieldType.String }
+                        )
+                )
+                .DataSource(Model)
+                .ServerProxy(
+                    X.AjaxProxy()
+                    .Url(Url.Action("GetAllPendingStockInputs"))
+                    .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                    .Reader(X.JsonReader().RootProperty("data"))
+                )
+                .Parameters(ps =>
+                    {
+                        ps.Add(new StoreParameter("Bdate", "App.BeginDate.getValue()", ParameterMode.Raw));
+                        ps.Add(new StoreParameter("Edate", "App.EndDate.getValue()", ParameterMode.Raw));
+                        //ps.Add(new StoreParameter("pl", "App.CategoryID.getValue()", ParameterMode.Raw));
+                    }
+
+                )
+            )
+
+            .ColumnModel(
+
+                Html.X().Column()
+                    .Text(Resources.State)
+                    .DataIndex("CodeClient")
+                    .Flex(1),
+                Html.X().Column()
+                    .Text(Resources.Description)
+                    .DataIndex("NomClient")
+                    .Flex(1),
+                Html.X().DateColumn()
+                    .Text(Resources.UIDateOperation)
+                    .DataIndex("CustomerOrderDate")
+                    .Format("dd/MM/Y")
+                    .Flex(1),
+                Html.X().Column()
+                    .Width(300)
+                    .Text(Resources.Product)
+                    .DataIndex("ProductCode")
+                    .Flex(1),
+                Html.X().Column()
+                    .Text(Resources.StockQuantity)
+                    .DataIndex("LineQuantity")
+                    .Flex(1)
+                    ,
+                Html.X().Column()
+                    .Text(Resources.Reason)
+                    .DataIndex("CustomerName")
+                    .Flex(1),
+                Html.X().Column()
+                    .Text(Resources.Quantity)
+                    .DataIndex("CustomerOrderNumber")
+                    .Flex(1)
+                ,
+                Html.X().Column()
+                .Width(75)
+                .Text(Resources.RegisteredBy)
+                .DataIndex("OperatorID")
+            )
+
+                .Plugins(
+                    X.FilterHeader()
+                )
+                    .BottomBar(
+                                X.PagingToolbar()
+            )
+    )@*fin du bloc pour le grid panel*@
+    @(
+ X.Container()
+        //Panel for print
+            .Items(X.Panel()
+                                .ID("PanelReport")
+                                .Title(Resources.panelprintvalreceip)
+                                .Hidden(true)
+                                .Layout(LayoutType.HBox)
+                                .Flex(1)
+                                .Collapsible(true)
+                                .Padding(1)
+                                .AutoScroll(false)
+                                .Hidden(true)
+                                .MinHeight(500)
+                                .MinWidth(500)
+                                .Loader(
+                                   X.ComponentLoader()
+                                    .AutoLoad(false)
+                                    .Mode(LoadMode.Frame)
+                                    .LoadMask(lm =>
+                                        {
+                                            lm.ShowMask = true;
+                                            lm.Msg = Resources.MsgGenerateState;
+                                            lm.UseMsg = true;
+
+                                        })
+                                    )
+        )
+
+    )
+}

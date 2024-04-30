@@ -1,0 +1,312 @@
+@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+@model System.Collections.IEnumerable
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+@section content
+{
+    @(X.FormPanel()
+        .ID("Unknow")
+            //.Title(Resources.FormUserAddTitle)
+        .Items(
+             X.PanelTitle()
+              .ID("PanelTitl555e")
+              .Border(true)
+              .Padding(2)
+              .Content(
+            @<header>
+                <h4>Manage all till in or company</h4>
+                <h6>@Resources.RequireField <code>(*)</code>.</h6>
+            </header>
+                )
+            )
+            .Frame(true)
+            .MarginSpec("-50 20 20 20")
+            .BodyPadding(10)
+    )
+    @(
+ X.Container()
+             .Layout(LayoutType.HBox)
+             .MarginSpec("-40 10 10 10")
+             .Items(
+                X.FieldSet()
+                 .Flex(1)
+                 .Layout(LayoutType.Anchor)
+                 .Border(false)
+                 .DefaultAnchor("100%")
+                 .Items(
+                        X.FormPanel()
+                                .ID("PaymentMethodForm")
+                                .Title(Resources.Country)
+                                .Frame(true)
+                                .Width(280)
+                                .BodyPadding(10)
+                                .FieldDefaults(fd => { fd.LabelWidth = 120; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+                                .Buttons(
+                                    X.Button()
+                                        .ID("btnSave")
+                                        .Text(Resources.SaveButton)
+                                        .Disabled(true)
+                                        .Icon(Icon.Add)
+                                        .Margin(5)
+                                        .DirectEvents(de =>
+                                        {
+                                            de.Click.Url = Url.Action("AddTill", "Parameter");
+                                            de.Click.EventMask.ShowMask = true;
+                                            de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                                        }),
+
+                                    X.Button()
+                                     .Text(Resources.ResetButton)
+                                        .MarginSpec("0 20 10 10")
+                                        .DirectEvents(de =>
+                                        {
+                                            de.Click.Url = Url.Action("ResetTillForm", "Parameter");
+                                            de.Click.EventMask.ShowMask = true;
+                                            de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                                        })
+        //.OnClientClick("this.up('form').reset();App.UserID.setHidden(true);")
+                                )
+                                .Listeners(
+                                    ls =>
+                                    {
+                                        ls.FieldChange.Handler = "if(App.PaymentMethodForm.isValid()){App.btnSave.setDisabled(false);}else{App.btnSave.setDisabled(true);}";
+                                    }
+                                )
+                                .Items(
+                                    X.Container()
+                                        .Layout(LayoutType.HBox)
+                                        .Items(
+                                            X.FieldSet()
+                                                .Flex(1)
+                                                .Title("Identification")
+                                                .Layout(LayoutType.Anchor)
+                                                .Height(300)
+                                                .Width(130)
+                                                .DefaultAnchor("80%")
+                                                .Items(
+                                                    X.TextField().ID("CreateImediatlyUser").Hidden(true).Value(0),
+                                                    X.TextField().Name("ID").ID("ID").Hidden(true),
+                                                    X.TextField().FieldLabel(Resources.PersonName)
+                                                                 .Name("Name")
+                                                                 .MsgTarget(MessageTarget.Side)
+                                                                 .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                                                 .ID("Name")
+                                                                 .BlankText(Resources.PersonName + " " + Resources.RequiredField)
+                                                                 .AllowBlank(false).MinLength(4)
+                                                    ,
+                                                    X.TextField().FieldLabel("Code")
+                                                        .Name("Code")
+                                                        .ID("Code")
+                                                        .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                                        .BlankText("Code " + Resources.RequiredField)
+                                                        .AllowBlank(false),
+                                                    X.TextField().FieldLabel("Description")
+                                                        .Name("Description")
+                                                        .ID("Description")
+                                                        .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                                        .BlankText("Code " + Resources.RequiredField)
+                                                        .AllowBlank(false),
+                                                    X.ComboBox().Name("BranchID")
+                                                                .FieldLabel(Resources.UserBranch)
+                                                                .AutoSelect(true).ForceSelection(true)
+                                                                .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                                                .Items(LoadComponent.Branchs(user))
+                                                                .ID("BranchID")
+                                                                .Listeners(ls =>
+                                                                {
+                                                                    ls.Select.Handler = "App.UserID.setDisabled(false);App.UserID.clearValue(); App.UserID.getStore().load()";
+                                                                    ls.Change.Handler = "if(App.ID.getValue() > 0){App.UserID.setDisabled(false);App.UserID.clearValue(); App.UserID.getStore().load();}";
+                                                                }
+                                                                )
+                                                                .AllowBlank(false)
+                                                                .BlankText(Resources.UserBranch + " " + Resources.RequiredField)
+                                                                ,
+                                                    X.ComboBox().Name("AccountID")
+                                                                .FieldLabel(Resources.UIAccount)
+                                                                .AutoSelect(false).ForceSelection(true)
+                                                                .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                                                .Items(LoadComponent.Accounts(CodeValue.Accounting.DefaultCodeAccountingSection.CODECAIS))
+                                                                .ID("AccountID")
+                                                                .AllowBlank(false),
+
+                                                            X.Radio().BoxLabel(Resources.Yess).Name("CreatIdiatly").ID("CreatIdiatly").InputValue("1")
+                                                            .FieldLabel(Resources.AssignToUser)
+                                                            .Listeners(ls =>
+                                                            {
+                                                                ls.Focus.Handler = @"
+                                                                                 {
+                                                                                    App.UserID.setHidden(false);
+                                                                                    App.CreateImediatlyUser.setValue(1);
+                                                                                 }
+                                                                                ";
+                                                            }
+                                                           ),
+                                                            X.Radio().BoxLabel(Resources.No).Name("CreatIdiatly").ID("CreatIdiatlyNO").InputValue("0").Checked(true).Checked(true)
+                                                            .Listeners(ls =>
+                                                            {
+                                                                ls.Focus.Handler = @"
+                                                                                 {
+                                                                                    App.UserID.setHidden(true);
+                                                                                    App.CreateImediatlyUser.setValue(0);
+                                                                                 }
+                                                                                ";
+                                                            })
+                                                    .InputType(Ext.Net.InputType.Radio)
+                                                    .LabelWidth(100).FieldLabel("    ").LabelSeparator(""),
+
+                                                    //X.Checkbox().Name("CreatIdiatly")
+        //            .FieldLabel("Assign imediatly one user to manage it").Checked(false)
+        //            //.Value(1)
+        //            .InputValue("1")
+        //            .Listeners(l=>l.Change.Handler = "if(App.CreateImediatlyUser.getValue()==0){App.UserID.setHidden(false);App.CreateImediatlyUser.setValue(1);}else{App.UserID.setHidden(true);App.CreateImediatlyUser.setValue(0);}")                                                           
+        //            .ID("CreatIdiatly")
+        //            ,
+                                                    X.ComboBox().Name("UserID")
+                                                                .FieldLabel("Choice an user")
+                                                                .Hidden(true)
+                                                                .AutoSelect(true).ForceSelection(true)
+                                                                .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+        //.Items(LoadComponent.UserForTill)
+                                                                .ValueField("GlobalPersonID").ValueNotFoundText("Aucune région trouvée")//.EmptyText("Chargement...")
+                                                                .DisplayField("Name")
+                                                                .Items(LoadComponent.Users)
+                                                                
+                                                                .ID("UserID")
+        //.AllowBlank(false)                                                                    
+                                                ),
+
+                                           X.Component().Width(5)
+                                        )
+                                )
+                 )
+
+             ,
+        ////
+             X.FieldSet()
+              .Flex(1)
+              .Layout(LayoutType.Anchor)
+              .Border(false)
+              .DefaultAnchor("100%")
+              .Items(
+                    Html.X().GridPanel()
+                            .Title("All till list")
+                            .ID("CountryList")
+                            .Layout(LayoutType.Fit)
+                            .Frame(true)
+                            .Collapsible(true)
+                            .Store(Html.X().Store()
+                                .GroupField("Light")
+                                .ID("PaymentMethodFormStore")
+                                .RemotePaging(true)
+                                .AutoLoad(true)
+                                .PageSize(10)
+                                .ServerProxy(
+                                   X.AjaxProxy()
+                                    .Url(Url.Action("GetTillsList"))
+                                    .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                                    .Reader(X.JsonReader().RootProperty("data"))
+                                )
+                                .AutoLoad(true)
+                                .Model(Html.X().Model()
+                                    .Fields(
+                                        new ModelField() { Name = "ID", Type = ModelFieldType.Int },
+                                        new ModelField() { Name = "Name", Type = ModelFieldType.String },
+                                        new ModelField() { Name = "Description", Type = ModelFieldType.String },
+                                        new ModelField() { Name = "UserManage", Type = ModelFieldType.String },
+                                        new ModelField() { Name = "AccountID", Type = ModelFieldType.String },
+                                        new ModelField() { Name = "BranchID", Type = ModelFieldType.String },
+                                        new ModelField() { Name = "Code", Type = ModelFieldType.String }
+
+
+                                    )
+                                ).DataSource(Model)
+                            )
+
+                            .ColumnModel(
+        //Html.X().Column()
+        //        .Text("Identifiant")
+        //        .DataIndex("ID")
+        //        .Flex(1)
+        //        ,
+                                Html.X().Column()
+                                    .Text("Name")
+                                    .DataIndex("Name")
+                                    .Flex(1)
+                                    ,
+                                Html.X().Column()
+                                    .Text("Code")
+                                    .DataIndex("Code")
+                                    .Flex(1),
+                                Html.X().Column()
+                                    .Text("Description")
+                                    .DataIndex("Description")
+                                    .Flex(1),
+                                Html.X().Column()
+                                    .Text("AccountID")
+                                    .DataIndex("AccountID")
+                                    .Flex(1),
+                                Html.X().Column()
+                                    .Text("BranchID")
+                                    .DataIndex("BranchID")
+                                    .Flex(1),
+                                Html.X().Column()
+                                    .Text("User manage")
+                                    .DataIndex("UserManage")
+                                    .Flex(1),
+                                Html.X().ImageCommandColumn()
+                                            .Width(30)
+                                            .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.DELETE, profile, CodeValue.Parameter.MoneyManagement.TillCODE,db))
+                                            .Commands(
+                                                Html.X().ImageCommand()
+                                                    .CommandName("Delete")
+                                                    .IconCls("icon-delete")
+                                            )
+                                            .DirectEvents(de =>
+                                            {
+                                                de.Command.Action = "DeletePaymentMethod";
+                                                de.Command.Confirmation.ConfirmRequest = true;
+                                                de.Command.Confirmation.Message = "Voulez vous supprimer ?";
+                                                de.Command.Confirmation.Title = "Opération de suppression";
+                                                de.Command.ExtraParams.Add(new Parameter("ID", "record.data.ID", ParameterMode.Raw));
+                                                de.Command.EventMask.ShowMask = true;
+                                                de.Command.EventMask.Msg = "Opération en cours...";
+                                            }),
+                                Html.X().ImageCommandColumn()
+                                        .Width(30)
+                                        .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, profile, CodeValue.Parameter.MoneyManagement.TillCODE,db))
+                                        .Commands(
+                                        Html.X().ImageCommand()
+                                                .CommandName("Edit")
+                                                .IconCls("icon-edit")
+                                                .ToolTip(tt => tt.Text = "Modifier ?")
+                                        )
+
+                                        .DirectEvents(de =>
+                                        {
+                                            de.Command.Action = "InitializeFieldsPaymentMethod";
+                                            de.Command.ExtraParams.Add(new Parameter("ID", "record.data.ID", ParameterMode.Raw));
+                                            de.Command.EventMask.ShowMask = true;
+                                            de.Command.EventMask.Msg = "Chargement des paramètres de modification en cours...";
+                                        })
+
+
+                                )
+                                .BottomBar(
+                    X.PagingToolbar()
+            )
+                       )
+                 )
+    )
+
+}

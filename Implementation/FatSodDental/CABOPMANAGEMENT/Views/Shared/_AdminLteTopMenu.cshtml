@@ -1,0 +1,73 @@
+﻿@* 
+ This partial controls the top menu of the AdminLTE Template, being called automatically by _AdminLteLayout
+    TODO: All of the content in here is stand-in that must be replaced by the real behavior of your app
+*@
+
+
+@{
+    ViewBag.Layout = null;
+    
+}
+
+
+<header class="main-header">
+    <!-- Logo -->
+    <a href="index2.html" class="logo"><b>@ViewBag.AppNameP</b>@ViewBag.AppNameS</a>
+    <!-- Header Navbar: style can be found in header.less -->
+    <nav class="navbar navbar-static-top" role="navigation">
+        <!-- Sidebar toggle button-->
+        <a href="#" class="sidebar-toggle" data-toggle="offcanvas" role="button">
+            <span class="sr-only">Toggle navigation</span>
+        </a>
+        <!-- Navbar Right Menu -->
+        <div class="navbar-collapse collapse">
+
+
+            <div class="navbar-custom-menu">
+                
+                @Html.Partial("_LoginPartial")
+
+
+            </div><!-- /.navbar-custom-menu -->
+   
+        
+            
+        </div><!-- /.container-fluid -->           
+       
+    </nav>
+</header>
+
+<script>
+    var count = 0, count2 = 0, total = 0;
+    $(document).ready(function () {
+        
+        //$.get('../../../Home/CheckExpiry', null, function (data) {
+        //    //$('.label-warning').html(data);
+        //    $('.menu').append('<li><a href="../../../../Home/Notifications"><i class="fa fa-warning text-yellow"></i> ' + data + ' items to expire/expired.</a></li>');
+
+        //    if (data != null)
+        //    {
+        //        $('.alertNumber').append('<span class="label label-warning notifications">!</span>');
+        //    }
+        //    else {
+        //        $('.alertNumber').append('<span class="label label-warning notifications">0</span>');
+        //    }
+
+        //    count = data;
+        //}, 'json');
+
+        //$.get('../../../Home/StockLevel', null, function (data) {
+        //    //$('.label-danger').html(data);
+        //    $('.menu').append('<li><a href="../../../../Home/Notifications"><i class="fa fa-warning text-yellow"></i> ' + data + ' items are low in qty.</a></li>');
+
+        //        if (data != null) {
+        //            $('.alertNumber').append('<span class="label label-warning notifications">!</span>');
+        //        }
+        //        else {
+        //            $('.alertNumber').append('<span class="label label-warning notifications">0</span>');
+        //        }
+        //}, 'json');
+    });
+
+</script>
+

@@ -1,0 +1,359 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+@model System.Collections.IEnumerable
+@{
+    //ViewBag.Title = Resources.RptGeneSale;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    string labelSeparator = "  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :";
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+
+@section header
+{
+    <style>
+        .x-grid-body .x-grid-cell-Cost {
+            background-color: #f1f2f4;
+        }
+
+        .x-grid-row-summary .x-grid-cell-Cost .x-grid-cell-inner {
+            background-color: #e1e2e4;
+        }
+
+        .task .x-grid-cell-inner {
+            padding-left: 15px;
+        }
+
+        .x-grid-row-summary .x-grid-cell-inner {
+            font-weight: bold;
+            font-size: 11px;
+            background-color: #f1f2f4;
+        }
+    </style>
+
+}
+@section content
+{
+
+    @***********************************************************@
+    @(
+ X.Container()
+    .Layout(LayoutType.HBox)
+    .MarginSpec("10 0 0 0")
+    .ID("DefaultContainer")
+    .Layout(LayoutType.Fit)
+    .Items(
+
+    X.FieldSet()
+    .Flex(1)
+    .ID("DefaultFieldSet")
+    .Layout(LayoutType.Fit)
+    .Border(false)
+    .DefaultAnchor("100%")
+        .Items(
+        X.FormPanel()
+        .ID("RptGeneSale")
+        .Items(
+        X.PanelTitle()
+        .ID("PanelTitle")
+        .Border(true)
+        .Padding(2)
+        .Content(
+        @<header>
+            <h4>@Resources.RptGeneSale</h4>
+            <h6>@Resources.RequireField <code>(*)</code></h6>
+        </header>
+                                                                                            )
+                                                                                        )
+                                                                                        .Frame(true)
+                                                                                        .MarginSpec("0 0 0 0")
+                                                                                        .Width(350)
+                                                                                        .Padding(0)
+                                                                                        .FieldDefaults(fd => { fd.LabelWidth = 120; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+                                                                                        .Items(
+                                                                                        X.FormPanel()
+                                                                                        .Layout(LayoutType.Column)
+                                                                                        .ID("FormrptIdentification")
+                                                                                        .MarginSpec("0 0 0 0")
+                                                                                        .Items(
+                                                                                        X.FieldSet()
+                                                                                        .Layout(LayoutType.Column)
+                                                                                        .MarginSpec("0 0 0 0")
+                                                                                        .Title(Resources.GeneralInfoIdentification)
+                                                                                        .AnchorHorizontal("100")
+                                                                                            .Items(
+                                                                                            X.TextField().Name("RptGeneSaleID").ID("RptGeneSaleID").Hidden(true),
+                                                                                            X.ComboBox().Name("BranchID")
+                                                                                            .FieldLabel(Resources.UserBranch)
+                                                                                            .EmptyText(Resources.Select).ForceSelection(true)
+                                                                                            .LabelSeparator(labelSeparator)
+                                                                                            .Items(LoadComponent.Branchs(user))
+                                                                                            .ID("BranchID")
+                                                                                            .AllowBlank(false)
+                                                                                            .MarginSpec("0 0 10 0")
+                                                                                            .BlankText(Resources.UserBranch + " " + Resources.RequiredField)
+                                                                                            ),
+                                                                                            X.Component().Width(10),
+                                                                                        X.FieldSet()
+                                                                                        .Layout(LayoutType.Column)
+                                                                                        .MarginSpec("0 0 0 0")
+                                                                                        .Title(Resources.UIDateInfo)
+                                                                                        .AnchorHorizontal("100")
+                                                                                            .Items(
+                                                                                            
+                                                                                            X.DateField().FieldLabel(Resources.UIBeginDate)
+                                                                                            .AllowBlank(false)
+                                                                                            .Name("BeginDate")
+                                                                                            .ID("BeginDate")
+                                                                                            .MarginSpec("0 0 10 0")
+                                                                                            .LabelSeparator(labelSeparator)
+                                                                                            .InputType(Ext.Net.InputType.DateTime)
+                                                                                            ,
+                                                                                            X.DateField().FieldLabel(Resources.UIEndDate)
+                                                                                            .AllowBlank(false)
+                                                                                            .Name("EndDate")
+                                                                                            .ID("EndDate")
+                                                                                            .MarginSpec("0 0 10 0")
+                                                                                            .LabelSeparator(labelSeparator)
+                                                                                            .InputType(Ext.Net.InputType.DateTime)
+                                                                                            ,
+                                                                                            X.TextField().FieldLabel("Advance Sale").MarginSpec("0 10 10 0").ReadOnly(true).ID("TotalAdvanced").Hidden(false).Width(300)
+                                                                                            ,
+                                                                                            X.TextField().FieldLabel("Total Sales").MarginSpec("0 10 10 0").ReadOnly(true).ID("TotalDebit").Hidden(false).Width(300)
+                                                                                            )
+
+                                                                                            )
+                                                                                        .Buttons(
+
+                                                                                                X.Button()
+                                                                                                .Text(Resources.UIDisplayEntries)
+                                                                                                .ID("IDDisplayEntries")
+                                                                                                .OnClientClick("App.PanelReport.setHidden(true)")
+                                                                                                .DirectEvents(de =>
+                                                                                                {
+                                                                                                    de.Click.Url = Url.Action("DisplayEntries", "RptGeneSale");
+                                                                                                    de.Click.EventMask.ShowMask = true;
+                                                                                                    de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                                                                                                }),
+                                                                                                X.Button()
+                                                                                                    .Text(Resources.UIPrint)
+                                                                                                    .ID("IDShowGeneric")
+                                                                                                    .Icon(Icon.Printer)
+                                                                                                    //.Disabled(true)
+                                                                                                    .OnClientClick("App.PanelReport.setHidden(false)")
+                                                                                                    .DirectEvents(de =>
+                                                                                                    {
+                                                                                                        de.Click.Url = Url.Action("PrintReport", "RptGeneSale");
+                                                                                                        de.Click.EventMask.ShowMask = true;
+                                                                                                        de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                                                                                                    }),
+                                                                                                X.Button()
+                                                                                                    .Text(Resources.ResetButton)
+                                                                                                    .OnClientClick("this.up('form').reset();")
+                                                                                                    .Icon(Icon.ArrowRefresh)
+                                                                                            )
+                                                                                            ,
+
+                                                                                            X.Component().Width(10),
+                                                                                            X.FieldSet()
+                                                                                            .Flex(1)
+                                                                                            .Layout(LayoutType.Fit)
+                                                                                            .Border(false)
+                                                                                            .Padding(0)
+                                                                                            .DefaultAnchor("100%")
+                                                                                            .Items(
+                                                                                                    X.GridPanel()
+                                                                                                    .Title(Resources.UIVoucherList)
+                                                                                                    .ID("GridPanelAcctOp")
+        //.Layout(LayoutType.Fit)
+                                                                                                    .MarginSpec("0 0 0 0")
+                                                                                                    .Frame(true)
+                                                                                                    .Collapsible(true)
+                                                                                                    .Store(
+                                                                                                    X.Store()
+                                                                                                    .PageSize(20)
+                                                                                                    .AutoLoad(true)
+                                                                                                    .DataSource(Model)
+                                                                                                    .ID("Store")
+                                                                                                    .GroupField("CodeClient")
+                                                                                                    .Sorters(
+                                                                                                        Html.X().DataSorter().Property("CustomerOrderDate").Direction(Ext.Net.SortDirection.ASC)
+                                                                                                    )
+                                                                                                    .Model(
+                                                                                                        X.Model()
+                                                                                                        .Fields(
+                                                                                                                new ModelField() { Name = "RptGeneSaleID", Type = ModelFieldType.Float },
+                                                                                                                new ModelField() { Name = "Agence", Type = ModelFieldType.Int },
+                                                                                                                new ModelField() { Name = "LibAgence", Type = ModelFieldType.String },
+                                                                                                                new ModelField() { Name = "Devise", Type = ModelFieldType.Int },
+                                                                                                                new ModelField() { Name = "CustomerOrderTotalPrice", Type = ModelFieldType.Float },
+                                                                                                                new ModelField() { Name = "CodeClient", Type = ModelFieldType.String },
+                                                                                                                new ModelField() { Name = "NomClient", Type = ModelFieldType.String },
+                                                                                                                new ModelField() { Name = "CustomerOrderNumber", Type = ModelFieldType.String },
+                                                                                                                new ModelField() { Name = "OrderStatut", Type = ModelFieldType.String },
+                                                                                                                new ModelField() { Name = "CustomerOrderDate", Type = ModelFieldType.Date },
+                                                                                                                new ModelField() { Name = "AdvancedAmount", Type = ModelFieldType.Float },
+                                                                                                                new ModelField() { Name = "Balance", Type = ModelFieldType.Float },
+                                                                                                                new ModelField() { Name = "LineQuantity", Type = ModelFieldType.Float },
+                                                                                                                new ModelField() { Name = "Code", Type = ModelFieldType.Int },
+                                                                                                                new ModelField() { Name = "ProductID", Type = ModelFieldType.Int },
+                                                                                                                new ModelField() { Name = "ProductCode", Type = ModelFieldType.String },
+                                                                                                                new ModelField() { Name = "PostByID", Type = ModelFieldType.String },
+                                                                                                                new ModelField() { Name = "OperatorID", Type = ModelFieldType.String }
+                                                                                                            )
+                                                                                                        )
+                                                                                                        .ServerProxy(
+                                                                                                        X.AjaxProxy()
+                                                                                                        .Url(Url.Action("GetList"))
+                                                                                                        .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                                                                                                        .Reader(X.JsonReader().RootProperty("data"))
+                                                                                                        )
+                                                                                                        .Parameters(ps =>
+                                                                                                        {
+                                                                                                            ps.Add(new StoreParameter("Bdate", "App.BeginDate.getValue()", ParameterMode.Raw));
+                                                                                                            ps.Add(new StoreParameter("Edate", "App.EndDate.getValue()", ParameterMode.Raw));
+                                                                                                            //ps.Add(new StoreParameter("CategoryID", "App.CategoryID.getValue()", ParameterMode.Raw));
+                                                                                                        }
+                                                                                                        )
+                                                                                                    )
+        //.Plugins(
+        //        Html.X().CellEditing().ClicksToEdit(1)
+        //    )
+                                                                                        .ColumnModel(
+                                                                                                    Html.X().SummaryColumn()
+                                                                                                    .TdCls("task")
+                                                                                                    .Text(Resources.Customer)
+                                                                                                    .DataIndex("CodeClient")
+                                                                                                    .Hideable(false)
+                                                                                                    .SummaryType(SummaryType.Count)
+                                                                                                    .Flex(1)
+                                                                                                    .SummaryRenderer("return ((value === 0 || value > 1) ? '(' + value +' Products)' : '(1 Product)');"),
+        //,
+                                                                                                    Html.X().Column()
+                                                                                                    .Text(Resources.CustomerNumber)
+                                                                                                    .DataIndex("NomClient")
+                                                                                                    .Flex(1),
+                                                                                                    Html.X().Column()
+                                                                                                    .Width(85)
+                                                                                                    .Text(Resources.OrderDate)
+                                                                                                    .DataIndex("CustomerOrderDate")
+                                                                                                    .Renderer(RendererFormat.Date, "'d/m/Y'")
+                                                                                                    ,
+                                                                                                   Html.X().Column()
+                                                                                                    .Width(300)
+                                                                                                    .Text(Resources.Product)
+                                                                                                    .DataIndex("ProductCode")
+                                                                                                    ,
+                                                                                                    Html.X().SummaryColumn()
+                                                                                                    .Width(75)
+                                                                                                    .Text(Resources.Quantity)
+                                                                                                    .DataIndex("LineQuantity")
+                                                                                                    .SummaryType(SummaryType.Sum)
+                                                                                                    .Editor(
+                                                                                                        Html.X().NumberField().AllowBlank(false).MinValue(0).StyleSpec("text-align:left")
+                                                                                                    ),
+                                                                                                   Html.X().Column()
+                                                                                                    .Width(115)
+                                                                                                    .Text(Resources.Reference)
+                                                                                                    .DataIndex("CustomerOrderNumber")
+                                                                                                    ,
+                                                                                                    Html.X().Column()
+                                                                                                    .Width(75)
+                                                                                                    .Text(Resources.State)
+                                                                                                    .DataIndex("OrderStatut")
+                                                                                                    ,
+                                                                                                    Html.X().SummaryColumn()
+                                                                                                    .Width(75)
+                                                                                                    .Text(Resources.AdvancedAmount)
+                                                                                                    .DataIndex("AdvancedAmount")
+                                                                                                    .SummaryType(SummaryType.Sum)
+                                                                                                    .Editor(
+                                                                                                        Html.X().NumberField().AllowBlank(false).MinValue(0).StyleSpec("text-align:left")
+                                                                                                    ),
+                                                                                                    Html.X().SummaryColumn()
+                                                                                                    .Width(75)
+                                                                                                    .Text(Resources.BillAmount)
+                                                                                                    .DataIndex("CustomerOrderTotalPrice")
+                                                                                                    .SummaryType(SummaryType.Sum)
+                                                                                                    .Editor(
+                                                                                                        Html.X().NumberField().AllowBlank(false).MinValue(0).StyleSpec("text-align:left")
+                                                                                                    ),
+                                                                                                    Html.X().SummaryColumn()
+                                                                                                    .Width(75)
+                                                                                                    .Text(Resources.UISolde)
+                                                                                                    .DataIndex("Balance")
+                                                                                                    .SummaryType(SummaryType.Sum)
+                                                                                                    .Editor(
+                                                                                                        Html.X().NumberField().AllowBlank(false).MinValue(0).StyleSpec("text-align:left")
+                                                                                                    ),
+                                                                                                    Html.X().Column()
+                                                                                                    .Width(75)
+                                                                                                    .Text(Resources.PosteBy)
+                                                                                                    .DataIndex("PostByID")
+                                                                                                    ,
+                                                                                                    Html.X().Column()
+                                                                                                    .Width(75)
+                                                                                                    .Text(Resources.ValidateBy)
+                                                                                                    .DataIndex("OperatorID")
+      
+                                                                                                )
+                                                                                            .View(
+                                                                                                Html.X().GridView().MarkDirty(false)
+                                                                                            )
+                                                                                            .Features(
+                                                                                                Html.X().GroupingSummary()
+                                                                                                    .ID("GroupingSummary1")
+                                                                                                    //.GroupHeaderTplString("{CodeClient}")
+                                                                                                    .HideGroupedHeader(true)
+                                                                                                    .EnableGroupingMenu(false)
+                                                                                            )
+                                                                                            .BottomBar(
+                                                                                                        X.PagingToolbar()
+                                                                                                )
+                                                                                            .Plugins(
+                                                                                                        X.FilterHeader()
+                                                                                                    )   
+                                                                                            )
+                                                                                        )
+                                                                                        )//ici
+                                                                                        )
+    )
+    @(
+ X.Container()
+        //Panel for print
+    .Items(X.Panel()
+        .ID("PanelReport")
+        .MarginSpec("0 0 -100 0")
+        .Title(Resources.PanelPreview)
+        .Hidden(true)
+        .Layout(LayoutType.HBox)
+        .Flex(1)
+        .Collapsible(true)
+        .Padding(1)
+        .AutoScroll(false)
+        .Hidden(true)
+        .MinHeight(500)
+        .MinWidth(500)
+        .Loader(
+            X.ComponentLoader()
+            .AutoLoad(false)
+            .Mode(LoadMode.Frame)
+            .LoadMask(lm =>
+                {
+                    lm.ShowMask = true;
+                    lm.Msg = Resources.MsgGenerateState;
+                    lm.UseMsg = true;
+
+                })
+            )
+        )
+
+    )
+}

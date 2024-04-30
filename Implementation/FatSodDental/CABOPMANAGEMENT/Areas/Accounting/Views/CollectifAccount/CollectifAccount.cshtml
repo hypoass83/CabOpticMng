@@ -1,0 +1,299 @@
+﻿@using FatSod.Ressources;
+@model IEnumerable<FatSod.Supply.Entities.CollectifAccount>
+
+@{
+    ViewBag.Title = Resources.CollectifAccountAddTitle;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link href="~/Scripts/AdminLTE/plugins/iCheck/square/red.css" rel="stylesheet" />
+<link href="~/Scripts/AdminLTE/plugins/iCheck/minimal/minimal.css" rel="stylesheet" />
+<script src="~/Scripts/AdminLTE/plugins/iCheck/icheck.min.js"></script>
+
+<header>
+    <h4>@Resources.CollectifAccountAddTitle</h4>
+    <h6>@Resources.RequireField <code>(*)</code>.</h6>
+</header>
+
+<div class="box box-primary box-body">
+    <!--<form id="FormAccountingSection">-->
+    @Html.AntiForgeryToken()
+    <h6>@Resources.RequireField <code>(*)</code></h6>
+    <hr />
+
+    @****************************@
+    <div class="row">
+        <div class="col-sm-1">
+            <input type="hidden" id="CollectifAccountID" class="form-control" />
+        </div>
+        <div class="col-sm-4">
+            <div class="row">
+                <div class="col-sm-4">@Resources.UIAccountingSectionID<code>(*)</code></div>
+                <div class="col-sm-8"><select id="AccountingSectionID" name="AccountingSectionID" class="form-control"></select><span class="error">Champs Obligatoire !</span></div>
+            </div>
+            <div class="row">
+                <div class="col-sm-4">@Resources.UINumero <code>(*)</code></div>
+                <div class="row ">
+                    <div class="col-md-3">
+                        <input type="text" id="ACSection" disabled="disabled" class="form-control" />
+                    </div>
+                    <div class="col-md-4">
+                        <input type="number" id="ACNumber" class="form-control" />
+                    </div>
+                </div>
+                <span class="error"> Champs Obligatoire !</span>
+            </div>
+            <div class="row">
+                <div class="col-sm-4">@Resources.UINom<code>(*)</code></div>
+                <div class="col-sm-8"><input type="text" id="CollectifAccountLabel" name="CollectifAccountLabel" class="form-control" /><span class="error"> Champs Obligatoire !</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-1">
+        </div>        
+        <hr />
+        <div class="col-sm-4">
+            <button type="button" id="btnCancel" class="btn btn-primary">@Resources.ResetButton</button>
+        </div>
+        <div class="col-sm-8">
+            <button type="submit" class=" btn btn-primary" id="btnSubmit">@Resources.SaveButton</button>
+        </div>
+    </div>
+    <!--</form>-->
+</div>
+
+<!-- Ajout de la table contenant les data deja enregistrees-->
+
+<div class="box box-body box-primary">
+
+    <table class="table" id="mainTable">
+        <thead>
+            <tr class="dataTableHead">
+                <th>ID</th>
+                <th>
+                    @Resources.UIAccountingSectionID
+                </th>
+                <th>
+                    @Resources.UINumero
+                </th>
+                <th>
+                    @Resources.UINom
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CollectifAccountID)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.AccountingSection.AccountingSectionNumber)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CollectifAccountNumber)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CollectifAccountLabel)
+                </td>
+                <td>
+                    <a href=# onclick="EditItem(this)"><span class="glyphicon glyphicon-edit"></span></a> |
+                    <a href=# onclick="DeleteItem(this)"><span class="glyphicon glyphicon-trash"></span></a>
+                </td>
+            </tr>
+        }
+
+    </table>
+</div>
+
+<!--********** JavaScripts **********-->
+<script>
+
+    function populateAccountingSection() {
+        $.get('@Url.Action("populateAccountingSection", "CollectifAccount")', {}, function (data) {
+            $('#AccountingSectionID').empty();
+            $('#AccountingSectionID').append($("<option value='0'>--'+@Resources.Select+'--</option>"));
+            $.each(data, function (key, value) {
+                $('#AccountingSectionID').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+
+    function clearForm() {
+        $('#AccountingSectionID').val('');
+        $('#ACSection').val('');
+        $('#ACNumber').val('');
+        $('#CollectifAccountLabel').val('');
+        $('#CollectifAccountID').val('');
+    }
+
+
+    $(document).on('ready', function () {
+
+        populateAccountingSection();
+        $('#AccountingSectionID').on('change', function () {
+            var val = $(this).val(); // on récupère la valeur de Acct section
+            if (val != '') {
+                $('#ACSection').empty();
+                $.get('@Url.Action("LoadAccountingSection", "CollectifAccount")', { AccountingSectionID: val }, function (data) {
+                    $.each(data, function (key, value) {
+                        $('#ACSection').val(value.value);//.html(value.Name);
+                    });
+                }, 'json');
+            };
+        });
+
+        $('#btnCancel').on('click', function () {
+            clearForm();
+        });
+
+        $('#mainTable').DataTable();
+
+        $('#btnSubmit').on('click', function () {
+            var isAllValid = true;
+
+
+            if ($('#AccountingSectionID').val() == "0") {
+                isAllValid = false;
+                $('#AccountingSectionID').siblings('span.error').css('visibility', 'visible');
+            }
+            else {
+                $('#AccountingSectionID').siblings('span.error').css('visibility', 'hidden');
+            }
+
+            if ($('#ACSection').val() == '') {
+                isAllValid = false;
+                $('#ACSection').siblings('span.error').css('visibility', 'visible');
+            }
+            else {
+                $('#ACSection').siblings('span.error').css('visibility', 'hidden');
+            }
+
+            if ($('#ACNumber').val() == '') {
+                isAllValid = false;
+                $('#ACNumber').siblings('span.error').css('visibility', 'visible');
+            }
+            else {
+                $('#ACNumber').siblings('span.error').css('visibility', 'hidden');
+            }
+
+            if ($('#CollectifAccountLabel').val() == '') {
+                isAllValid = false;
+                $('#CollectifAccountLabel').siblings('span.error').css('visibility', 'visible');
+            }
+            else {
+                $('#CollectifAccountLabel').siblings('span.error').css('visibility', 'hidden');
+            }
+            if (isAllValid) {
+                var data = {
+                    AccountingSectionID:$('#AccountingSectionID').val().trim(),
+                    ACSection: $('#ACSection').val().trim(),
+                    ACNumber: $('#ACNumber').val().trim(),
+                    CollectifAccountLabel:$('#CollectifAccountLabel').val().trim(),
+                    CollectifAccountID:$('#CollectifAccountID').val().trim()
+                }
+                $(this).val('Please wait...');
+
+
+                //post data to server
+                $.ajax({
+                    url: '@Url.Action("AddCollectifAccount", "CollectifAccount")',
+                    type: "POST",
+                    data: JSON.stringify(data),
+                    dataType: "JSON",
+                    contentType: "application/json",
+                    success: function (d) {
+                        //check is successfully save to database
+                        if (d.status == true) {
+                            //will send status from server side
+                            alert(d.Message);
+                            location.reload(true);
+                            //$('#mainTable').DataTable().ajax.reload();
+                            //clear form
+                            clearForm();
+                        }
+                        else {
+                            alert(d.Message);
+                        }
+                        $('#submit').val('@Resources.SaveButton');
+                    },
+                    error: function () {
+                        alert('Error. Please try again.');
+                        $('#btnSubmit').val('@Resources.SaveButton');
+                    }
+                });
+            }
+        });
+    });
+
+    function EditItem(obj)
+    {
+
+        var globalID=$(obj).parent().siblings(":first").text();
+
+        $.get('@Url.Action("InitializeFieldsCollectif", "CollectifAccount")', { ID : parseInt(globalID) },  function (data) {
+            $.each(data, function (key, value) {
+                $('#AccountingSectionID').val(value.AccountingSectionID);
+                $('#ACSection').val(value.ACSection);
+                $('#ACNumber').val(value.ACNumber);
+                $('#CollectifAccountLabel').val(value.CollectifAccountLabel);
+                $('#CollectifAccountID').val(value.CollectifAccountID);
+            });
+        }, 'json');
+
+    }
+    function DeleteItem  (obj)
+    {
+        if (confirm("Do you want to Delete ?"))
+        {
+            var globalID=$(obj).parent().siblings(":first").text();
+            //post to the server
+            $(this).val('Please wait...');
+            var data = {
+                ID: parseInt(globalID)
+            }
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("DeleteCollectifAccount", "CollectifAccount")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        location.reload(true);
+                        //$('#mainTable').DataTable().ajax.reload();
+                        //clear form
+                        clearForm();
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                }
+            });
+        }
+
+    }
+
+</script>
+
+<style>
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+</style>

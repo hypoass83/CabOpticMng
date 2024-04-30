@@ -1,0 +1,226 @@
+﻿@model IEnumerable<FatSod.Security.Entities.Profile>
+@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Ressources;
+@using FatSod.Security.Entities;
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+@section content
+{
+    @(X.FormPanel()
+        .ID("Unknow")
+        .Items(
+             X.PanelTitle()
+              .ID("PanelTitl555e")
+              .Border(true)
+              .Padding(2)
+              .Content(
+            @<header>
+                <h4>@Resources.ProfilePageTitle</h4>
+                <h6>@Resources.RequireField <code>(*)</code></h6>
+            </header>
+                )
+            )
+            .Frame(true)
+            .MarginSpec("-20 20 20 20")
+            .BodyPadding(10)
+    )
+    @(X.FormPanel()
+        .ID("FormProfile")
+        .Title(Resources.ProfileFormTitle)
+        .Frame(true)
+        .MarginSpec("-35 20 20 20")
+        .BodyPadding(10)
+        .FieldDefaults(fd => { fd.LabelWidth = 120; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+        .Buttons(
+            X.Button()
+                .ID("btnSave")
+                .Margin(10)
+                .Text(Resources.SaveButton)
+                .Disabled(true)
+                .Icon(Icon.Disk)
+                .DirectEvents(de =>
+                {
+                    de.Click.Url = Url.Action("Add", "Profile");
+                }),
+
+            X.Button()
+                .Text(Resources.ResetButton)
+                .MarginSpec("0 20 10 10")
+                .OnClientClick("this.up('form').reset();")
+        )
+        .Listeners(
+             ls =>
+             {
+                 ls.FieldChange.Handler = "if(App.FormProfile.isValid()){App.btnSave.setDisabled(false);}else{App.btnSave.setDisabled(true);}";
+             }
+         )
+        .Items(
+            X.Container()
+                .Layout(LayoutType.HBox)
+                .MarginSpec("0 0 10")
+                .Items(
+                    X.FieldSet()
+                        .Flex(1)
+                        .Title("Indification")
+                        .Height(155)
+                        .Layout(LayoutType.Anchor)
+                        .DefaultAnchor("70%")
+                        .Defaults(X.Parameter().Name("HideEmptyLabel").Value("false").Mode(ParameterMode.Raw))
+                        .Items(
+                            X.TextField().Hidden(true).Name("ProfileID").ID("ProfileID"),
+                            X.TextField().FieldLabel("Code")
+                                .Name("ProfileCode").ID("ProfileCode")
+                                .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                .AllowBlank(false).MinLength(2).BlankText("Merci de renseigner un code pour ce profile"),
+                            X.TextField().FieldLabel("Nom")
+                                .Name("ProfileLabel")
+                                .ID("ProfileLabel")
+                                .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                .AllowBlank(false)
+                                .MinLength(4)
+                                .BlankText(Resources.PersonName + " " + Resources.RequiredField)
+                                .MinLengthText(Resources.Article + " " + Resources.PersonName + " " + Resources.MinLengthText)
+                                .ValidatorText(Resources.Article + " " + Resources.PersonName + " " + Resources.MinLengthText),
+                            X.Radio().BoxLabel(Resources.Yess).Name("ProfileState").ID("ProfileStateOK").FieldLabel(Resources.Disabled).InputValue("1").Checked(true),
+                            X.Radio().BoxLabel(Resources.No).Name("ProfileState").InputValue("0").ID("ProfileStateNOTOK")
+                        ),
+
+                    X.Component().Width(10),
+
+                    X.FieldSet()
+                        .Flex(1)
+                        .Title(Resources.Complement)
+                        .Layout(LayoutType.Anchor)
+                        .DefaultAnchor("70%")
+                        .Height(255)
+                        .Defaults(X.Parameter().Name("HideEmptyLabel").Value("false").Mode(ParameterMode.Raw))
+                        .Items(
+                            X.TextArea().FieldLabel("Description ").Height(100).Name("ProfileDescription").ID("ProfileDescription"),
+                            X.Radio().BoxLabel(Resources.MostHighLevel).Name("PofilLevel").ID("Access4").InputValue("4").FieldLabel(Resources.UserAccessLevel),
+                            X.Radio().BoxLabel(Resources.HighLevel).Name("PofilLevel").ID("Access3")
+                                .InputValue("3")
+                                .LabelWidth(120)
+                                .FieldLabel("  ").LabelSeparator("")
+                                ,
+                            X.Radio().BoxLabel(Resources.LowLevel).Name("PofilLevel").ID("Access1")
+                                .InputValue("1")
+                                .Checked(true)
+                                .LabelWidth(120)
+                                .FieldLabel("    ").LabelSeparator("")
+                        )
+                ),
+
+             X.Container()
+                //.Title(Resources.ProfileAllocateMenu)
+                .Layout(LayoutType.Anchor)
+                .ID("MenusAndSubMenus")
+                //.FieldDefaults(fd => { fd.LabelWidth = 120; fd.LabelStyle = "color:#000000; padding-left:2px;"; })
+                //.Collapsible(true)
+                .DefaultAnchor("100%")
+                .Items(LoadComponent.MenusAndSubMenus(profile))
+             )
+    )
+
+    @(Html.X().GridPanel()
+        .Title(Resources.ProfileList)
+        .Layout(LayoutType.Fit)
+        .Frame(true)
+        .MarginSpec("-20 20 20 20")
+        .Collapsible(true)
+        .Store(Html.X().Store()
+            .GroupField("Light")
+            .ID("ProfileStoreList")
+            .AutoLoad(true)
+            //.DataSource(Model)
+            .Proxy(
+               X.AjaxProxy()
+                .Url(Url.Action("GetAllProfiles"))
+                .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                .Reader(X.JsonReader().RootProperty("data"))
+            )
+            .Model(Html.X().Model()
+                .Fields(
+                            new ModelField() { Name = "ProfileLabel", Type = ModelFieldType.Auto },
+                            new ModelField() { Name = "ProfileCode", Type = ModelFieldType.Auto },
+                            new ModelField() { Name = "ProfileDescription", Type = ModelFieldType.Auto },
+                            new ModelField() { Name = "PofilLevel", Type = ModelFieldType.Int },
+                            new ModelField("ProfileID", ModelFieldType.Int)
+
+                )
+            )
+        )
+
+        .ColumnModel(
+            Html.X().Column()
+                    .Text("Profile ID")
+                    .DataIndex("ProfileID")
+                    .Flex(1)
+                    ,
+            Html.X().Column()
+                .Text(Resources.PersonName)
+                .DataIndex("ProfileLabel")
+                .Flex(1)
+                ,
+            Html.X().Column()
+                .Text("Description")
+                .DataIndex("ProfileDescription")
+                .Flex(1),
+            Html.X().Column()
+                    .Text("Code")
+                    .DataIndex("ProfileCode")
+                    .Flex(1),
+            Html.X().Column()
+                    .Text("Pofil Level")
+                    .DataIndex("PofilLevel")
+                    .Flex(1),
+            Html.X().ImageCommandColumn()
+                    .Width(30)
+                    .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, profile, FatSod.DataContext.Initializer.CodeValue.Security.Profile.CODE,db))
+                    .Commands(
+                    Html.X().ImageCommand()
+                            .CommandName("Edit")
+                            .IconCls("icon-edit")
+            //.ToolTip(tt => tt.Text = "Modifier ?")
+                            )
+                            .DirectEvents(de =>
+                            {
+                                de.Command.Action = "CheckedMenus";
+                                de.Command.ExtraParams.Add(new Parameter("ID", "record.data.ProfileID", ParameterMode.Raw));
+                                de.Command.EventMask.ShowMask = true;
+                                de.Command.EventMask.Msg = Resources.EventMaskUpdate;
+                            })
+                    ,
+             Html.X().ImageCommandColumn()
+                        .Width(30)
+                        .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.DELETE, profile, FatSod.DataContext.Initializer.CodeValue.Security.Profile.CODE,db))
+                        .Commands(
+                            Html.X().ImageCommand()
+                                .CommandName("Delete")
+                                .IconCls("icon-delete")
+            //.ToolTip(tt => tt.Text = "Supprimer ?")
+                        )
+                        .DirectEvents(de =>
+                        {
+                            de.Command.Action = "Delete";
+                            de.Command.Confirmation.ConfirmRequest = true;
+                            de.Command.Confirmation.Message = Resources.ConfirmDeleteMessage;
+                            de.Command.Confirmation.Title = Resources.ConfirmDeleteTitle;
+                            de.Command.ExtraParams.Add(new Parameter("ID", "record.data.ProfileID", ParameterMode.Raw));
+                            de.Command.EventMask.ShowMask = true;
+                            de.Command.EventMask.Msg = Resources.EventMaskMsg;
+                        })
+
+            )
+            .BottomBar(
+                 Html.X().PagingToolbar()
+            )
+    )
+}

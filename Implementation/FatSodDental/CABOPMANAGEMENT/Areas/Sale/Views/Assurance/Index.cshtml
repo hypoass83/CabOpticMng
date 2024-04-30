@@ -1,0 +1,638 @@
+﻿@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+@using CABOPMANAGEMENT.Tools;
+
+@model IEnumerable<FatSod.Supply.Entities.Assureur>
+@{
+    ViewBag.Title = @Resources.MenuAssurance;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var profile = (Session["UserProfile"] == null) ? 0 : (int)Session["UserProfile"];
+    var user = (Session["UserID"] == null) ? 0 : (int)Session["UserID"];
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+
+<div class="box box-primary box-body">
+    <div class="row">
+        <div class="col-md-6">
+            <h6>@Resources.RequireField <code>(*)</code>.</h6>
+        </div>
+    </div>
+    <div class="row">
+        <fieldset class="col-md-6">
+            <legend>@Resources.PersonIdentificationForm</legend>
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <input type="hidden" id="GlobalPersonID" />
+                    <input type="hidden" id="Branch" value="@ViewBag.CurrentBranch" />
+
+                    <div class="row ipt" id="NameF">
+                        <div class="col-sm-4">@Resources.PersonName<code>(*)</code></div>
+                        <div class="col-sm-8">
+                            <input type="text" id="Name" class="input-sm form-control" />
+                        </div>
+                    </div>
+                    <div class="row ipt" id="CompanyTradeRegisterF">
+                        <div class="col-sm-4" id="CompanyTradeRegisterLabelID">@Resources.NumeroContribuable</div>
+                        <div class="col-sm-8">
+                            <input type="text" id="CompanyTradeRegister" class="input-sm form-control" />
+                        </div>
+                    </div>
+                    <div class="row ipt" id="CompanySigleF">
+                        <div class="col-sm-4" id="CompanySigleLabelID">@Resources.Sigle<code>(*)</code></div>
+                        <div class="col-sm-8">
+                            <input type="text" id="CompanySigle" class="input-sm form-control" />
+                        </div>
+                    </div>
+                   
+                    <div class="row ipt">
+                        <div class="col-sm-4">@Resources.CollectifAccount<code>(*)</code></div>
+                        <div class="col-sm-8">
+                            <select id="Account" class="form-control"></select>
+                        </div>
+                    </div>
+                    <div class="row ipt">
+                        <div class="col-sm-4">Matricule</div>
+                        <div class="col-sm-8">
+                            <input type="text" id="Matricule" class="input-sm form-control" />
+                        </div>
+                    </div>
+                    <div class="row ipt" id="CompteurFactureF">
+                        <div class="col-sm-4" id="CompteurFactureLabelID">@Resources.NumeroFacture<code>(*)</code></div>
+                        <div class="col-sm-8">
+                            <input type="text" id="CompteurFacture" class="input-sm form-control" />
+                        </div>
+                    </div>
+                    <div class="row ipt" id="RemiseDeAssuranceF">
+                        <div class="col-sm-4" id="RemiseDeAssuranceLabelID">@Resources.Remise<code>(*)</code></div>
+                        <div class="col-sm-8">
+                            <input type="number" id="RemiseDeAssurance" class="input-sm form-control" step="0.01" min="0" max="100"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+        <!-- Adress -->
+        <fieldset class="col-md-6">
+            <legend>@Resources.PersonAdressForm</legend>
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <input type="hidden" id="AdressID" />
+                    <div class="row ipt">
+                        <div class="col-sm-4">@Resources.PersonMobile<code>(*)</code></div>
+                        <div class="col-sm-8">
+                            <input type="text" id="AdressPhoneNumber" class="input-sm form-control" />
+                        </div>
+                    </div>
+                    <div class="row ipt">
+                        <div class="col-sm-4">@Resources.AdressEmail</div>
+                        <div class="col-sm-8">
+                            <input type="text" id="AdressEmail" class="input-sm form-control" />
+                        </div>
+                    </div>
+                    <div class="row ipt">
+                        <div class="col-sm-4">@Resources.PersonBox</div>
+                        <div class="col-sm-8">
+                            <input type="text" id="AdressPOBox" class="input-sm form-control" />
+                        </div>
+                    </div>
+                    <div class="row ipt">
+                        <div class="col-sm-4">@Resources.Adress</div>
+                        <div class="col-sm-8">
+                            <input type="text" id="AdressFax" class="input-sm form-control" />
+                        </div>
+                    </div>
+                    <div class="row ipt">
+                        <div class="col-sm-4">@Resources.AdressCountry<code>(*)</code></div>
+                        <div class="row">
+                            <div class="col-sm-7">
+                                <select id="Country" class="form-control"></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row ipt">
+                        <div class="col-sm-4">@Resources.AdressRegion<code>(*)</code></div>
+                        <div class="row">
+                            <div class="col-sm-7">
+                                <select id="Region" class="form-control"></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row ipt">
+                        <div class="col-sm-4">@Resources.AdressTown<code>(*)</code></div>
+                        <div class="row">
+                            <div class="col-sm-7">
+                                <select id="Town" class="form-control"></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-4">@Resources.AdressQuarter<code>(*)</code></div>
+                        <div class="row">
+                            <div class="col-sm-7">
+                                <select id="Quarter" class="form-control"></select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+        
+    </div>
+    <div class="row">
+        <div class="col-sm-2">
+            <button type="button" id="btnCancel" class="btn btn-primary btn-danger">@Resources.ResetButton</button>
+        </div>
+        <div class="col-sm-2">
+            <button type="submit" class="btn btn-primary btn-success" id="btnSubmit">@Resources.SaveButton</button>
+        </div>
+    </div>
+</div>
+
+<!-- Ajout de la table contenant les data deja enregistrees-->
+<h2>@Resources.AssuranceList</h2>
+<div class="box box-body box-primary">
+    <table class="table" id="mainTable">
+        <thead>
+            <tr class="dataTableHead">
+                <th>
+                    @Resources.PersonName
+                </th>
+                <th>
+                    @Resources.Description
+                </th>
+                <th>
+                    @Resources.PersonMobile
+                </th>
+                <th>
+                    Matricule
+                </th>
+                <th>
+                    Action
+                </th>
+            </tr>
+        </thead>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Description)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Adress.AdressPhoneNumber)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Matricule)
+                </td>
+                
+                <td>
+                    @if (!LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, @profile, CodeValue.Sale.Assurance.CODE, db))
+                    {<a href=# onclick="UpdateItem(@item.GlobalPersonID)"><span class="glyphicon glyphicon-edit"></span></a> }|
+                    @if (!LoadAction.IsSubMenuActionAble(MenuAction.DELETE, @profile, CodeValue.Sale.Assurance.CODE, db))
+                    {<a href=# onclick="DeleteItem(@item.GlobalPersonID)"><span class="glyphicon glyphicon-trash"></span></a> }
+
+                </td>
+            </tr>
+        }
+
+    </table>
+</div>
+
+<!-- Css Begins Here -->
+
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 6px;
+    }
+
+    #img-upload {
+        width: 100%;
+    }
+
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin: 0;
+        min-width: 0;
+        padding: 10px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 280px;
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+</style>
+
+<!--********** JavaScripts **********-->
+<script>
+
+
+    // Get the CollectifAccounts List
+    function populateCollectifAccounts() {
+        $.get('@Url.Action("CollectifAccounts", "Assurance")', { code: '@CodeValue.Accounting.DefaultCodeAccountingSection.CODEASSUR' }, function (data) {
+            $('#Account').empty();
+            $('#Account').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#Account').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+    // Get the Country List
+    function populateCountry() {
+        $.get('@Url.Action("populateCountry", "Assurance")', {}, function (data) {
+            $('#Country').empty();
+            $('#Country').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#Country').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+
+
+    function populateRegionBy(_countryId, Region) {
+
+        $('#Region').append($("<option value='0'>@Resources.Select</option>"));
+
+        if (_countryId>0) {
+            $('#Region').prop('disabled', false);
+            $.get('@Url.Action("populateRegion", "Assurance")', { countryId: _countryId }, function (data) {
+                $('#Region').empty();
+                $('#Region').append($("<option value='0'>@Resources.Select</option>"));
+                $.each(data, function (key, value) {
+                    $('#Region').append($("<option></option>").val(value.ID).html(value.Name));
+                });
+                if (Region > 0) $('#Region').val(Region);
+            }, 'json');
+        }
+
+    }
+
+
+    function populateTownBy(_regionId,Town) {
+
+        $('#Town').append($("<option value='0'>@Resources.Select</option>"));
+
+
+        if (_regionId>0) {
+            $('#Town').prop('disabled', false);
+            $.get('@Url.Action("populateTown", "Assurance")', { regionId: _regionId }, function (data) {
+                $('#Town').empty();
+                $('#Town').append($("<option value='0'>@Resources.Select</option>"));
+                $.each(data, function (key, value) {
+                    $('#Town').append($("<option></option>").val(value.ID).html(value.Name));
+                });
+                if (Town>0) $('#Town').val(Town);
+            }, 'json');
+        }
+
+    }
+
+    function populateQuarterListBy(_townId, Quarter) {
+        $('#Quarter').append($("<option value='0'>@Resources.Select</option>"));
+
+        if (_townId>0) {
+            $('#Quarter').prop('disabled', false);
+            $.get('@Url.Action("populateQuarterList", "Assurance")', { townId: _townId }, function (data) {
+                $('#Quarter').empty();
+                $('#Quarter').append($("<option value='0'>@Resources.Select</option>"));
+                $.each(data, function (key, value) {
+                    $('#Quarter').append($("<option></option>").val(value.ID).html(value.Name));
+                });
+                if (Quarter > 0) $('#Quarter').val(Quarter);
+            }, 'json');
+        }
+
+    }
+
+    function clearForm() {
+        $('#Name').val('');
+        $('#CompanyTradeRegister').val('');
+        $('#CompanySigle').val('');
+        $('#CompteurFacture').val('');
+        $('#RemiseDeAssurance').val('');
+       
+        $('#Matricule').val('');
+
+
+        $('#AdressPhoneNumber').val('');
+        $('#AdressEmail').val('');
+        $('#AdressPOBox').val('');
+        $('#AdressFax').val('');
+        $('#Country').val('0');
+        $('#Region').val('0');
+        $('#Town').val('0');
+        $('#Quarter').val('0');
+
+        //$('#CustomerNumber').val('');
+        $('#Account').val('0');
+
+
+        $('#AdressID').val('');
+
+        //loadCustomerNumber();
+    }
+
+
+    $(document).on('ready', function () {
+
+        populateCountry();
+        $('#Country').on('change', function () {
+            var Country = $('#Country').val();
+            var Region = $('#Region').val();
+            populateRegionBy(Country, Region);
+        });
+        $('#Region').on('change', function () {
+            var Region = $('#Region').val();
+            var Town = $('#Town').val();
+            populateTownBy(Region, Town);
+        });
+        $('#Town').on('change', function () {
+            var Town = $('#Town').val();
+            var Quarter = $('#Quarter').val();
+            populateQuarterListBy(Town, Quarter);
+        });
+
+        populateCollectifAccounts();
+
+        //loadCustomerNumber();
+
+
+        $('#btnCancel').on('click', function () {
+            clearForm();
+        });
+
+        $('#mainTable').DataTable();
+
+        $('#btnSubmit').on('click', function () {
+            valideCreateCustomer();
+        });
+    });
+    function valideCreateCustomer() {
+        var isAllValid = true;
+
+
+        if ($('#Name').val().trim() == '') {
+            isAllValid = false;
+            $('#Name').addClass("invalid-data");
+        }
+        else {
+            $('#Name').addClass("valid-data");
+        }
+
+        if ($('#AdressPhoneNumber').val().trim() == '') {
+            isAllValid = false;
+            $('#AdressPhoneNumber').addClass("invalid-data");
+        }
+        else {
+            $('#AdressPhoneNumber').addClass("valid-data");
+        }
+
+        //if ($('#CompanyTradeRegister').val().trim() == '') {
+        //    isAllValid = false;
+        //    $('#CompanyTradeRegister').addClass("invalid-data");
+        //}
+        //else {
+        //    $('#CompanyTradeRegister').addClass("valid-data");
+        //}
+        if ($('#CompteurFacture').val().trim() == '') {
+            isAllValid = false;
+            $('#CompteurFacture').addClass("invalid-data");
+        }
+        else {
+            $('#CompteurFacture').addClass("valid-data");
+        }
+
+       // regex to verify a percentage
+        var regex = /^\d{1,2}(\.\d{1,2})?$/;
+        if (!regex.test($('#RemiseDeAssurance').val().trim())) {
+            isAllValid = false;
+            $('#RemiseDeAssurance').addClass("invalid-data");
+        }else {
+            $('#RemiseDeAssurance').addClass("valid-data");
+        }
+
+
+        //if ($('#Matricule').val().trim() == '') {
+        //    isAllValid = false;
+        //    $('#Matricule').addClass("invalid-data");
+        //}
+        //else {
+        //    $('#Matricule').addClass("valid-data");
+        //}
+
+        if ($('#CompanySigle').val().trim() == '') {
+            isAllValid = false;
+            $('#CompanySigle').addClass("invalid-data");
+        }
+        else {
+            $('#CompanySigle').addClass("valid-data");
+        }
+
+
+        if ($('#Country').val() == '0') {
+            isAllValid = false;
+            $('#Country').addClass("invalid-data");
+        }
+        else {
+            $('#Country').addClass("valid-data");
+        }
+        if ($('#Account').val() == "0") {
+            isAllValid = false;
+            $('#Account').addClass("invalid-data");
+        }
+        else {
+            $('#Account').addClass("valid-data");
+        }
+
+
+        if ($('#Quarter').val() == '0') {
+            isAllValid = false;
+            $('#Quarter').addClass("invalid-data");
+        }
+        else {
+            $('#Quarter').addClass("valid-data");
+        }
+        if ($('#Town').val() == '0') {
+            isAllValid = false;
+            $('#Town').addClass("invalid-data");
+        }
+        else {
+            $('#Town').addClass("valid-data");
+        }
+        if ($('#Region').val() == '0') {
+            isAllValid = false;
+            $('#Region').addClass("invalid-data");
+        }
+        else {
+            $('#Region').addClass("valid-data");
+        }
+
+        if (isAllValid) {
+            var data = {
+                AdressID: $('#AdressID').val(),
+                GlobalPersonID: $('#GlobalPersonID').val(),
+                Name: $('#Name').val(),
+                CompanyTradeRegister: $('#CompanyTradeRegister').val(),
+                CompanySigle: $('#CompanySigle').val(),
+                CompteurFacture: $('#CompteurFacture').val(),
+                Remise : $('#RemiseDeAssurance').val(),
+                Matricule: $('#Matricule').val(),
+                AdressPhoneNumber: $('#AdressPhoneNumber').val(),
+                AdressEmail: $('#AdressEmail').val(),
+                AdressPOBox: $('#AdressPOBox').val(),
+                AdressFax: $('#AdressFax').val(),
+                Country: $('#Country').val(),
+                Region: $('#Region').val(),
+                Town: $('#Town').val(),
+                Quarter: $('#Quarter').val(),
+                Account: $('#Account').val()
+            }
+            $(this).val('Please wait...');
+
+
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("Add", "Assurance")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        location.reload(true);
+                        //clear form
+                        clearForm();
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                },
+                error: function () {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                }
+            });
+        }
+    }
+
+
+    function UpdateItem(obj) {
+        var globalID = obj;
+
+        var Country = 0;
+        var Region = 0;
+        var Town = 0;
+        var Quarter = 0;
+
+        $.get('@Url.Action("InitializeFields", "Assurance")', { ID: parseInt(globalID) }, function (data) {
+            $.each(data, function (key, value) {
+                $('#Account').val(value.Account);
+                //$('#CustomerNumber').val(value.CustomerNumber);
+
+                Country = value.Country;
+                Region = value.Region;
+                Town = value.Town;
+                Quarter = value.Quarter;
+
+                $('#AdressFax').val(value.AdressFax);
+                $('#AdressPhoneNumber').val(value.AdressPhoneNumber);
+                $('#AdressEmail').val(value.AdressEmail);
+                $('#AdressPOBox').val(value.AdressPOBox);
+                $('#AdressID').val(value.AdressID);
+                $('#CompanySigle').val(value.CompanySigle);
+                $('#CompteurFacture').val(value.CompteurFacture);
+                $('#RemiseDeAssurance').val(value.RemiseDeAssurance);
+                $('#Matricule').val(value.Matricule);
+                $('#CompanyTradeRegister').val(value.CompanyTradeRegister);
+                $('#GlobalPersonID').val(value.GlobalPersonID);
+                $('#Name').val(value.Name);
+            });
+
+            $('#Country').val(Country);
+            populateRegionBy(Country, Region);
+            $('#Region').val(Region);
+            populateTownBy(Region, Town);
+            $('#Town').val(Town);
+            populateQuarterListBy(Town, Quarter);
+            $('#Quarter').val(Quarter);
+
+        }, 'json');
+
+
+    }
+    function DeleteItem(obj) {
+        if (confirm("Do you want to Delete ?")) {
+            var globalID = obj;
+            //post to the server
+            $(this).val('Please wait...');
+            var data = {
+                ID: parseInt(globalID)
+            }
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("Delete", "Assurance")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        location.reload(true);
+                        clearForm();
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                }
+            });
+        }
+
+    }
+</script>

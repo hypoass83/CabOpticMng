@@ -1,0 +1,207 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+@model System.Collections.IEnumerable
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+@section content
+{
+    @(X.FormPanel()
+        .ID("Unknow")
+            //.Title(Resources.FormUserAddTitle)
+        .Items(
+             X.PanelTitle()
+              .ID("PanelTitl555e")
+              .Border(true)
+              .Padding(2)
+              .Content(
+            @<header>
+                <h4>Manage all Job in our Company</h4>
+                <h6>@Resources.RequireField <code>(*)</code>.</h6>
+            </header>
+                )
+            )
+            .Frame(true)
+            .MarginSpec("-20 20 20 20")
+            .BodyPadding(10)
+    )
+    @(
+        X.Container()
+             .Layout(LayoutType.HBox)
+             .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+             .Flex(1)
+             .MarginSpec("-40 10 10 10")
+             .Items(
+                   X.FormPanel()
+                    .ID("JobForm")
+                    .Title(Resources.Job)
+                    .Frame(true)
+                    .MarginSpec("0 20 20 20")
+                    .Flex(1)
+                    //.Width(350)
+                    .BodyPadding(10)
+                    .FieldDefaults(fd => { fd.LabelWidth = 120; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+                    .Buttons(
+                        X.Button()
+                            .ID("btnSave")
+                            .Text(Resources.SaveButton)
+                            .Disabled(true)
+                            .Icon(Icon.Disk)
+                            .Margin(5)
+                            .DirectEvents(de =>
+                            {
+                                de.Click.Url = Url.Action("AddJob", "Parameter");
+                                de.Click.EventMask.ShowMask = true;
+                                de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                            }),
+
+                        X.Button()
+                            .Text(Resources.ResetButton)
+                            .MarginSpec("0 20 10 10")
+                            .OnClientClick("this.up('form').reset();")
+                    )
+                    .Listeners(
+                        ls =>
+                        {
+                            ls.FieldChange.Handler = "if(App.JobForm.isValid()){App.btnSave.setDisabled(false);}else{App.btnSave.setDisabled(true);}";
+                        }
+                    )
+                    .Items(
+                       X.FieldSet()
+                        .Flex(1)
+                        .Title("Identification")
+                        .Layout(LayoutType.Anchor)
+                        .Height(130)
+                        .DefaultAnchor("80%")
+                        .Items(
+                            X.TextField().Name("JobID").ID("JobID").Hidden(true),
+                            X.TextField().FieldLabel(Resources.PersonName)
+                                .Name("JobLabel")
+                                .MsgTarget(MessageTarget.Side)
+                                .LabelSeparator("<span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                .ID("JobLabel")
+                                .BlankText(Resources.PersonName + " " + Resources.RequiredField)
+                                .AllowBlank(false).MinLength(4)
+                            ,
+                            X.TextField().FieldLabel("Code")
+                                .Name("JobCode")
+                                .ID("JobCode")
+                                .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                .BlankText("Code " + Resources.RequiredField)
+                                .AllowBlank(false)
+                            ,
+                            X.TextField().FieldLabel("Description")
+                                .Name("JobDescription")
+                                .ID("JobDescription")
+                                .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                .BlankText("Vous devez renseigner une description")
+                                .AllowBlank(false)
+                        )
+               )             
+         ,
+        // Job Grid
+               X.GridPanel()
+                .Title(Resources.JobList)
+                .ID("UserList")
+                //.Layout(LayoutType.Fit)
+                .Flex(1)
+                .MarginSpec("-0 20 20 20")
+                .Frame(true)
+                .Collapsible(true)
+                .Store(Html.X().Store()
+                    .GroupField("JobLabel")
+                    .ID("JobStore")
+                    .ServerProxy(
+                        X.AjaxProxy()
+                        .Url(Url.Action("GetJobsList"))
+                        .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                        .Reader(X.JsonReader().RootProperty("data"))
+                    )
+                    .AutoLoad(true)
+                    .Model(Html.X().Model()
+                        .Fields(
+                            new ModelField() { Name = "JobID", Type = ModelFieldType.Int },
+                            new ModelField() { Name = "JobCode", Type = ModelFieldType.String },
+                            new ModelField() { Name = "JobLabel", Type = ModelFieldType.String },
+                            new ModelField() { Name = "JobDescription", Type = ModelFieldType.String }
+                        )
+                    ).DataSource(Model)
+                )
+                .ColumnModel(
+                    Html.X().Column()
+                            .Text("Identifiant")
+                            .DataIndex("JobID")
+                            .Flex(1)
+                            ,
+                    Html.X().Column()
+                        .Text("Code")
+                        .DataIndex("JobCode")
+                        .Flex(1)
+                        ,
+                    Html.X().Column()
+                        .Text("Nom de l'agence")
+                        .DataIndex("JobLabel")
+                        .Flex(1),
+                    Html.X().Column()
+                        .Text("Decription de l'agence")
+                        .DataIndex("JobDescription")
+                        .Flex(1),
+                    Html.X().ImageCommandColumn()
+                                .Width(30)
+                                .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.DELETE, profile,FatSod.DataContext.Initializer.CodeValue.Parameter.JobCode,db))
+                                .Commands(
+                                    Html.X().ImageCommand()
+                                        .CommandName("Delete")
+                                        .IconCls("icon-delete")
+                                        .ToolTip(tt =>
+                                            {
+                                                tt.Text = "Voulez-vous supprimer ?";
+                                                tt.Title = "Supression";
+                                            }
+                                            )
+                                )
+                                .DirectEvents(de =>
+                                {
+                                    de.Command.Action = "DeleteJob";
+                                    de.Command.Confirmation.ConfirmRequest = true;
+                                    de.Command.Confirmation.Message = "Voulez vous supprimer ?";
+                                    de.Command.Confirmation.Title = "Opération de suppression";
+                                    de.Command.ExtraParams.Add(new Parameter("ID", "record.data.JobID", ParameterMode.Raw));
+                                    de.Command.EventMask.ShowMask = true;
+                                    de.Command.EventMask.Msg = "Opération en cours...";
+                                }),
+                    Html.X().ImageCommandColumn()
+                            .Width(30)
+                            .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, profile, FatSod.DataContext.Initializer.CodeValue.Parameter.JobCode,db))
+                            .Commands(
+                            Html.X().ImageCommand()
+                                    .CommandName("Edit")
+                                    .IconCls("icon-edit")
+                            )
+
+                            .DirectEvents(de =>
+                            {
+                                de.Command.Action = "InitializeJobsFields";
+                                de.Command.ExtraParams.Add(new Parameter("ID", "record.data.JobID", ParameterMode.Raw));
+                                de.Command.EventMask.ShowMask = true;
+                                de.Command.EventMask.Msg = "Chargement des paramètres de modification en cours...";
+                            })
+
+
+                    )
+                    .BottomBar(
+                            Html.X().PagingToolbar()
+                    )
+           )
+    )
+
+}

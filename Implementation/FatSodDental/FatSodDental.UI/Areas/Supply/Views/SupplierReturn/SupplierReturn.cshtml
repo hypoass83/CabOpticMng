@@ -1,0 +1,584 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+
+@model System.Collections.IEnumerable
+@{
+    //ViewBag.Title = "Utilisateur";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    string labelSeparator = "  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :";
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+    
+    string paymentMethodManagement = @"
+                                        if(App.PaymentMethod.getValue() == App.bank.getValue())
+                                        {
+	                                        App.PaymentMethodID.clearValue();
+                                            App.PaymentMethodID.allowBlank = false;
+	                                        App.PaymentMethodID.setDisabled(false);
+                                        }
+                                        else
+                                        {
+	                                        App.PaymentMethodID.clearValue();
+	                                        App.PaymentMethodID.allowBlank = true;
+	                                        App.PaymentMethodID.setDisabled(true);
+                                        }
+                                      ";
+    string managePaymentDelay = @"
+                                    if(App.PaymentDelay.getValue() == 0)
+                                    {
+                                        App.PaymentMethod.clearValue();
+                                        App.PaymentMethod.allowBlank = false;
+                                        App.PaymentMethod.setDisabled(false);
+                                        " + paymentMethodManagement + @"
+                                    }
+                                    else
+                                    {
+                                       App.PaymentMethod.clearValue();
+	                                   App.PaymentMethod.allowBlank = true;
+	                                   App.PaymentMethod.setDisabled(true);
+                                       " + paymentMethodManagement + @"
+                                    }
+                                ";
+
+    String activateValidatePurchase1 = @"if( (App.PurchaseGeneralInformation.isValid()) && (App.IsCadyEmpty.getValue() == 0) )
+                                            {
+                                                App.SaveReturn.setDisabled(false);
+                                            }else{
+                                                App.SaveReturn.setDisabled(true);
+                                            }";
+   
+    String handler_extra_price = @"
+            var valueOperation = App.InitialHT.getValue();
+            var ReductionAmount = App.ReductionAmount.getValue();
+            var DiscountAmount = App.DiscountAmount.getValue();
+            var reduction = App.Reduction.getValue();
+            var discount = App.Discount.getValue();
+            var transport = App.Transport.getValue();
+            var new_HT_price = valueOperation;
+            var remise = 0;
+            var escompte = 0;
+            var vatRate =  App.VatRate.getValue() / 100;
+            var netFin = valueOperation;
+            var NetCom = valueOperation;
+            //Réduction
+            if (reduction > 0)
+            {
+                remise = Math.round((reduction / 100) * valueOperation);
+                new_HT_price -= remise;
+                NetCom -= remise;
+                netFin = NetCom;
+            }
+
+            if (discount > 0)
+            {
+                escompte = Math.round((discount / 100) * new_HT_price);
+                new_HT_price -= escompte;
+                netFin = new_HT_price;
+            }
+
+             if (transport > 0)
+             {
+                new_HT_price += transport;
+             }
+
+
+            var tva_amount = Math.round(new_HT_price * vatRate);
+
+            App.ReductionAmount.setValue(remise);
+            App.DiscountAmount.setValue(escompte);
+            App.NetCom.setValue(NetCom);
+            App.TotalPriceHT.setValue(netFin);
+            App.TVAAmount.setValue(tva_amount);
+            App.TotalPriceTTC.setValue(new_HT_price+tva_amount);
+    ";
+
+}
+@section content
+{
+
+    @*************************************************** Purchases list *************************************************************@
+    @(X.GridPanel()
+        //.Title(Resources.PurchaseList)
+        .ID("PurchaseList")
+        .Layout(LayoutType.Fit)
+        .MarginSpec("-20 0 0 0")
+        .Margin(0)
+        .Frame(false)
+        .Collapsible(false)
+        .Store(X.Store()
+            .GroupField("All Purchases")
+            .ID("PurchaseListStore")
+            .RemotePaging(true)
+            .AutoLoad(true)
+            .PageSize(2)
+            .Model(
+                X.Model()
+                    .IDProperty("PurchaseID7")
+                    .Fields(
+                        new ModelField("PurchaseDate", ModelFieldType.Date),
+                        new ModelField("PurchaseID", ModelFieldType.Int),
+                        new ModelField("TotalPriceTTC", ModelFieldType.Int),
+                        new ModelField("SupplierEmail", ModelFieldType.String),
+                        new ModelField("PurchaseReference", ModelFieldType.String),
+                        new ModelField("AdressPhoneNumber", ModelFieldType.String),
+                        new ModelField("PersonName", ModelFieldType.String)
+                    )
+            )
+            .DataSource(Model)
+            .ServerProxy(
+                X.AjaxProxy()
+                .Url(Url.Action("ReturnAblePurchases"))
+                .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                .Reader(X.JsonReader().RootProperty("data"))
+            )
+            .Sorters(
+                X.DataSorter()
+                .Property("PersonName")
+                .Direction(Ext.Net.SortDirection.ASC)
+            )
+        )
+
+        .ColumnModel(
+            X.RowNumbererColumn()
+            ,
+         X.ImageCommandColumn()
+            .Width(30)
+            .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, profile, FatSod.DataContext.Initializer.CodeValue.Supply.SupplierReturnMenu.PATH,db))
+            .Commands(
+            X.ImageCommand()
+                    .CommandName("Edit")
+                    .IconCls("icon-edit")
+                    .ToolTip(tt => tt.Text = "Modifier ?")
+            )
+
+            .DirectEvents(de =>
+            {
+                de.Command.Action = "InitializeFields";
+                de.Command.Method = HttpMethod.POST;
+                de.Command.ExtraParams.Add(new Parameter("PurchaseID", "record.data.PurchaseID", ParameterMode.Raw));
+                de.Command.EventMask.ShowMask = true;
+                de.Command.EventMask.Msg = Resources.EventMaskUpdate;
+            })
+            ,
+
+            X.Column()
+                .Text(Resources.PurchaseRef)
+                .DataIndex("PurchaseReference")
+                .Flex(1)
+                ,
+            X.Column()
+                .Text(Resources.UIDateOperation)
+                .DataIndex("PurchaseDate")
+                .Flex(1),
+            X.Column()
+                .Text(Resources.SupplierNane)
+                .DataIndex("PersonName")
+                .Flex(1),
+            X.Column()
+                .Text("Purchase Total Price estimation")
+                .DataIndex("TotalPriceTTC")
+                .Flex(1),
+            X.Column()
+                .Text("Email")
+                .DataIndex("SupplierEmail")
+                .Flex(1),
+            X.Column()
+                .Text(Resources.PhoneNumber)
+                .DataIndex("AdressPhoneNumber")
+                .Flex(1)
+
+            )
+            
+            .Plugins(
+                X.FilterHeader()
+            )
+                    .BottomBar(
+                                    X.PagingToolbar()
+                            )
+    )
+    @********************************** Purchase return properties *************************************@
+    @(
+ X.FormPanel()
+        .MarginSpec("1 0 10 5")
+        .Title("Current Purchase to return")
+        .Buttons(
+                X.Button()
+                .Text("Save")
+                .AlignTarget("left")
+                .ID("SaveReturn")
+                .Disabled(true)
+                .DirectEvents(de =>
+                {
+                    de.Click.Url = Url.Action("ReturnPurchase");
+                    de.Click.EventMask.ShowMask = true;
+                    de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                })
+                .Icon(Icon.Add)
+                ,
+                X.Button()
+                .Text("Reset")
+                .MarginSpec("0 10 50 0")
+                //.OnClientClick("this.up('form').reset();")
+                .DirectEvents(de =>
+                {
+                    de.Click.Url = Url.Action("ResetReturn");
+                })
+                .Icon(Icon.ArrowRefresh)
+        )
+         .Items(
+        //Informations non modifiables sur la vente
+            X.FormPanel()
+             .ID("PurchaseGeneralInformation")
+             .Listeners(ls => ls.FieldChange.Handler = activateValidatePurchase1)
+             .Layout(LayoutType.HBox)
+             .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+             .Items(
+                X.NumberField().ID("SupplierReturnID").Hidden(true).Name("SupplierReturnID"),
+                X.TextField().Name("PurchaseID").ID("PurchaseID").Hidden(true),
+                X.TextField().ID("CashRegisterCode").Value("5454").Hidden(true),
+
+                X.Container()
+                    .Layout(LayoutType.Anchor)
+                    .MarginSpec("10 10 0 10")
+                    .Items(//Informations liées à la vente
+                        X.TextField().FieldLabel(Resources.PurchaseRef)
+                            .MarginSpec("5 0 3 3")
+                            .AllowBlank(false)
+                            .ID("PurchaseReference")
+                            .ReadOnly(true)
+                            .MinLength(2),
+                        X.ComboBox().Name("SupplierID").FieldLabel(Resources.Supplier)
+                            .Items(LoadComponent.Suppliers)
+                            .AllowBlank(false).ForceSelection(true)
+                            .MarginSpec("5 0 3 3")
+                            .BlankText(Resources.Supplier + " " + Resources.RequiredField)
+                            .ID("SupplierID")
+                            .LabelSeparator(labelSeparator)
+                            .ReadOnly(true)
+                            .EmptyText(Resources.Select),
+                        X.DateField().FieldLabel(Resources.UIDateOperation).MarginSpec("0 0 5 0")
+                            .AllowBlank(false).Name("PurchaseDate")
+                            .ID("PurchaseDate")
+                            .MarginSpec("5 0 3 3")
+                            .ReadOnly(true)
+                            .InputType(Ext.Net.InputType.DateTime),
+                        X.DateField().FieldLabel(Resources.Deliverydate)
+                            .AllowBlank(true)
+                            .Name("PurchaseDeliveryDate")
+                            .ID("PurchaseDeliveryDate")
+                            .ReadOnly(true)
+                            .MarginSpec("5 0 3 3")
+                            .InputType(Ext.Net.InputType.DateTime),
+                       X.DateField().FieldLabel("Date Retour")
+                            .AllowBlank(false)
+                            .Name("SupplierReturnDate")
+                            .ID("SupplierReturnDate")
+                            .MarginSpec("5 0 3 3")
+                            .InputType(Ext.Net.InputType.DateTime)
+                    ),
+
+                       X.FieldSet()
+                              .MarginSpec("0 0 0 600")
+                              .Width(400)
+                              .Height(260)
+                              .Disabled(false)
+                              .ID("OperationAmount")
+                              .Title(Resources.RetournAmount)
+                              .Items
+                                  (
+                                    X.NumberField().ID("InitialTTC").Hidden(true),
+                                    X.NumberField().Name("VatRate").ID("VatRate").Hidden(true).DecimalPrecision(8),
+                                    X.NumberField().ID("InitialHT").Hidden(false).FieldLabel(Resources.GrossAmount).Width(280).ReadOnly(true),
+                                    X.FieldContainer().FieldLabel(Resources.Reduction + "(%)")
+                                        .MarginSpec("0 0 0 0")
+                                        .Layout(LayoutType.HBox)
+                                         .Items
+                                         (
+                                               X.NumberField().ID("Reduction").Width(80).MinValue(0).Name("RateReduction")
+                                                   .MaxValue(100).EnforceMaxLength(true).ReadOnly(true)
+                                                   .Value(0).AllowBlank(false).DecimalPrecision(8).AllowDecimals(true),
+
+                                              X.NumberField().ID("ReductionAmount")
+                                                  .Name("ReductionAmount")
+                                                  .Value(0).AllowBlank(false).ReadOnly(true)
+                                        ),
+
+                                    X.NumberField().FieldLabel(Resources.NetCom)
+                                        .MarginSpec("5 0 0 0").Width(280)
+                                        .ReadOnly(true)
+                                        .ID("NetCom")
+                                        .Name("NetCom"),
+                                    X.FieldContainer().FieldLabel(Resources.Discount + "(%)")
+                                         .MarginSpec("5 0 0 0")
+                                         .Layout(LayoutType.HBox)
+                                         .Items(
+                                            X.NumberField().ID("Discount").Width(80).MinValue(0).Name("RateDiscount")
+                                                .MaxValue(100).EnforceMaxLength(true).ReadOnly(true)
+                                                .Value(0).AllowBlank(false).DecimalPrecision(8).AllowDecimals(true),
+                                             X.NumberField().ID("DiscountAmount")
+                                                .Name("DiscountAmount").ReadOnly(true)
+                                                .Value(0).AllowBlank(false)
+                                        ),
+                                    X.NumberField().FieldLabel(Resources.NetFin)
+                                     .MarginSpec("5 0 0 0")
+                                     .ID("TotalPriceHT")
+                                     .ReadOnly(true)
+                                     .Width(280).Name("TotalPriceHT")
+                                     ,
+                                X.NumberField().FieldLabel("Transport")
+                                    .MarginSpec("5 0 0 0").Name("Transport")
+                                    .ID("Transport")
+                                    .MinValue(0)
+                                    .Value(0)
+                                    .AllowBlank(false)
+                                    .Width(280)
+                                    .Listeners(ls =>
+                                    {
+                                        ls.Change.Handler = handler_extra_price;
+                                    })
+                                ,
+                                X.NumberField().FieldLabel(Resources.TVA)
+                                 .MarginSpec("5 0 0 0").Width(280)
+                                 .ReadOnly(true)
+                                 .ID("TVAAmount")
+                                 .Name("TVAAmount")
+                                 ,
+                                    X.NumberField().FieldLabel(Resources.PriceTTC).Name("TotalPriceTTC")
+                                    .MarginSpec("5 0 0 0")
+                                    .ReadOnly(true)
+                                    .ID("TotalPriceTTC")
+        //.Hidden(true)
+                                    .Width(280)
+                              )
+             )
+             ,
+        //Fin des informations sur la vente
+            X.Panel()
+                .ID("PurchaseReturnInformation")
+                .Frame(false)
+                .MarginSpec("0 0 0 0")
+                .Layout(LayoutType.HBox)
+        //.LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                .Items(
+
+                    X.GridPanel()
+                        .ID("PurchaseLines")
+                        .Flex(1)
+                        .Height(180)
+                        .Frame(false)
+                        .Title("Article of Purchase")
+                        .Store(
+                            X.Store()
+                                .RemotePaging(true)
+                                .GroupField("Light")
+                                .PageSize(3)
+                                .AutoLoad(false)
+                                .ID("PurchaseLineStore")
+                                .Model(
+                                    X.Model()
+                                        .Fields(
+                                            new ModelField() { Name = "PurchaseLineID", Type = ModelFieldType.Int },
+                                            new ModelField() { Name = "ProductLabel", Type = ModelFieldType.String },
+                                            new ModelField() { Name = "LineUnitPrice", Type = ModelFieldType.Int },
+                                            new ModelField() { Name = "LineQuantity", Type = ModelFieldType.Float },
+                                            new ModelField() { Name = "LineAmount", Type = ModelFieldType.Int }
+                                        )
+                                )
+                                .ServerProxy(
+                                    X.AjaxProxy()
+                                    .Url(Url.Action("PurchaseLines"))
+                                    .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                                    .Reader(X.JsonReader().RootProperty("data"))
+                                )
+                         )
+                        .ColumnModel(
+
+                            X.Column()
+                                .Text(Resources.Designation)
+                                .DataIndex("ProductLabel")
+                                .Flex(1),
+                            X.Column()
+                                .Text(Resources.UnitPrice)
+                                .DataIndex("LineUnitPrice")
+                                .Flex(1)
+                                ,
+                            X.Column()
+                                .Text(Resources.Quantity)
+                                .DataIndex("LineQuantity")
+                                .Flex(1),
+                            X.Column()
+                                .Text(Resources.Partialprice)
+                                .DataIndex("LineAmount")
+                                .Flex(1),
+
+                            X.ImageCommandColumn()
+                                .Width(30)
+        //.Hidden(LoadAction.Utilisateur(MenuAction.DELETE, profile))
+                                .Commands(
+                                    X.ImageCommand()
+                                        .CommandName("Delete")
+                                        .IconCls("icon-delete")
+                                )
+                                .DirectEvents(de =>
+                                {
+                                    de.Command.Action = "InitializeSRLineFieldsBySL";
+                                    de.Command.Confirmation.ConfirmRequest = true;
+                                    de.Command.Confirmation.Message = Resources.ConfirmDeleteMessage;
+                                    de.Command.Confirmation.Title = Resources.ConfirmDeleteTitle;
+                                    de.Command.ExtraParams.Add(new Parameter("PurchaseLineID", "record.data.PurchaseLineID", ParameterMode.Raw));
+                                    de.Command.EventMask.ShowMask = true;
+                                    de.Command.EventMask.Msg = Resources.EventMaskMsg;
+                                })
+                            )
+                            .BottomBar(
+                                X.PagingToolbar()
+                            )
+        ////Formpanel for update PurchaseLines
+                        ,
+
+                    X.FormPanel()
+                        .ID("FormAddSupplierReturnLine")
+                        .Border(false)
+                        .DefaultAnchor("95%")
+                        .FieldDefaults(fd => { fd.LabelWidth = 120; fd.LabelStyle = "color:#0094ff;"; fd.LabelSeparator = labelSeparator; })
+                        .Width(250)
+                        .Height(180)
+                        .MarginSpec("0 0 0 0")
+                        .Listeners(ls => ls.FieldChange.Handler = "if(this.isValid()){App.ReduceBtn.setDisabled(false);}else{App.ReduceBtn.setDisabled(true);}")
+                        .Buttons(
+                        X.Button()
+                            .Icon(Icon.ApplicationEdit)
+                            .Text("Reduce")
+                            .Disabled(true)
+                            .ID("ReduceBtn")
+                            .DirectEvents(de =>
+                            {
+                                de.Click.Url = Url.Action("AddSupplierReturnLine");
+                                de.Click.EventMask.ShowMask = true;
+                                de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                                de.Click.ExtraParams.Add(new Parameter("Transport", "App.Transport.getValue()", ParameterMode.Raw));
+                            }),
+                             X.Button()
+                                .ID("Cancel2")
+                                .Text(Resources.Cancel)
+                                .OnClientClick("this.up('form').reset();")
+                        )
+                        .Items(
+                            X.NumberField().ID("TMPID").Hidden(true).Name("TMPID"),
+                            X.NumberField().ID("PurchaseLineID").Hidden(true).Name("PurchaseLineID"),
+                            X.TextField().Name("IsCadyEmpty").ID("IsCadyEmpty").Hidden(true).Value(1),
+
+                            X.TextField().FieldLabel(Resources.Designation).ID("Product").ReadOnly(true).Name("Product").AllowBlank(false),
+                            X.TextField().FieldLabel("Store").ID("Localization").ReadOnly(true).Name("Localization").AllowBlank(false),
+                            X.NumberField().FieldLabel(Resources.Quantity).ID("LineQuantity").Name("LineQuantity").MinValue(0.5).AllowBlank(false),
+                            X.TextArea().FieldLabel("Causes").ID("SupplierReturnCauses").Name("SupplierReturnCauses").AllowBlank(false)
+                        )
+                        ,
+                    X.GridPanel()
+                        .ID("SupplierReturnLines")
+                        .Flex(1)
+                        .Height(180)
+                        .Title("Articles to return")
+                        .Store(
+                            X.Store()
+                                .GroupField("Light")
+                                .PageSize(3)
+                                .AutoLoad(false)
+                                .ID("SupplierReturnLinesStore")
+                                .Model(
+                                    X.Model()
+                                        .Fields(
+                                            new ModelField() { Name = "TMPID", Type = ModelFieldType.Int },
+                                            new ModelField() { Name = "PurchaseLineID", Type = ModelFieldType.Int },
+                                            new ModelField() { Name = "Product", Type = ModelFieldType.String },
+                                            new ModelField() { Name = "LineUnitPrice", Type = ModelFieldType.Int },
+                                            new ModelField() { Name = "LineQuantity", Type = ModelFieldType.Float },
+                                            new ModelField() { Name = "SupplierReturnCauses", Type = ModelFieldType.String },
+                                            new ModelField() { Name = "LineAmount", Type = ModelFieldType.Int }
+                                        )
+                                )
+                                .ServerProxy(
+                                    X.AjaxProxy()
+                                    .Url(Url.Action("SupplierReturnLines"))
+                                    .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                                    .Reader(X.JsonReader().RootProperty("data"))
+                                )
+
+                         )
+                        .ColumnModel(
+
+                            X.Column()
+                                .Text(Resources.Designation)
+                                .DataIndex("Product")
+                                .Flex(1),
+                            X.Column()
+                                .Text(Resources.Quantity)
+                                .DataIndex("LineQuantity")
+                                .Flex(1),
+                            X.Column()
+                                .Text(Resources.UnitPrice)
+                                .DataIndex("LineUnitPrice")
+                                .Flex(1),
+
+                            X.Column()
+                                .Text(Resources.Partialprice)
+                                .DataIndex("LineAmount")
+                                .Flex(1),
+
+                            X.Column()
+                                .Text("Causes")
+                                .DataIndex("SupplierReturnCauses")
+                                .Flex(1),
+                            X.ImageCommandColumn()
+                                .Width(30)
+        //.Hidden(LoadAction.Utilisateur(MenuAction.DELETE, profile))
+                                .Commands(
+                                    X.ImageCommand()
+                                        .CommandName("Delete")
+                                        .IconCls("icon-delete")
+                                )
+                                .DirectEvents(de =>
+                                {
+                                    de.Command.Action = "RemoveSRLine";
+                                    de.Command.Confirmation.ConfirmRequest = true;
+                                    de.Command.Confirmation.Message = Resources.ConfirmDeleteMessage;
+                                    de.Command.Confirmation.Title = Resources.ConfirmDeleteTitle;
+                                    de.Command.ExtraParams.Add(new Parameter("TMPID", "record.data.TMPID", ParameterMode.Raw));
+                                    de.Command.EventMask.ShowMask = true;
+                                    de.Command.EventMask.Msg = Resources.EventMaskMsg;
+                                }),
+                            X.ImageCommandColumn()
+                                .Width(30)
+        //.Hidden(LoadAction.Utilisateur(MenuAction.UPDATE, profile))
+                                .Commands(
+                                X.ImageCommand()
+                                        .CommandName("Edit")
+                                        .IconCls("icon-edit")
+                                        .ToolTip(tt => tt.Text = "Modifier ?")
+                                )
+
+                                .DirectEvents(de =>
+                                {
+                                    de.Command.Action = "UpdateSRLine";
+                                    de.Command.ExtraParams.Add(new Parameter("TMPID", "record.data.TMPID", ParameterMode.Raw));
+                                    de.Command.EventMask.ShowMask = true;
+                                    de.Command.EventMask.Msg = Resources.EventMaskUpdate;
+                                })
+
+
+                            )
+                            .BottomBar(
+                                X.PagingToolbar()
+                            )
+                )
+         )
+    )
+
+}

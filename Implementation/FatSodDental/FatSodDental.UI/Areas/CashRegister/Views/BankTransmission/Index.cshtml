@@ -1,0 +1,364 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSod.Ressources;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.DataContext.Initializer;
+
+@Model System.Collections.IEnumerable
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+    string labelSeparator = " <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :";
+    //Les valeurs par défaut afin de réduire les clicques sur l'interface de commande
+    int DefaultBranchID = (int)Session["DefaultBranchID"];
+    int DefaultDeviseID = (int)Session["DefaultDeviseID"];
+    int DefaultLocationID = (int)(Session["DefaultLocationID"] != null ? Session["DefaultLocationID"] : 0);
+}
+
+@section content
+{
+@(X.FormPanel()
+        .ID("Unknow")
+            //.Title(Resources.FormUserAddTitle)
+        .Items(
+             X.PanelTitle()
+              .ID("PanelTitl555e")
+              .Border(true)
+              .Padding(2)
+              .Content(
+            @<header>
+                <h4>@Resources.BankTransfer</h4>
+                @*<h6>@Resources.OpenCashRgisterSubTitle</h6>*@
+            </header>
+                )
+            )
+            .Frame(true)
+            .MarginSpec("-20 20 20 20")
+            .BodyPadding(10)
+)
+    @(
+    X.Container()
+             .Layout(LayoutType.HBox)
+             .MarginSpec("-20 10 10 10")
+             .Items(
+                X.FieldSet()
+                 .Flex(1)
+                 .Layout(LayoutType.Anchor)
+                 .Border(false)
+                 .DefaultAnchor("100%")
+                 .Items(
+        X.FormPanel()
+        .ID("BankTransmission")
+        
+                                    .Title(Resources.BankTransfer)
+                                    .Frame(true)
+                                    //.MarginSpec("0 20 20 20")
+                                    .Width(350)
+                                    .BodyPadding(10)
+                                    .FieldDefaults(fd => { fd.LabelWidth = 150; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+                                    .Buttons(
+                                    X.Button()
+                                    .ID("btnSave")
+                                    .Text(Resources.SaveButton)
+                                    .Disabled(true)
+                                    .Icon(Icon.Disk)
+                                    .Margin(5)
+                                    .DirectEvents(de =>
+                                    {
+                                        de.Click.Url = Url.Action("AddBankTransmission", "BankTransmission");
+                                        de.Click.Before = @"if (!#{BankTransmission}.getForm().isValid()) { return false; }";
+                                        de.Click.EventMask.ShowMask = true;
+                                        de.Click.EventMask.Msg = FatSod.Ressources.Resources.EventMaskMsg;
+
+
+                                    }),
+                                    X.Button()
+                                        .ID("btnPrint")
+                                        .Disabled(true)
+                                        .Text(Resources.PrintReceipt)
+                                        .Icon(Icon.Printer)
+                                        .OnClientClick("App.PanelReport.setHidden(false)")
+                                        .DirectEvents(de =>
+                                        {
+                                            de.Click.Url = Url.Action("PrintReceipt", "BankTransmission");
+                                            de.Click.EventMask.ShowMask = true;
+                                            de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                                        }),
+                                    X.Button()
+                                        .Text(FatSod.Ressources.Resources.ResetButton)
+                                        .MarginSpec("0 20 10 10")
+                                        .Icon(Icon.ArrowRefresh)
+                                        .ID("btnReset")
+                                        .DirectEvents(de =>
+                                        {
+                                            de.Click.Url = Url.Action("Reset");
+                                            de.Click.Complete = "";
+                                            de.Click.EventMask.ShowMask = true;
+                                            de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                                        })
+                                        //.OnClientClick("this.up('form').reset();")
+
+                                    )
+                                    .Listeners(
+                                    ls =>
+                                    {
+                                        ls.FieldChange.Handler = "if(App.BankTransmission.isValid()){App.btnSave.setDisabled(false);}else{App.btnSave.setDisabled(true);}";
+                                    }
+                                    )
+                                    .Items(
+                                        X.Container()
+                                        .Layout(LayoutType.HBox)
+                                        //.MarginSpec("0 0 5")
+                                        .Items(
+                                            X.FieldSet()
+                                            .Flex(1)
+                                            .Title(FatSod.Ressources.Resources.TransferMoneyFieldSetTitle)
+                                            .Layout(LayoutType.Anchor)
+                                            .Height(320)
+                                            .Width(120)
+                                            .DefaultAnchor("80%")
+                                                .Items(
+                                                    X.TextField().Name("TreasuryOperationID").ID("TreasuryOperationID").Hidden(true),
+                                                    X.ComboBox()
+                                                        .ID("BranchID")
+                                                        .Name("BranchID")
+                                                        .FieldLabel(Resources.Branches)
+                                                        //.Value(DefaultBranchID)
+                                                        .AllowBlank(false)
+                                                        .BlankText(Resources.Branches + " " + Resources.RequiredField)
+                                                        .LabelSeparator(labelSeparator)
+                                                        .EmptyText(Resources.Select)
+                                                        .Items(LoadComponent.GetOpenedBranches)
+                                                        .Listeners(ls => ls.Select.Handler = "App.TillID.setDisabled(false);App.TillStoreID.load();")
+                                                        .DirectEvents(de =>
+                                                        {
+                                                            de.Change.Url = Url.Action("ChangeBusDay");
+                                                            de.Change.ExtraParams.Add(new Parameter("BranchID", "this.getValue()", ParameterMode.Raw));
+                                                            de.Change.EventMask.ShowMask = true;
+                                                            de.Change.EventMask.Msg = Resources.EventMaskMsg;
+                                                        }),
+                                        X.ComboBox().Name("TillID")
+                                            .FieldLabel(Resources.chooseCaisse)
+                                            .EmptyText(Resources.Select)
+                                            .AutoSelect(false)
+                                            //.Disabled(true)
+                                            .ForceSelection(true)
+                                            .LabelSeparator(labelSeparator)
+                                            .MarginSpec("5 0 10 0")
+                                            .AllowBlank(false)
+                                            .BlankText(Resources.RequiredField)
+                                            .ID("TillID")
+                                            .DisplayField("Name")
+                                            .ValueField("ID")
+                                            .Store(
+                                                    X.Store()
+                                                    .AutoLoad(false)
+                                                    .ID("TillStoreID")
+                                                    .Model(
+                                                        X.Model()
+                                                        .IDProperty("I1D")
+                                                            .Fields(
+                                                                new ModelField("ID", ModelFieldType.String) { Mapping = "ID" },
+                                                                new ModelField("Name", ModelFieldType.String) { Mapping = "Name" }
+                                                            )
+                                                    )
+                                                    .Proxy(
+                                                        X.AjaxProxy()
+                                                            .Url(Url.Action("GetTillOfBanch", "CashRegister"))
+                                                            .Reader(X.JsonReader().RootProperty("data"))
+                                                            .ActionMethods(am => am.Read = HttpMethod.POST)
+                                                    )
+                                                    .Parameters(ps =>
+                                                        ps.Add(new StoreParameter("BranchID", "App.BranchID.getValue()", ParameterMode.Raw))
+                                                    )
+                                                    .Listeners(ls =>
+                                                        ls.Load.Handler = @"var combo = App.TillID;
+                                            combo.setValue(records[0].get(combo.valueField));"
+                                                    )
+
+                                                )
+                                                    ,
+                                                    X.ComboBox().Name("DeviseID").FieldLabel(Resources.UIDevise)
+                                                    .Items(LoadComponent.GetDevise)
+                                                    .ValueField("DeviseID")
+                                                    .AllowBlank(false).ForceSelection(true)
+                                                    .ID("DeviseID")
+                                                    .Width(200)
+                                                    .LabelSeparator(labelSeparator)
+                                                    .EmptyText(Resources.chooseCurrency)
+                                                    .AutoSelect(false)
+                                                    .DirectEvents(de =>
+                                                    {
+                                                        de.Select.Action = "LoadBankTransmissionInfo";
+                                                        de.Select.ExtraParams.Add(new Parameter("DeviseID", "this.getValue()", ParameterMode.Raw));
+                                                        de.Select.ExtraParams.Add(new Parameter("TillID", "App.TillID.getValue()", ParameterMode.Raw));
+                                                    }),
+                                                    X.DateField().FieldLabel(Resources.UIDateOperation)
+                                                    .Name("OperationDate")
+                                                    .ID("OperationDate")
+                                                    .ReadOnly(true)
+                                                    .AllowBlank(false),
+                                                    X.NumberField().FieldLabel(Resources.ComputerPrice)
+                                                    .Name("ComputerPrice")
+                                                    .ID("ComputerPrice")
+                                                    .BlankText(Resources.ComputerPrice + " " + Resources.RequiredField)
+                                                    .AllowBlank(false)
+                                                    .ReadOnly(true),
+                                                    X.NumberField().FieldLabel(Resources.Amount)
+                                                    .Name("OperationAmount")
+                                                    .ID("OperationAmount")
+                                                    .LabelSeparator(labelSeparator)
+                                                    .BlankText(Resources.Amount + " " + Resources.RequiredField)
+                                                    .AllowBlank(false)
+                                                    .MinValue(1)
+                                                    ,
+                                                    X.TextField().FieldLabel(Resources.Reference)
+                                                    .Name("OperationRef")
+                                                    .ID("OperationRef")
+                                                    .LabelSeparator(labelSeparator)
+                                                    .BlankText(Resources.Reference + " " + Resources.RequiredField)
+                                                    .AllowBlank(false),
+                                                    X.TextArea().FieldLabel(Resources.Justification)
+                                                    .Name("Justification")
+                                                    .ID("Justification")
+                                                    .LabelSeparator(labelSeparator)
+                                                    .BlankText(Resources.Justification + " " + Resources.RequiredField)
+                                                    .AllowBlank(false),
+                                                    X.ComboBox().Name("BankID").FieldLabel(Resources.BANK)
+                                                        .Items(LoadComponent.Banks)
+                                                        .ValueField("BankID")
+                                                        .AllowBlank(false).ForceSelection(true)
+                                                        .ID("BankID")
+                                                        .Width(200)
+                                                        .LabelSeparator(labelSeparator)
+                                                        .EmptyText(Resources.ChoixBank)
+                                                        .AutoSelect(false)
+                                                    ),
+                                                    X.Component().Width(5)
+                                                )
+
+                                        )
+                                )
+
+             ,
+        ////
+             X.FieldSet()
+              .Flex(1)
+              .Layout(LayoutType.Anchor)
+              .Border(false)
+              .DefaultAnchor("100%")
+              .Items(
+                    Html.X().GridPanel()
+                            .Title(Resources.BankTransferHist)
+                            .ID("BankTransmissionList")
+                            .Layout(LayoutType.Fit)
+                            .Frame(true)
+                            .Collapsible(true)
+                            .Store(Html.X().Store()
+                                .GroupField("Hystorique")
+                                .ID("Store")
+                                .RemotePaging(true)
+                                .PageSize(10)
+                                .DataSource(Model)
+                                .ServerProxy(
+                                   X.AjaxProxy()
+                                    .Url(Url.Action("GetBankTransmissionList"))
+                                    .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                                    .Reader(X.JsonReader().RootProperty("data"))
+                                )
+                                .AutoLoad(true)
+                                .Model(Html.X().Model()
+                                    .Fields(
+                                        new ModelField() { Name = "TreasuryOperationID", Type = ModelFieldType.Int },
+                                        new ModelField() { Name = "OperationAmount", Type = ModelFieldType.Float },
+                                        new ModelField() { Name = "OperationDate", Type = ModelFieldType.Date },
+                                        new ModelField() { Name = "OperationRef", Type = ModelFieldType.String },
+                                        new ModelField() { Name = "Justification", Type = ModelFieldType.String }
+
+
+                                    )
+                                )
+                            )
+
+                            .ColumnModel(
+                                
+                                Html.X().Column()
+                                    .Text(Resources.Amount)
+                                    .DataIndex("OperationAmount")
+                                    .Flex(1)
+                                    ,
+                                Html.X().Column()
+                                    .Text(Resources.Justification)
+                                    .DataIndex("Justification")
+                                    .Flex(1),
+                                    Html.X().DateColumn()
+                                    .Text(Resources.UIDateOperation)
+                                    .DataIndex("OperationDate")
+                                    .Format("dd/MM/yyyy")
+                                    .Flex(1),
+                                Html.X().Column()
+                                    .Text(Resources.Reference)
+                                    .DataIndex("OperationRef")
+                                    .Flex(1)
+                                ,
+                                Html.X().ImageCommandColumn()
+                                        .Width(30)
+                                        .Hidden(LoadAction.IsMenuActionAble(MenuAction.UPDATE, profile, CodeValue.Accounting.Account.CODE,db))
+                                        .Commands(
+                                        Html.X().ImageCommand()
+                                            .CommandName("Edit")
+                                            .IconCls("icon-edit")
+                                            .ToolTip(tt => tt.Text = "Modifier ?")
+                                        )
+
+                                        .DirectEvents(de =>
+                                        {
+                                            de.Command.Action = "IniatializeFieldAccount";
+                                            de.Command.ExtraParams.Add(new Parameter("ID", "record.data.TreasuryOperationID", ParameterMode.Raw));
+                                            de.Command.EventMask.ShowMask = true;
+                                            de.Command.EventMask.Msg = Resources.EventMaskUpdate;
+                                        })
+                                )
+                                .BottomBar(
+                                     Html.X().PagingToolbar()
+                                )
+                       )
+)
+    )
+@(
+ X.Container()
+        //Panel for print
+    .Items(X.Panel()
+        .ID("PanelReport")
+        .MarginSpec("0 0 -100 0")
+        .Title(Resources.PanelPreview)
+        .Hidden(true)
+        .Layout(LayoutType.HBox)
+        .Flex(1)
+        .Collapsible(true)
+        .Padding(1)
+        .AutoScroll(false)
+        .Hidden(true)
+        .MinHeight(500)
+        .MinWidth(500)
+        .Loader(
+            X.ComponentLoader()
+            .AutoLoad(false)
+            .Mode(LoadMode.Frame)
+            .LoadMask(lm =>
+                {
+                    lm.ShowMask = true;
+                    lm.Msg = Resources.MsgGenerateState;
+                    lm.UseMsg = true;
+
+                })
+            )
+        )
+
+)
+}

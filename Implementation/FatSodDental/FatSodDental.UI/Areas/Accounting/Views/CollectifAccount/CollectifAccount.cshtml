@@ -1,0 +1,291 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSod.Ressources;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.DataContext.Initializer;
+
+@model System.Collections.IEnumerable
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+
+@section content
+{
+    @(
+ X.Container()
+.Layout(LayoutType.HBox)
+.MarginSpec("0 0 10")
+.Items(
+X.FieldSet()
+.Flex(1)
+.Layout(LayoutType.Anchor)
+.Border(false)
+.DefaultAnchor("100%")
+.Items(
+X.FormPanel()
+.ID("CollectifAccount")
+.Items(
+X.PanelTitle()
+.ID("PanelTitle")
+.Border(true)
+.Padding(2)
+.Content(
+        @<header>
+            <h6>@Resources.RequireField <code>(*)</code></h6>
+        </header>
+                        )
+                        )
+                        .Title(Resources.CollectifAccountAddTitle)
+                        .Frame(true)
+                        .MarginSpec("0 20 20 20")
+                        .Width(350)
+                        .BodyPadding(10)
+                        .FieldDefaults(fd => { fd.LabelWidth = 150; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+                        .Buttons(
+                        X.Button()
+                        .ID("btnSave")
+                        .Text(Resources.SaveButton)
+                        .Disabled(true)
+                        .Icon(Icon.Disk)
+                        .Margin(5)
+                        .OnClientClick("App.PanelReport.setHidden(true)")
+                        .DirectEvents(de =>
+                        {
+                            de.Click.Url = Url.Action("AddCollectifAccount", "CollectifAccount");
+                            de.Click.Before = @"if (!#{CollectifAccount}.getForm().isValid()) { return false; }";
+                            de.Click.EventMask.ShowMask = true;
+                            de.Click.EventMask.Msg = FatSod.Ressources.Resources.EventMaskMsg;
+
+
+                        }),
+                        X.Button()
+                        .Text(Resources.UIPrint)
+                        .ID("IDShowGeneric")
+                         .Icon(Icon.Printer)
+                        .OnClientClick("App.PanelReport.setHidden(false)")
+                        .DirectEvents(de =>
+                        {
+                            de.Click.Url = Url.Action("PrintReport", "CollectifAccount");
+                            de.Click.EventMask.ShowMask = true;
+                            de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                        }),
+                        
+                        X.Button()
+                            .Text(FatSod.Ressources.Resources.ResetButton)
+                            .MarginSpec("0 20 10 10")
+                            .Icon(Icon.ArrowRefresh)
+                            .ID("btnReset")
+                            .DirectEvents(
+                                de =>
+                                {
+                                    de.Click.Url = Url.Action("ResetCollectifAccountForm");
+                                    de.Click.EventMask.ShowMask = true;
+                                    de.Click.EventMask.Msg = FatSod.Ressources.Resources.EventMaskMsg;
+                                }
+                            )
+                        )
+                        .Listeners(
+                        ls =>
+                        {
+                            ls.FieldChange.Handler = "if(App.CollectifAccount.isValid()){App.btnSave.setDisabled(false);}else{App.btnSave.setDisabled(true);}";
+                        }
+                        )
+                .Items(
+                        X.Container()
+                        .Layout(LayoutType.HBox)
+                        .MarginSpec("0 0 10")
+                    .Items(
+                        X.FieldSet()
+                        .Flex(1)
+                        .Title(FatSod.Ressources.Resources.CollectifAccountFieldSetTitle)
+                        .Layout(LayoutType.Anchor)
+                        .Height(180)
+                        .DefaultAnchor("100%")
+                        .Items(
+                    X.TextField().Name("CollectifAccountID").ID("CollectifAccountID").Hidden(true),
+                    X.ComboBox().Name("AccountingSectionID").FieldLabel(Resources.UIAccountingSectionID)
+                    .Items(LoadComponent.AccountingSections)
+                    .ValueField("AccountingSectionID")
+                    .AllowBlank(false).ForceSelection(true)
+                    .ID("AccountingSectionID")
+                    .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                    .EmptyText(Resources.InputBlankTextMessage)
+                    .AutoSelect(false)
+                    .DirectEvents(de =>
+                    {
+                        de.Select.Action = "LoadAccountSectionNumber";
+                        de.Select.ExtraParams.Add(new Parameter("AccountingSectionID", "this.getValue()", ParameterMode.Raw));
+                    })
+                    ,
+                    X.FieldContainer().FieldLabel(Resources.UINumero)
+                        .Layout(LayoutType.HBox)
+                        .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                        .ID("CollectifAccountNumber")
+                        .MsgTarget(MessageTarget.Side)
+                            .Items(
+                                X.TextField().Width(35).ID("ACSection").ReadOnly(true),
+                                X.NumberField().Width(70).ID("ACNumber")
+                                .BlankText(Resources.UINumero + " " + Resources.RequiredField)
+                                .AllowBlank(false).MaxLength(2)
+                                .EnforceMaxLength(true)
+                            )
+                ,
+                            //X.Checkbox().FieldLabel(Resources.RightSide).Name("OD").ID("OD").InputValue("1").Checked(true).LabelAlign(LabelAlign.Left).Value("1")
+                            //.BoxLabelAlign(BoxLabelAlign.Before),
+                    X.TextField().FieldLabel(Resources.UINom)
+                    .Name("CollectifAccountLabel")
+                    .ID("CollectifAccountLabel")
+                    .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                    .BlankText(Resources.UINom + " " + Resources.RequiredField)
+                    .AllowBlank(false)//,
+                        //X.Radio().BoxLabel(Resources.Yess).Name("isManualPosting").ID("isManualPosting").InputValue("1").FieldLabel(Resources.UIisManualPosting),
+                        //X.Radio().BoxLabel(Resources.No).Name("isManualPosting").ID("isManualPostingNO").InputValue("0").Checked(true)
+                        //.InputType(Ext.Net.InputType.Radio)
+                        //.LabelWidth(150).FieldLabel("    ").LabelSeparator("")
+                        //)
+                        ),
+                        X.Component().Width(20)
+                    )
+                )
+            )
+                        ,
+        ////
+                        X.FieldSet()
+                        .Flex(1)
+                        .Layout(LayoutType.Anchor)
+                        .Border(false)
+                        .DefaultAnchor("100%")
+                        .Items(
+
+                        Html.X().GridPanel()
+                                            .Title(Resources.UICollectifAccountlist)
+                                            .Layout(LayoutType.Fit)
+                                            .MarginSpec("0 20 20 20")
+                                            .Frame(true)
+                                            .Collapsible(true)
+                                            .AutoScroll(true)
+                                                .Store(Html.X().Store()
+                                                .ID("Store")
+                                                //.RemotePaging(true)
+                                                .AutoLoad(true)
+                                                .PageSize(10)
+                                                .DataSource(Model)
+                                                .Model(Html.X().Model()
+                                                .Fields(
+                                                        new ModelField() { Name = "UIAccountingSectionNumber", Type = ModelFieldType.String },
+                                                        new ModelField() { Name = "AccountingSectionID", Type = ModelFieldType.Int },
+                                                        new ModelField() { Name = "CollectifAccountID", Type = ModelFieldType.Int },
+                                                        new ModelField() { Name = "CollectifAccountNumber", Type = ModelFieldType.Int },
+                                                        new ModelField() { Name = "CollectifAccountLabel", Type = ModelFieldType.String }
+                                                    )
+                                                )
+                                                .Sorters(
+                                                    X.DataSorter()
+                                                    .Property("CollectifAccountNumber")
+                                                    .Direction(Ext.Net.SortDirection.ASC)
+                                                )
+                                                .ServerProxy(
+                                                    X.AjaxProxy()
+                                                    .Url(Url.Action("GetListCollectifAccount"))
+                                                    .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                                                    .Reader(X.JsonReader().RootProperty("data"))
+                                                )
+
+                                            )
+
+                .ColumnModel(
+                X.Column().Align(Alignment.Center).Text(Resources.UIAccountingSectionID).DataIndex("UIAccountingSectionNumber").Flex(1).Filterable(true),
+                                X.Column().Align(Alignment.Left).Text(Resources.UINumero).DataIndex("CollectifAccountNumber").Flex(1).Filterable(true),
+                X.Column().Align(Alignment.Left).Text(Resources.UINom).DataIndex("CollectifAccountLabel").Flex(1).Filterable(true),
+                Html.X().ImageCommandColumn()
+                .Width(30)
+                .Hidden(LoadAction.IsMenuActionAble(MenuAction.DELETE, profile, CodeValue.Accounting.CollectifAccount.CODE,db))
+                .Commands(
+                        Html.X().ImageCommand()
+                        .CommandName("Delete")
+                        .IconCls("icon-delete")
+                        .ToolTip(tt =>
+                                        {
+                                            tt.Text = Resources.ConfirmDeleteMessage;
+                                            tt.Title = "Supression";
+                                        }
+                            )
+                )
+                .DirectEvents(de =>
+                {
+                    de.Command.Action = "DeleteCollectifAccount";
+                    de.Command.Confirmation.ConfirmRequest = true;
+                    de.Command.Confirmation.Message = Resources.ConfirmDeleteMessage;
+                    de.Command.Confirmation.Title = Resources.ConfirmDeleteTitle;
+                    de.Command.ExtraParams.Add(new Parameter("ID", "record.data.CollectifAccountID", ParameterMode.Raw));
+                    de.Command.EventMask.ShowMask = true;
+                    de.Command.EventMask.Msg = Resources.EventMaskMsg;
+                }),
+                Html.X().ImageCommandColumn()
+                        .Width(30)
+                        .Hidden(LoadAction.IsMenuActionAble(MenuAction.UPDATE, profile, CodeValue.Accounting.CollectifAccount.CODE,db))
+                        .Commands(
+                        Html.X().ImageCommand()
+                            .CommandName("Edit")
+                            .IconCls("icon-edit")
+                            .ToolTip(tt => tt.Text = "Modifier ?")
+                        )
+
+                        .DirectEvents(de =>
+                        {
+                            de.Command.Action = "ClickUpdateCollectifAccount";
+                            de.Command.ExtraParams.Add(new Parameter("ID", "record.data.CollectifAccountID", ParameterMode.Raw));
+                            de.Command.EventMask.ShowMask = true;
+                            de.Command.EventMask.Msg = Resources.EventMaskUpdate;
+                        })
+
+
+                )
+                .Plugins(
+                X.FilterHeader()
+                )
+                .BottomBar(
+                    X.PagingToolbar()
+            )
+                
+            )
+        )
+    )
+@(
+ X.Container()
+        //Panel for print
+    .Items(X.Panel()
+        .ID("PanelReport")
+        .MarginSpec("0 0 -100 0")
+        .Title(Resources.PanelPreview)
+        .Hidden(true)
+        .Layout(LayoutType.HBox)
+        .Flex(1)
+        .Collapsible(true)
+        .Padding(1)
+        .AutoScroll(false)
+        .Hidden(true)
+        .MinHeight(500)
+        .MinWidth(500)
+        .Loader(
+            X.ComponentLoader()
+            .AutoLoad(false)
+            .Mode(LoadMode.Frame)
+            .LoadMask(lm =>
+                {
+                    lm.ShowMask = true;
+                    lm.Msg = Resources.MsgGenerateState;
+                    lm.UseMsg = true;
+
+                })
+            )
+        )
+
+)
+    }

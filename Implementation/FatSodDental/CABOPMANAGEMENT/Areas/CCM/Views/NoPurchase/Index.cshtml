@@ -1,0 +1,299 @@
+﻿@using FatSod.Ressources;
+@using FatSod.Supply.Entities;
+@using FatSod.DataContext.Initializer;
+@using CABOPMANAGEMENT.Tools;
+
+@{
+    ViewBag.Title = @Resources.NoPurchase;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+
+}
+<div class="box box-primary box-body">
+    <div class="row">
+        <div class="col-md-12">
+            <fieldset>
+                <div class="panel panel-default">
+                    <div class="panel-body2">
+                        <div id="searchForm" class="row ipt">
+                            <div class="col-sm-2">@Resources.UIDateOperation</div>
+                            <div class="col-sm-3">
+                                <input class="form-control datepicker checkDateNoGraterThanToday" id="OperationDate" type="text" placeholder="choose sale date" value="@ViewBag.OperationDate">
+                            </div>
+                        </div>
+                        <table class="table" id="mainTable">
+                            <thead>
+                                <tr class="dataTableHead">
+                                    <th>ID</th>
+                                    <th>@Resources.UIDateOperation</th>
+                                    <th>@Resources.Customer</th>
+                                    @*<th>@Resources.IsBillCustomer</th>*@
+                                    <!--<th>@Resources.Value</th>-->
+                                    <th>@Resources.prescription</th>
+                                    <!--<th>@Resources.Consultant</th>-->
+                                    <!-- <th>@Resources.Code Dilatation</th>-->
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+    <div class="row">
+    </div>
+    <div id="JustificationForm">
+        <div class="row">
+            <div class="col-md-12">
+                <fieldset>
+                    <legend>@Resources.Justification</legend>
+                    <div class="panel">
+                        <div class="panel-body" style="background-color: #99bce8;">
+                            <input type="hidden" id="Id" />
+                            <div class="row">
+                                <div class="col-sm-1">@Resources.Reason</div>
+                                <div class="col-sm-3">
+                                    <textarea class="form-control" id="Reason"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-2" style="margin-left:10%;margin-top:10px;">
+                <button id="btnCancel" class="btn btn-primary btn-danger">@Resources.ResetButton</button>
+            </div>
+            <div class="col-sm-2" style="margin-top:10px;">
+                <button id="btnSubmit" class="btn btn-primary btn-success">@Resources.ValidateButton</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Css Begins Here -->
+
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 6px;
+    }
+
+    #img-upload {
+        width: 100%;
+    }
+
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        /*border: 1px solid #ddd !important;*/
+        margin-left: 10px;
+        min-width: 0;
+        padding: 0px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 70px;
+    }
+
+    .panel-body1 {
+        height: 100px;
+        margin-top: 5px;
+        /*margin-left: 15%;*/
+    }
+
+    .panel-body2 {
+        height: 225px;
+        /*margin-top: 10px;*/
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+
+    .panel-body3 {
+        height: 75px;
+        margin-top: 5px;
+        /*margin-left: 15%;*/
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        /* width: 100%; */
+        /*border: 1px solid #ddd;*/
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #99bce8;
+        /* margin-top: 10px;*/
+    }
+    #searchForm {
+        padding-bottom: 30px;
+        background-color: #99bce8;
+        padding-top: 20px;
+    }
+
+    #JustificationForm{
+        margin-top: 20px;
+    }
+</style>
+
+<script>
+
+    function getNoPurchases(test, OperationDate) {
+        $('#JustificationForm').hide();
+        if (test) {
+            $('#mainTable').dataTable().fnDestroy();
+        }
+        var oTable = $('#mainTable');
+        oTable = $('#mainTable').dataTable({
+            fixedColumns: true,
+            "paging": true,
+            "pageLength": 4,
+            "lengthMenu": [[4, 8, 12, -1], [4, 8, 12, "All"]],
+            "searching": true,
+            "ordering": true,
+            "pagingType": "full_numbers",
+            // Ajax call
+            "ajax": {
+                "url": "@Url.Action("getNoPurchases", "NoPurchase")",
+                //"type": "GET",
+                "datatype": "json",
+                "data": { OperationDate: OperationDate }
+            },
+
+            "columns": [
+                { "data": "Id", "width": "5%" },
+                { "data": "DisplayDate", "width": "10%" },
+                { "data": "Customer", "width": "35%" },
+                /*{ "data": "IsInsuredCustomer", "width": "10%" },*/
+                { "data": "PrescriptionSummary", "width": "45%" },
+                // { "data": "DilatationCode", "width": "10%" },
+                {// this is Actions Column
+                    mRender: function (data, type, row) {
+                        var addOption = '@LoadAction.IsMenuActionAble(MenuAction.ADD, @profile, CodeValue.CRM.NoPurchase, db)';
+                        var T_addOption = (addOption == 'False') ? '<a href="#" class="editor_remove" onclick="GetDetails(' + row.Id + ')"><span class="glyphicon glyphicon-edit"></a>' : '';
+                        return T_addOption;
+                    }
+                }
+            ]
+        });
+
+    }
+
+    function GetDetails(id) {
+        $('#JustificationForm').show();
+        $('#Id').val(id);
+        $('#Reason').val("");
+    }
+
+
+    function AddNoPurchase(id) {
+        var isAllValid = true;
+
+        if ($('#Id').val().trim() == '') {
+            isAllValid = false;
+        }
+
+        if ($('#Reason').val().trim() == '') {
+            isAllValid = false;
+            $("#Reason").addClass("invalid-data");
+        }
+        else {
+            $("#Reason").addClass("valid-data");
+        }
+
+        if (isAllValid) {
+            var data = {
+                id: parseInt(id),
+                reason: $('#Reason').val().trim()
+            }
+            $(this).val('Please wait...');
+
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("AddNoPurchase", "NoPurchase")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        //reinitialisation des champs
+                        getNoPurchases(true, $("#OperationDate").val());
+                        // location.reload(true);
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                },
+                error: function (response) {
+                    console.log(response);
+                    alert('Error. Please try again.', response);
+                }
+            });
+        }
+    }
+    $(document).on('ready', function () {
+
+        $(function () {
+            $(".datepicker").datepicker({
+                format: 'yyyy-mm-dd'
+            });
+        });
+
+        $('#JustificationForm').hide();
+
+        var operationDate = $("#OperationDate").val();
+        var d = new Date();
+        if ($("#OperationDate").val() == "") {
+            operationDate = d.getFullYear() + "/" + d.getMonth() + "/" + d.getDay();
+        }
+
+        getNoPurchases(false, operationDate);
+
+        $("#OperationDate").on('change', function () {
+            operationDate = $("#OperationDate").val();
+            getNoPurchases(true, operationDate);
+        });
+
+        $('#btnSubmit').on('click', function () {
+            var id = $('#Id').val();
+            AddNoPurchase(id);
+        });
+
+        $('#btnCancel').on('click', function () {
+            // location.reload(true);
+            $('#Reason').val("");
+        });
+
+    });
+</script>

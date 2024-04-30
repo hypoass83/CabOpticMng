@@ -1,0 +1,342 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.Ressources;
+@model System.Collections.IEnumerable
+@{
+    //ViewBag.Title = "State";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    string labelSeparator = "  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :";
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+@section header
+{
+    <script>
+    var template = 'color:{0};';
+
+    var change = function (value, meta) {
+        meta.style = Ext.String.format(template, (value > 0) ? "green" : "red");
+        return value;
+    };
+
+    var pctChange = function (value, meta) {
+        meta.style = Ext.String.format(template, (value > 0) ? "green" : "red");
+        return value + "%";
+    };
+
+    var edit = function (editor, e) {
+        /*
+            "e" is an edit event with the following properties:
+
+                grid - The grid
+                record - The record that was edited
+                field - The field name that was edited
+                value - The value being set
+                originalValue - The original value for the field, before the edit.
+                row - The grid table row
+                column - The grid Column defining the column that was edited.
+                rowIdx - The row index that was edited
+                colIdx - The column index that was edited
+        */
+            @*@(Url.Action("Edit"))*@
+            // Call DirectMethod
+            if (!(e.value === e.originalValue || (Ext.isDate(e.value) && Ext.Date.isEqual(e.value, e.originalValue)))) {
+                Ext.net.DirectMethod.request({
+                    url: '@(Url.Action("Edit"))',
+                    params: {
+                        id: e.record.data.CustomerOrderID,
+                        field: e.field,
+                        oldValue: e.originalValue,
+                        newValue: e.value,
+                        customer: e.record.data
+                    }
+                });
+            }
+        };
+    </script>
+}
+@section content
+{
+    @(
+ X.Container()
+     .Layout(LayoutType.HBox)
+    .MarginSpec("-30 0 0 0")
+    .ID("DefaultContainer")
+    .Layout(LayoutType.Fit)
+    .Items(
+
+    X.FieldSet()
+    .Flex(1)
+    .ID("DefaultFieldSet")
+    .Layout(LayoutType.Fit)
+    .Border(false)
+    .DefaultAnchor("100%")
+        .Items(
+        X.FormPanel()
+        .ID("RptBorderoDepotFacture")
+        .Items(
+        X.PanelTitle()
+        .ID("PanelTitle")
+        .Border(true)
+        .Padding(2)
+        .Content(
+        @<header>
+            <h4>@Resources.UIBorderoDepotFactureTitle</h4>
+            <h6>@Resources.RequireField <code>(*)</code></h6>
+        </header>
+            )
+        )
+        .Frame(true)
+        .MarginSpec("0 0 0 0")
+        .Width(350)
+        .Padding(0)
+        .FieldDefaults(fd => { fd.LabelWidth = 120; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+        .Items(
+       X.FormPanel()
+        .ID("ChoosePeriodForm")
+        .Width(300)
+        .MaxHeight(200)
+        .Title("Periode parameters")
+        .Listeners(ls => ls.FieldChange.Handler = "if(App.ChoosePeriodForm.isValid() && App.AssureurID.getValue()>0){App.btnPrint.setDisabled(false);App.btnDisplay.setDisabled(false);}else{App.btnPrint.setDisabled(true);App.btnDisplay.setDisabled(true);}")
+        .FieldDefaults(fd => { fd.LabelWidth = 120; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+        .Items(
+            X.ComboBox()
+                .QueryMode(DataLoadMode.Local)
+                .ID("BranchID")
+                .Name("BranchID")
+                .FieldLabel(Resources.Branches)
+                .AllowBlank(false)
+                .BlankText(Resources.Branches + " " + Resources.RequiredField)
+                .LabelSeparator(labelSeparator)
+                .EmptyText(Resources.Select)
+                .DisplayField("BranchName")
+                .Listeners(ls => ls.Select.Handler = "App.AssureurID.setDisabled(false);App.AssureurStoreID.load();")
+                .ValueField("BranchID")
+                .Store(
+                    X.Store()
+                    .AutoLoad(true)
+                    .Model(
+                        X.Model()
+                            .IDProperty("BranchIDtore")
+                            .Fields(
+                                new ModelField("BranchID", ModelFieldType.Int) { Mapping = "BranchID" },
+                                new ModelField("BranchName", ModelFieldType.String) { Mapping = "BranchName" }
+                            )
+                    )
+                    .Proxy(
+                        X.AjaxProxy()
+                            .Url(Url.Action("OpenedBusday"))
+                            .Reader(X.JsonReader().RootProperty("data"))
+                    )
+                )
+            ,
+           X.ComboBox().Name("AssureurID").FieldLabel(Resources.Assureur)
+            .QueryMode(DataLoadMode.Local)
+            .AllowBlank(false)
+            .ForceSelection(true)
+            .Disabled(true)
+        //.MarginSpec("5 0 10 0")
+            .BlankText(Resources.Assureur + " " + Resources.RequiredField)
+            .ID("AssureurID")
+            .LabelSeparator(labelSeparator)
+            .EmptyText(Resources.Select)
+            .DisplayField("AssureurFullName")
+            .ValueField("PersonID")
+            .Store(
+                X.Store()
+                .AutoLoad(false)
+                .ID("AssureurStoreID")
+                .Model(
+                    X.Model()
+                        .IDProperty("AssureurIDtore")
+                        .Fields(
+                            new ModelField("AssureurFullName", ModelFieldType.String) { Mapping = "AssureurFullName" },
+                            new ModelField("PersonID", ModelFieldType.Int) { Mapping = "PersonID" }
+                        )
+                )
+                .Proxy(
+                    X.AjaxProxy()
+                        .Url(Url.Action("LoadThirdPartyAccounts"))
+                        .Reader(X.JsonReader().RootProperty("data"))
+                )
+                .Parameters(ps =>
+                    {
+                        ps.Add(new StoreParameter("BranchID", "App.BranchID.getValue()", ParameterMode.Raw));
+                    }
+                )
+            )
+            ,
+        //plage de date
+                X.DateField().FieldLabel("Begin date")//.MarginSpec("0 0 5 0")
+                    .AllowBlank(false).Name("BeginDate")
+                    .ID("BeginDate")
+                    .InputType(Ext.Net.InputType.DateTime)
+                ,
+                X.DateField().FieldLabel("End date")
+                    .AllowBlank(false)
+                    .Name("EndDate")
+                    .ID("EndDate")
+        //.MarginSpec("5 0 10 0")
+                    .InputType(Ext.Net.InputType.DateTime)
+        )
+        .Buttons(
+            X.Button()
+                    .ID("btnDisplay")
+                    .Text(Resources.UIDisplayEntries)
+                    .OnClientClick("App.PanelReport.setHidden(true)")
+                    .Icon(Icon.ApplicationViewList)
+                    .Disabled(true)
+                    .DirectEvents(de =>
+                    {
+                        de.Click.Url = Url.Action("DisplayBill", "BorderoDepotFacture");
+                        de.Click.EventMask.ShowMask = true;
+                        de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                    }),
+            X.Button()
+                .ID("btnPrint")
+                .Text(Resources.UIPrint)
+                .OnClientClick("App.PanelReport.setHidden(false)")
+                .Icon(Icon.Printer)
+                .Disabled(true)
+                .DirectEvents(de =>
+                {
+                    de.Click.Url = Url.Action("PrintReport", "BorderoDepotFacture");
+                    de.Click.EventMask.ShowMask = true;
+                    de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                }),
+            X.Button()
+                .Text(Resources.ResetButton)
+                .Icon(Icon.ArrowRefresh)
+                .MarginSpec("0 20 10 10")
+                .OnClientClick("this.up('form').reset();")
+        )
+        ,
+        X.Component().Width(10),
+        X.FieldSet()
+        .Flex(1)
+        .Layout(LayoutType.Fit)
+        .Border(false)
+        .Padding(0)
+        .DefaultAnchor("100%")
+        .Items(
+                X.GridPanel()
+                .Title(Resources.UIVoucherList)
+                .ID("GridPanelAcctOp")
+                .Layout(LayoutType.Fit)
+                .MarginSpec("0 0 0 0")
+                .Frame(true)
+                .Collapsible(true)
+                .Store(
+                X.Store()
+                .PageSize(10)
+                .AutoLoad(true)
+                .ID("Store")
+                    .Model(
+                    X.Model()
+                    .Fields(
+                            new ModelField() { Name = "CustomerOrderID", Type = ModelFieldType.Float },
+                            new ModelField() { Name = "UIBranchCode", Type = ModelFieldType.String },
+                            new ModelField() { Name = "CustomerName", Type = ModelFieldType.String },
+                            new ModelField() { Name = "CompanyName", Type = ModelFieldType.String },
+                            new ModelField() { Name = "CustomerOrderNumber", Type = ModelFieldType.String },
+                            new ModelField() { Name = "CustomerOrderDate", Type = ModelFieldType.Date },
+                            new ModelField() { Name = "NumeroBonPriseEnCharge", Type = ModelFieldType.String },
+                            new ModelField() { Name = "NumeroFacture", Type = ModelFieldType.String },
+                            new ModelField() { Name = "PhoneNumber", Type = ModelFieldType.String },
+                            new ModelField() { Name = "ReductionAmount", Type = ModelFieldType.Float},
+                            new ModelField() { Name = "MntAssureur", Type =ModelFieldType.Float}
+                        )
+                    ).DataSource(Model)
+                    .ServerProxy(
+                    X.AjaxProxy()
+                    .Url(Url.Action("GetList"))
+                    .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                    .Reader(X.JsonReader().RootProperty("data"))
+                    )
+                )
+                .ColumnModel(
+                Html.X().Column()
+                .Text(Resources.UserBranch)
+                .DataIndex("UIBranchCode")
+                .Flex(1),
+                Html.X().Column()
+                .Text(Resources.PersonName)
+                .DataIndex("CustomerName")
+                .Flex(1)
+                ,
+                Html.X().Column()
+                .Text(Resources.Company)
+                .DataIndex("CompanyName")
+                .Flex(1),
+                Html.X().DateColumn()
+                .Text(Resources.UIDateOperation)
+                .DataIndex("CustomerOrderDate")
+                .Flex(1).Format("dd/MM/yyyy"),
+                Html.X().Column()
+                .Text(Resources.BillNumber)
+                .DataIndex("NumeroFacture")
+                .Flex(1),
+                Html.X().Column()
+                .Text(Resources.NumeroBonPriseEnCharge)
+                .DataIndex("NumeroBonPriseEnCharge")
+                .Flex(1),
+                Html.X().Column()
+                .Text(Resources.Reference)
+                .DataIndex("CustomerOrderNumber")
+                .Flex(1),
+                Html.X().Column()
+                .Text(Resources.PhoneNumber)
+                .DataIndex("PhoneNumber")
+                .Flex(1),
+                Html.X().Column()
+                .Text(Resources.BillAmount)
+                .DataIndex("MntAssureur")
+                .Flex(1),
+                Html.X().Column()
+                .Text(Resources.ReductionAmount)
+                .DataIndex("ReductionAmount")
+                .Flex(1)
+                .Editor(Html.X().NumberField().ID("ReductionAmountID").Disabled(LoadAction.IsMenuActionAble(MenuAction.UPDATE, profile, FatSod.DataContext.Initializer.CodeValue.Supply.Inventory_SM.CODE, db)))
+            )
+            .SelectionModel(Html.X().CellSelectionModel())
+            .Plugins(
+            X.FilterHeader(),
+            Html.X().CellEditing().Listeners(ls => ls.Edit.Fn = "edit")
+            )
+            .BottomBar(
+            X.PagingToolbar()
+            )
+         )
+        )
+       )
+      ) 
+    )
+    @****************Bill of Assureur report conatiner**************************************************@
+    @(
+ X.Panel()
+        .ID("PanelReport")
+        .Hidden(true)
+        .Collapsible(true)
+        .Padding(20)
+        .AutoScroll(false)
+        .Hidden(true)
+        .MinHeight(500)
+        .Loader(
+            X.ComponentLoader()
+            .AutoLoad(false)
+            .Mode(LoadMode.Frame)
+            .LoadMask(lm =>
+                {
+                    lm.ShowMask = true;
+                    lm.Msg = Resources.MsgGenerateState;
+                    lm.UseMsg = true;
+
+                })
+        )
+    )
+
+}

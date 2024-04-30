@@ -1,0 +1,493 @@
+﻿@using FatSod.Ressources;
+
+@model IEnumerable<FatSod.Supply.Entities.DigitalPaymentMethod>
+@{
+    ViewBag.Title = @Resources.DigitalPayment;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var user = (int)Session["UserID"];
+}
+
+<div class="row" style="margin-top:5px;margin-left:25px">
+    @if (TempData["Message"] != null)
+    {
+        @Html.Raw(TempData["Message"])
+    }
+</div>
+
+<header>
+    <h4>Manage all Digital Payments in or company</h4>
+    <h6>@Resources.RequireField <code>(*)</code>.</h6>
+</header>
+
+<div class="box box-primary box-body">
+
+    <div class="row">
+        <fieldset class="col-md-10">
+            <legend>Identification</legend>
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <div class="row ipt">
+                        <input class="form-control input-sm" id="CreateImediatlyUser" type="hidden">
+                        <input class="form-control input-sm" id="ID" name="ID" type="hidden">
+                        <div class="col-sm-4">@Resources.Provider<code>(*)</code></div>
+                        <div class="col-sm-8">
+                            <input placeholder="MTN | Orange| VISA | LMC SW | LMC | BTC | ETH | LMC " class="form-control input-sm" id="Name" name="Name" type="text">
+                        </div>
+                    </div>
+                    <div class="row ipt">
+                        <div class="col-sm-4">@Resources.ReceiverIdentifier<code>(*)</code></div>
+                        <div class="col-sm-8">
+                            <input placeholder="Phone Number | Address | Code" class="form-control input-sm" id="Code" name="Code" type="text">
+                        </div>
+                    </div>
+                    <div class="row ipt">
+                        <div class="col-sm-4">Description<code>(*)</code></div>
+                        <div class="col-sm-8">
+                            <input class="form-control input-sm" id="Description" name="Description" type="text">
+                        </div>
+                    </div>
+                    <div class="row ipt">
+                        <div class="col-sm-4">@Resources.UserBranch<code>(*)</code></div>
+                        <div class="col-sm-8">
+                            <select class="form-control input-sm" id="BranchID" name="BranchID"></select>
+                        </div>
+                    </div>
+
+                    <div class="row ipt">
+                        <div class="col-sm-4">@Resources.UIAccount<code>(*)</code></div>
+                        <div class="row">
+                            <div class="col-sm-7">
+                                <select id="AccountID" name="AccountID" class="form-control"></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row ipt" style="display: none">
+                        <div class="col-sm-4">@Resources.DefineManager ? </div>
+                        <div class="col-sm-8">
+                            <input type="radio" id="IsManagerDefinedNO" name="IsManagerDefined" value="0" /> @Resources.No
+                            <input type="radio" id="IsManagerDefined" name="IsManagerDefined" value="1" checked="checked" /> @Resources.Yess
+                        </div>
+                    </div>
+                    <div class="row ipt">
+                        <div class="col-sm-4">@Resources.Manager<code>(*)</code></div>
+                        <div class="row">
+                            <div class="col-sm-7">
+                                <select id="UserID" name="UserID" class="form-control"></select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-2">
+                    <button id="btnCancel" class="btn btn-primary btn-danger">@Resources.ResetButton</button>
+                </div>
+                <div class="col-sm-2">
+                    <button id="btnSubmit" class="btn btn-primary btn-success">@Resources.SaveButton</button>
+                </div>
+            </div>
+        </fieldset>
+
+    </div><br />
+
+</div>
+
+<!-- Ajout de la table contenant les data deja enregistrees-->
+<h2>All Digital Payment list</h2>
+<div class="box box-body box-primary">
+    <table class="table" id="mainTable">
+        <thead>
+            <tr class="dataTableHead">
+                <th>
+                    ID
+                </th>
+                <th>
+                    @Resources.Provider
+                </th>
+                <th>
+                    @Resources.ReceiverIdentifier
+                </th>
+                <th>
+                    Description
+                </th>
+                <th>
+                    @Resources.UIAccount
+                </th>
+                <th>
+                    @Resources.UserBranch
+                </th>
+                <th>
+                    @Resources.Manager
+                </th>
+                <th>
+
+                </th>
+            </tr>
+        </thead>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ID)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Code)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Description)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Account.AccountNumber)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Branch.BranchCode)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.AccountManager.Name)
+                    @Html.DisplayFor(modelItem => item.AccountManager.Description)
+                </td>
+
+                <td>
+                    <a href=# onclick="EditItem(this)"><span class="glyphicon glyphicon-edit"></span></a> |
+                    <a href=# onclick="DeleteItem(this)"><span class="glyphicon glyphicon-trash"></span></a>
+                </td>
+            </tr>
+        }
+
+    </table>
+</div>
+
+<!-- Css Begins Here -->
+
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 6px;
+    }
+
+    #img-upload {
+        width: 100%;
+    }
+
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin-left: 10%;
+        min-width: 0;
+        padding: 10px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 270px;
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+</style>
+
+<!--********** JavaScripts **********-->
+<script>
+
+    // Get the AccountID List
+    function populateUsers() {
+        $.get('@Url.Action("populateUsers", "DigitalPayment")', {}, function (data) {
+            $('#UserID').empty();
+            $('#UserID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#UserID').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+
+    // Get the AccountID List
+    function populateBankAccountID() {
+        $.get('@Url.Action("populateTillAccountID", "DigitalPayment")', {}, function (data) {
+            $('#AccountID').empty();
+            $('#AccountID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#AccountID').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+
+
+
+    // Get the UserBranch List
+    function populateUserBranch() {
+        $.get('@Url.Action("populateUserBranch", "DigitalPayment")', {}, function (data) {
+            $('#BranchID').empty();
+            $('#BranchID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#BranchID').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+
+
+    function clearForm() {
+
+        $('#Name').val('');
+        $('#Code').val('');
+        $('#Description').val('');
+        $('#BranchID').val('');
+        $('#AccountID').val('');
+        $('#UserID').val('');
+        $('#ID').val('');
+    }
+
+
+    $(document).on('ready', function () {
+        populateBankAccountID();
+        populateUserBranch();
+        populateUsers();
+        var radioValue = parseInt($("input:radio[name='IsManagerDefined']:checked").val());
+
+
+        $("#Description").focus(evt => {
+            var Description = $("#Description").val();
+            if (Description == "") {
+                Description = $("#Name").val() + " (" + $("#Code").val() + ")";
+                $("#Description").val(Description);
+            }
+        });
+
+        if (radioValue = 1) {
+            $('#UserID').show();
+        }
+        else {
+            $('#UserID').hide();
+        }
+        var $selectAll = $("input:radio[name=IsManagerDefined]");
+        $selectAll.on("change", function () {
+            //console.log("IsManagerDefined: " + $(this).val());
+            // or
+            //alert("IsManagerDefined: " + $(this).val());
+            if ($(this).val()=='0')
+            {
+                $('#UserID').hide();
+            }
+            else if ($(this).val()=='1')
+            {
+                $('#UserID').show();
+            }
+        });
+
+        $('#btnCancel').on('click', function () {
+            $('#AccountID').prop('selectedIndex', 0);
+            $('#BranchID').prop('selectedIndex', 0);
+            $('#UserID').prop('selectedIndex', 0);
+            clearForm();
+
+        });
+
+        $('#mainTable').DataTable();
+
+        $('#btnSubmit').on('click', function () {
+            var isAllValid = true;
+
+
+            if ($('#Name').val().trim() == '') {
+                isAllValid = false;
+                $("#Name").addClass("invalid-data");
+            }
+            else {
+                $("#Name").addClass("valid-data");
+            }
+
+            if ($('#Code').val().trim() == '') {
+                isAllValid = false;
+                $("#Code").addClass("invalid-data");
+            }
+            else {
+                $("#Code").addClass("valid-data");
+            }
+
+            if ($('#Description').val().trim() == '') {
+                isAllValid = false;
+                $("#Description").addClass("invalid-data");
+            }
+            else {
+                $("#Description").addClass("valid-data");
+            }
+
+            if ($('#BranchID').val().trim() == '') {
+                isAllValid = false;
+                $("#BranchID").addClass("invalid-data");
+            }
+            else {
+                $("#BranchID").addClass("valid-data");
+            }
+
+            if ($('#AccountID').val().trim() == '') {
+                isAllValid = false;
+                $("#AccountID").addClass("invalid-data");
+            }
+            else {
+                $("#AccountID").addClass("valid-data");
+            }
+            var radioValue = parseInt($("input:radio[name='IsManagerDefined']:checked").val());
+            if (radioValue == 1) {
+                if ($('#UserID').val() == "0") {
+                    isAllValid = false;
+                    $("#UserID").addClass("invalid-data");
+                }
+                else {
+                    $("#UserID").addClass("valid-data");
+                }
+            }
+            else {
+                $('#UserID').val('0');
+            }
+
+
+
+            if (isAllValid) {
+
+                var formData = new FormData();
+
+                formData.append("Name", $('#Name').val().trim());
+                formData.append("Code", $('#Code').val().trim());
+                formData.append("Description", $('#Description').val().trim());
+                formData.append("BranchID", $('#BranchID').val().trim());
+                formData.append("AccountID", $('#AccountID').val().trim());
+                formData.append("AccountManagerId", $('#UserID').val().trim());
+                formData.append("ID",$('#ID').val().trim());
+                formData.append("IsEnable", $('input[name=IsManagerDefined]:checked').val().trim());
+                formData.append("IsManagerDefined", $('input[name=IsManagerDefined]:checked').val().trim());
+
+                $(this).val('Please wait...');
+
+                //post data to server
+                $.ajax({
+                    url: '@Url.Action("AddDigitalPayment", "DigitalPayment")',
+                    type: "POST",
+                    data: formData,
+                    dataType: "JSON",
+                    //contentType: "application/json",
+                    contentType: false,
+                    processData: false,
+                    success: function (d) {
+                        //check is successfully save to database
+                        if (d.status == true) {
+                            //will send status from server side
+                            alert(d.Message);
+                            location.reload(true);
+                            //$('#mainTable').DataTable().ajax.reload();
+                            //clear form
+                            clearForm();
+                        }
+                        else {
+                            alert(d.Message);
+                        }
+                        $('#btnSubmit').val('@Resources.SaveButton');
+                    },
+                    error: function (response) {
+                        alert('Error. Please try again.');
+                        $('#btnSubmit').val('@Resources.SaveButton');
+                    }
+                });
+            }
+        });
+    });
+
+    function EditItem(obj)
+    {
+
+        var globalID=$(obj).parent().siblings(":first").text();
+
+        $.get('@Url.Action("InitializeFieldsTill", "DigitalPayment")', { ID : parseInt(globalID) },  function (data) {
+            $.each(data, function (key, value) {
+                $('#Name').val(value.Name);
+                $('#Code').val(value.Code);
+                $('#Description').val(value.Description);
+                $('#BranchID').val(value.BranchID);
+                $('#AccountID').val(value.AccountID);
+                $('#ID').val(value.ID);
+                $('#UserID').val(value.UserID);
+                $('input[name=IsManagerDefined][value="' + value.IsManagerDefined + '"]').prop('checked', true);
+            });
+        }, 'json');
+
+        var radioValue = parseInt($("input:radio[name='IsManagerDefined']:checked").val());
+        if (radioValue == 1) {
+            $('#UserID').show();
+        }
+        else {
+            $('#UserID').hide();
+        }
+
+    }
+    function DeleteItem  (obj)
+    {
+        if (confirm("Do you want to Delete ?"))
+        {
+            var globalID=$(obj).parent().siblings(":first").text();
+            //post to the server
+            $(this).val('Please wait...');
+            var data = {
+                ID: parseInt(globalID)
+            }
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("DeletePaymentMethod", "DigitalPayment")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        location.reload(true);
+                        //$('#mainTable').DataTable().ajax.reload();
+                        //clear form
+                        clearForm();
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                }
+            });
+        }
+
+    }
+</script>

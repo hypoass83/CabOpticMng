@@ -1,0 +1,276 @@
+﻿@using FatSod.Ressources;
+@model IEnumerable<FatSod.Security.Entities.Region>
+@{
+    ViewBag.Title = @Resources.Region;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="box box-primary box-body">
+    <!--<form id="FormAccountingSection">-->
+    @****************************@
+    @Html.AntiForgeryToken()
+
+    <h6>@Resources.RequireField<code>(*)</code>.</h6>
+    <hr>
+
+    <div class="row">
+        <div class="col-sm-1"></div>
+        <div class="col-sm-8">
+            <div class="row">
+                <input type="hidden" id="RegionID" name="RegionID" class="form-control" />
+                <div class="col-sm-4">@Resources.PersonName<code>(*)</code></div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <input id="RegionLabel" name="RegionLabel" class="form-control" /><span class="error">Champs Obligatoire !</span>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-4">Code<code>(*)</code></div>
+                <div class="col-sm-4">
+                    <input type="text" id="RegionCode" name="RegionCode" class="form-control" /><span class="error">Champs Obligatoire !</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-4">Country<code>(*)</code></div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <select id="Country" name="Country" class="form-control"></select><span class="error">Champs Obligatoire !</span>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-1">
+                </div>
+                <hr />
+                <div class="col-sm-4">
+                    <button type="button" id="btnCancel" class="btn btn-primary">@Resources.ResetButton</button>
+                </div>
+                <div class="col-sm-8">
+                    <button type="submit" class="btn btn-primary" id="btnSubmit">@Resources.SaveButton</button>
+                </div>
+            </div>
+            <!--</form>-->
+        </div>
+    </div>
+</div>
+
+<!-- Ajout de la table contenant les data deja enregistrees-->
+<h2>@Resources.RegionList</h2>
+<div class="box box-body box-primary">
+
+    <table class="table" id="mainTable">
+        <thead>
+            <tr class="dataTableHead">
+                <th>
+                    Identifiant
+                </th>
+                <th>
+                    Code
+                </th>
+                <th>
+                    @Resources.PersonName
+                </th>
+                <th>
+                    Country
+                </th>
+                <th>
+                </th>
+            </tr>
+        </thead>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.RegionID)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.RegionCode)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.RegionLabel)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Country.CountryLabel)
+                </td>
+                <td>
+                    <a href=# onclick="EditItem(this)"><span class="glyphicon glyphicon-edit"></span></a> |
+                    <a href=# onclick="DeleteItem(this)"><span class="glyphicon glyphicon-trash"></span></a> 
+                </td>
+            </tr>
+        }
+
+    </table>
+</div>
+
+
+<!--********** JavaScripts **********-->
+<script>
+     // Get the Country List
+    function populateCountry() {
+        $.get('@Url.Action("populateCountry", "Parameter")', {}, function (data) {
+            $('#Country').empty();
+            $('#Country').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#Country').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+
+    function clearForm() {
+        $('#RegionLabel').val('');
+        $('#RegionCode').val('');
+        $('#Country').val('');
+        $('#RegionID').val('');
+    }
+
+
+    $(document).on('ready', function () {
+        populateCountry();
+
+        $('#btnCancel').on('click', function () {
+            clearForm();
+        });
+
+        $('#mainTable').DataTable();
+
+        $('#btnSubmit').on('click', function () {
+            var isAllValid = true;
+
+
+            if ($('#Country').val() == "0") {
+                isAllValid = false;
+                $('#Country').siblings('span.error').css('visibility', 'visible');
+            }
+            else {
+                $('#Country').siblings('span.error').css('visibility', 'hidden');
+            }
+
+            if ($('#RegionCode').val().trim() == '') {
+                isAllValid = false;
+                $('#RegionCode').siblings('span.error').css('visibility', 'visible');
+            }
+            else {
+                $('#RegionCode').siblings('span.error').css('visibility', 'hidden');
+            }
+
+            if ($('#RegionLabel').val() == '') {
+                isAllValid = false;
+                $('#RegionLabel').siblings('span.error').css('visibility', 'visible');
+            }
+            else {
+                $('#RegionLabel').siblings('span.error').css('visibility', 'hidden');
+            }
+
+            if (isAllValid) {
+                var data = {
+                    RegionID: $('#RegionID').val().trim(),
+                    RegionLabel: $('#RegionLabel').val().trim(),
+                    RegionCode: $('#RegionCode').val().trim(),
+                    Country: $('#Country').val().trim()
+                }
+                $(this).val('Please wait...');
+
+
+                //post data to server
+                $.ajax({
+                    url: '@Url.Action("AddRegion", "Parameter")',
+                    type: "POST",
+                    data: JSON.stringify(data),
+                    dataType: "JSON",
+                    contentType: "application/json",
+                    success: function (d) {
+                        //check is successfully save to database
+                        if (d.status == true) {
+                            //will send status from server side
+                            alert(d.Message);
+                            location.reload(true);
+                            //$('#mainTable').DataTable().ajax.reload();
+                            //clear form
+                            clearForm();
+                        }
+                        else {
+                            alert(d.Message);
+                        }
+                        $('#btnSubmit').val('@Resources.SaveButton');
+                    },
+                    error: function () {
+                        alert('Error. Please try again.');
+                        $('#btnSubmit').val('@Resources.SaveButton');
+                    }
+                });
+            }
+        });
+    });
+
+
+    function EditItem(obj)
+    {
+
+        var globalID=$(obj).parent().siblings(":first").text();
+
+        $.get('@Url.Action("UpdateRegion", "Parameter")', { ID: parseInt(globalID) }, function (data) {
+            $.each(data, function (key, value) {
+                $('#RegionID').val(value.RegionID);
+                $('#RegionLabel').val(value.RegionLabel);
+                $('#RegionCode').val(value.RegionCode);
+                $('#Country').val(value.Country);
+            });
+        }, 'json');
+
+    }
+    function DeleteItem  (obj)
+    {
+        if (confirm("Do you want to Delete ?"))
+        {
+            var globalID=$(obj).parent().siblings(":first").text();
+            //post to the server
+            $(this).val('Please wait...');
+            var data = {
+                ID: parseInt(globalID)
+            }
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("DeleteRegion", "Parameter")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        location.reload(true);
+                        //$('#mainTable').DataTable().ajax.reload();
+                        //clear form
+                        clearForm();
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                }
+            });
+        }
+
+    }
+</script>
+
+<style>
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+</style>

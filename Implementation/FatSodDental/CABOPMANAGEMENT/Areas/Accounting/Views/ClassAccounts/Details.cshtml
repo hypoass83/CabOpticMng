@@ -1,0 +1,42 @@
+﻿@model FatSod.Supply.Entities.ClassAccount
+
+@{
+    ViewBag.Title = "Details";
+}
+
+<h2>Details</h2>
+
+<div>
+    <h4>ClassAccount</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.ClassAccountNumber)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ClassAccountNumber)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ClassAccountCode)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ClassAccountCode)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ClassAccountLabel)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ClassAccountLabel)
+        </dd>
+
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Edit", "Edit", new { id = Model.ClassAccountID }) |
+    @Html.ActionLink("Back to List", "Index")
+</p>

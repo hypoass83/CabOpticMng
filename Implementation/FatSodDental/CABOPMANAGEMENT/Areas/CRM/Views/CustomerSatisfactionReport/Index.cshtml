@@ -1,0 +1,208 @@
+﻿@using FatSod.Ressources;
+@using FatSod.Supply.Entities;
+@using FatSod.DataContext.Initializer;
+@using CABOPMANAGEMENT.Tools;
+
+@{
+    ViewBag.Title = @Resources.CustomerSatisfactionReport;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+
+}
+<div class="box box-primary box-body">
+    <div class="row">
+        <div class="col-md-12">
+            <fieldset>
+                <div class="panel panel-default">
+                    <div class="panel-body2">
+                        <div id="searchForm" class="row ipt">
+                            <div class="col-sm-2">@Resources.UIBeginDate</div>
+                            <div class="col-sm-3">
+                                <input class="form-control datepicker checkDateNoGraterThanToday" id="startDate" type="text" placeholder="choose sale date" value="@ViewBag.OperationDate">
+                            </div>
+
+                            <div class="col-sm-2">@Resources.UIEndDate</div>
+                            <div class="col-sm-3">
+                                <input class="form-control datepicker checkDateNoGraterThanToday" id="endDate" type="text" placeholder="choose sale date" value="@ViewBag.OperationDate">
+                            </div>
+
+                            <div class="col-sm-2">
+                                <button id="btnSearch" class="btn btn-primary btn-success">@Resources.Search</button>
+                            </div>
+
+                        </div>
+                        <table class="table" id="mainTable">
+                            <thead>
+                                <tr class="dataTableHead">
+                                    <th>ID</th>
+                                    <th>@Resources.UIDateOperation</th>
+                                    <th>@Resources.Customer</th>
+                                    <th>@Resources.PhoneNumber</th>
+                                    <th>@Resources.Value</th>
+                                    <th>@Resources.SellingDate</th>
+                                    <th>@Resources.ContactChannel</th>
+                                    <th>@Resources.Satisfied ?</th>
+                                    <th>@Resources.Comment</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+</div>
+
+<!-- Css Begins Here -->
+
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 6px;
+    }
+
+    #img-upload {
+        width: 100%;
+    }
+
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin-left: 10px;
+        min-width: 0;
+        padding: 0px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 70px;
+    }
+
+    .panel-body1 {
+        height: 100px;
+        margin-top: 5px;
+        /*margin-left: 15%;*/
+    }
+
+    .panel-body2 {
+        height: 225px;
+        /*margin-top: 10px;*/
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+
+    .panel-body3 {
+        height: 75px;
+        margin-top: 5px;
+        /*margin-left: 15%;*/
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+
+    #searchForm {
+        padding-bottom: 30px;
+        background-color: #99bce8;
+        padding-top: 20px;
+    }
+</style>
+
+<script>
+
+    function getCustomerSatisfactions(test) {
+
+        var startDate = $("#startDate").val();
+        var endDate = $("#endDate").val();
+
+        if (test) {
+            $('#mainTable').dataTable().fnDestroy();
+        }
+        var oTable = $('#mainTable');
+        oTable = $('#mainTable').dataTable({
+            fixedColumns: true,
+            "paging": true,
+            "pageLength": 4,
+            "lengthMenu": [[4, 8, 12, -1], [4, 8, 12, "All"]],
+            "searching": true,
+            "ordering": true,
+            "pagingType": "full_numbers",
+            // Ajax call
+            "ajax": {
+                "url": "@Url.Action("getCustomerSatisfactions", "CustomerSatisfactionReport")",
+                //"type": "GET",
+                "datatype": "json",
+                "data": { startDate: startDate, endDate: endDate }
+            },
+
+            "columns": [
+                { "data": "CustomerSatisfactionId", "width": "5%" },
+                { "data": "DisplayDate", "width": "8%" },
+                { "data": "Customer", "width": "15%" },
+                { "data": "PhoneNumber", "width": "7%" },
+                { "data": "CustomerValue", "width": "7%" },
+                { "data": "DisplaySaleDate", "width": "10%" },
+                { "data": "ContactChannel", "width": "10%" },
+                { "data": "IsSatisfiedDisplay", "width": "5%" },
+                { "data": "Comment", "width": "40%" }
+            ],
+            "fnRowCallback": function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                if (aData.CustomerValue == 'VIP') {
+                    $(nRow).addClass('vip');
+                }
+            },
+            dom: 'Bfrtip',
+            buttons: [
+                'copy', 'csv', 'excel'
+            ]
+        });
+
+    }
+
+    $(document).on('ready', function () {
+
+        $(function () {
+            $(".datepicker").datepicker({
+                format: 'yyyy-mm-dd'
+            });
+        });
+
+        $('#btnSearch').on('click', function () {
+            $('#SatisfactionForm').hide();
+            getCustomerSatisfactions(true);
+        });
+
+        getCustomerSatisfactions(false);
+
+    });
+</script>

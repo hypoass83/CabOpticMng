@@ -1,0 +1,347 @@
+﻿@using FatSod.Ressources;
+@using CABOPMANAGEMENT.Tools;
+@using FatSod.DataContext.Initializer;
+
+@model IEnumerable<FatSod.Supply.Entities.Category>
+
+@{
+    ViewBag.Title = @Resources.Category;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var profile = (Session["UserProfile"] == null) ? 0 : (int)Session["UserProfile"];
+    var user = (Session["UserID"] == null) ? 0 : (int)Session["UserID"];
+
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+
+<div class="box box-primary box-body">
+    <!--<form id="FormAccountingSection">-->
+    @****************************@
+    @Html.AntiForgeryToken()
+
+    <h6>@Resources.RequireField<code>(*)</code>.</h6>
+    <hr>
+
+    <div class="box box-primary box-body">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="panel panel-default">
+                    <div class="panel-body1">
+                        <fieldset>
+                            <legend>@Resources.CategoryAddTitle</legend>
+                            <input type="hidden" id="CategoryID" />
+
+                            <div class="row ipt">
+                                <!-- CategoryCode -->
+                                <div class="col-sm-4">@Resources.Code<code>(*)</code></div>
+                                <div class="col-sm-8">
+                                    <input type="text" id="CategoryCode" class="input-sm form-control" />
+                                </div>
+                            </div>
+                            <div class="row ipt">
+                                <!-- Date Operation -->
+                                <div class="col-sm-4">@Resources.Label<code>(*)</code></div>
+                                <div class="col-sm-8">
+                                    <input type="text" id="CategoryLabel" class="input-sm form-control" />
+                                </div>
+                            </div>
+                            <div class="row ipt">
+                                <!-- Justification -->
+                                <div class="col-sm-4">@Resources.Description<code>(*)</code></div>
+                                <div class="col-sm-8">
+                                    <input type="text" id="CategoryDescription" class="input-sm form-control" />
+                                </div>
+                            </div>
+                            <div class="row ipt">
+                                <div class="col-sm-4">@Resources.isSerialNumberNull<code>(*)</code></div>
+                                <div class="col-sm-8" @*style="margin-left:-25px;"*@>
+                                    <input type="radio" name="isSerialNumberNull" id="Non" value="0" /> @Resources.No
+                                    <input type="radio" name="isSerialNumberNull" id="Oui" value="1" /> @Resources.Yess
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <div class="row ipt">
+            <div class="col-sm-4">
+                <button type="button" id="btnCancel" class="btn btn-primary">@Resources.ResetButton</button>
+            </div>
+            <div class="col-sm-8">
+                <button type="submit" class="btn btn-primary" id="btnSubmit">@Resources.SaveButton</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Ajout de la table contenant les data deja enregistrees-->
+<h2>@Resources.CategoriesList</h2>
+<div class="box box-body box-primary">
+
+    <table class="table" id="mainTable">
+        <thead>
+            <tr class="dataTableHead">
+                <th>
+                    ID
+                </th>
+                <th>
+                    @Resources.Code
+                </th>
+                <th>
+                    @Resources.Label
+                </th>
+                <th>
+                    @Resources.Description
+                </th>
+                <th>
+                    @Resources.isSerialNumberNull
+                </th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CategoryID)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CategoryCode)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CategoryLabel)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CategoryDescription)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.isSerialNumberNull)
+                </td>
+                <td>
+                    @if (!LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, @profile, CodeValue.Supply.CategoryMenu.CODE, db))
+                    {<a href=# onclick="UpdateItem(this)"><span class="glyphicon glyphicon-edit"></span></a> } |
+                    @if (!LoadAction.IsSubMenuActionAble(MenuAction.DELETE, @profile, CodeValue.Supply.CategoryMenu.CODE, db))
+                    {<a href=# onclick="DeleteItem(this)"><span class="glyphicon glyphicon-trash"></span></a> }
+                </td>
+            </tr>
+        }
+
+    </table>
+</div>
+
+
+<!--********** JavaScripts **********-->
+<script>
+
+    function UpdateItem(obj) {
+        var globalID = $(obj).parent().siblings(":first").text();
+        clearForm();
+        $.get('@Url.Action("InitializePurchaseFields", "Category")', { ID: globalID }, function (data) {
+            $.each(data, function (key, value) {
+                $('#CategoryID').val(value.CategoryID);
+                $('#CategoryCode').val(value.CategoryCode);
+                $('#CategoryLabel').val(value.CategoryLabel);
+                $('#CategoryDescription').val(value.CategoryDescription);
+                var isSerialNumberNull = value.isSerialNumberNull;
+                if (!isSerialNumberNull) {
+                    $("#Non").prop("checked", true);
+                }
+                else {
+                    $("#Oui").prop("checked", true);
+                }
+            });
+        }, 'json');
+    }
+    function clearForm() {
+        $('#CategoryID').val('');
+        $('#CategoryCode').val('');
+        $('#CategoryDescription').val('');
+        $('#CategoryLabel').val();
+    }
+
+    function ValideCategory()
+    {
+        var isAllValid = true;
+
+
+        if ($('#CategoryCode').val() == '') {
+            isAllValid = false;
+            $("#CategoryCode").addClass("invalid-data");
+        }
+        else {
+            $("#CategoryCode").addClass("valid-data");
+        }
+
+        if ($('#CategoryLabel').val().trim() == '') {
+            isAllValid = false;
+            $("#CategoryLabel").addClass("invalid-data");
+        }
+        else {
+            $("#CategoryLabel").addClass("valid-data");
+        }
+
+        if ($('#CategoryDescription').val().trim() == '') {
+            isAllValid = false;
+            $("#CategoryDescription").addClass("invalid-data");
+        }
+        else {
+            $("#CategoryDescription").addClass("valid-data");
+        }
+
+
+        if (isAllValid) {
+
+
+            var data = {
+
+                CategoryID: $('#CategoryID').val(),
+                CategoryCode: $('#CategoryCode').val().trim(),
+                CategoryLabel: $('#CategoryLabel').val(),
+                CategoryDescription: $('#CategoryDescription').val().trim(),
+                isSerialNumberNull: $('input[name=isSerialNumberNull]:checked').val()
+            }
+            $(this).val('Please wait...');
+
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("AddManager", "Category")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        location.reload(true);
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                }
+            });
+        }
+    }
+
+    $(document).on('ready', function () {
+
+        $('#btnCancel').on('click', function () {
+            clearForm();
+        });
+
+
+        $('#mainTable').DataTable();
+
+        $('#btnSubmit').on('click', function () {
+            ValideCategory();
+        });
+    });
+    //supression commande en attente
+    function DeleteItem(obj) {
+        if (confirm("Do you want to Delete ?")) {
+            var globalID = $(obj).parent().siblings(":first").text();
+            //post to the server
+            $(this).val('Please wait...');
+            var data = {
+                CategoryID: parseInt(globalID)
+            }
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("DeleteCategory", "Category")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        location.reload(true);
+                        //ClearForm();
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                }
+            });
+        }
+
+    }
+</script>
+
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 3px;
+        margin-left: 1px;
+    }
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin: 0;
+        min-width: 0;
+        padding: 10px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 300px;
+    }
+
+    .panel-body1 {
+        height: 150px;
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+</style>

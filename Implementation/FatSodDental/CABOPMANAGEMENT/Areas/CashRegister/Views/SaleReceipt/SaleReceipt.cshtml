@@ -1,0 +1,273 @@
+﻿@using FatSod.Ressources;
+@using FatSod.Supply.Entities;
+@using FatSod.DataContext.Initializer;
+@using CABOPMANAGEMENT.Tools;
+
+@{
+    ViewBag.Title = @Resources.ValidSaleOpe;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+
+}
+<div class="box box-primary box-body">
+    <div class="row">
+        <div class="col-md-12">
+            <fieldset>
+                <div class="panel panel-default">
+                    <div class="panel-body2">
+                        <div class="row ipt">
+                            <div class="col-sm-2">@Resources.UIDateOperation</div>
+                            <div class="col-sm-3">
+                                <input class="form-control datepicker checkDateNoGraterThanToday" id="SoldDate" type="text" placeholder="choose sale date" value="@ViewBag.SoldDate">
+                            </div>
+                        </div>
+                        <table class="table" id="mainTable">
+                            <thead>
+                                <tr class="dataTableHead">
+                                    <th>ID</th>
+                                    <th>@Resources.UIDateOperation</th>
+                                    <th>@Resources.Customer</th>
+                                    <th>@Resources.Reference</th>
+                                    <th>@Resources.Price</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+    <div class="row">
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <fieldset id="detailreturn">
+                <legend>Sales Details</legend>
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <table class="table" id="detailreturnTable">
+                            <thead>
+                                <tr class="dataTableHeadOther">
+                                    <th>ID</th>
+                                    <th>@Resources.Designation</th>
+                                    <th>@Resources.UnitPrice</th>
+                                    <th>@Resources.Quantity</th>
+                                    <th>@Resources.Partialprice</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-2" style="margin-top:10px;">
+            <button id="btnDeliveryOrder" class="btn btn-primary" onclick="location.href='@Url.Action("RptReceipt", "ReportsHome", new { area = "" })'"><i class="fa fa-print"></i> @Resources.PrintReceipt</button>
+        </div>
+        <div class="col-sm-2" style="margin-top:10px;">
+            <button id="btnReceipt" class="btn btn-primary" onclick="location.href='@Url.Action("RptReceiptDetailOrther", "ReportsHome", new { area = ""})'"><i class="fa fa-print"></i> @Resources.PrintDatailReceipt</button>
+        </div>
+
+    </div>
+</div>
+
+<!-- Css Begins Here -->
+
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 6px;
+    }
+
+    #img-upload {
+        width: 100%;
+    }
+
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin-left: 10px;
+        min-width: 0;
+        padding: 10px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 270px;
+    }
+
+    .panel-body1 {
+        height: 100px;
+        margin-top: 5px;
+        /*margin-left: 15%;*/
+    }
+
+    .panel-body2 {
+        height: 225px;
+        margin-top: 10px;
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+
+    .panel-body3 {
+        height: 75px;
+        margin-top: 5px;
+        /*margin-left: 15%;*/
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+</style>
+
+<script>
+
+    function loadTableDetailVente(test, SaleID) {
+        if (test) {
+            $('#detailreturnTable').dataTable().fnDestroy();
+        }
+        var oTable = $('#detailreturnTable');
+        oTable = $('#detailreturnTable').dataTable({
+            fixedColumns: true,
+            "paging": true,
+            "pageLength": 5,
+            "lengthMenu": [[5, 10, 15, -1], [5, 10, 15, "All"]],
+            "searching": true,
+            "ordering": true,
+            "pagingType": "full_numbers",
+            // Ajax call
+            "ajax": {
+                "url": "@Url.Action("ModelSaleLines", "SaleReceipt")",
+                //"type": "POST",
+                "datatype": "json",
+                "data": { SaleID: SaleID }
+            },
+            //serverSide: true,
+            "columns": [
+                { "data": "SaleLineID", "width": "1%" },
+                { "data": "ProductLabel", "width": "40%" },
+                { "data": "LineUnitPrice", "width": "12%" },
+                { "data": "LineQuantity", "width": "5%" },
+                { "data": "LineAmount", "width": "12%" }
+            ],
+
+        });
+
+    }
+    //chargement des commandes a valider
+    function GetReturnAbleSales(test, SoldDate) {
+        if (test) {
+            $('#mainTable').dataTable().fnDestroy();
+        }
+        var oTable = $('#mainTable');
+        oTable = $('#mainTable').dataTable({
+            fixedColumns: true,
+            "paging": true,
+            "pageLength": 3,
+            "lengthMenu": [[3, 5, 10, -1], [3, 5, 10, "All"]],
+            "searching": true,
+            "ordering": true,
+            "pagingType": "full_numbers",
+            // Ajax call
+            "ajax": {
+                "url": "@Url.Action("ModelReturnAbleSales", "SaleReceipt")",
+                //"type": "GET",
+                "datatype": "json",
+                "data": { SoldDate: SoldDate }
+            },
+
+            "columns": [
+                { "data": "SaleID", "width": "5%" },
+                { "data": "SaleDate", "width": "10%" },
+                { "data": "PersonName", "width": "40%" },
+                { "data": "SaleReceiptNumber", "width": "15%" },
+                { "data": "SaleTotalPrice", "width": "10%" },
+                {// this is Actions Column
+                    mRender: function (data, type, row) {
+
+                        var linkDetail = '@LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, @profile, CodeValue.CashRegister.MENU_SALE_RECEIPT, db)';
+                        var T_linkDetail = (linkDetail == 'False') ? '<a href="#" class="editor_remove" onclick="UpdateItemDetail(' + row.SaleID + ')"><span class="glyphicon glyphicon-edit"></span></a>' : '';
+
+                        return T_linkDetail;
+
+                    }
+                }
+            ]
+        });
+
+    }
+
+    function UpdateItemDetail(obj) {
+        var SaleID = obj;
+        $('#detailreturn').show();
+        $('#choixreturn').val('1');
+        $('#SaleID').val(SaleID);
+
+        $.get('@Url.Action("InitializeFields", "SaleReceipt")', { SaleID: parseInt(SaleID) }, function (data) {
+            $.each(data, function (key, value) {
+                loadTableDetailVente(true, SaleID);
+            });
+        }, 'json');
+    }
+
+    $(document).on('ready', function () {
+
+        $(function () {
+            $(".datepicker").datepicker({
+                format: 'yyyy-mm-dd'
+            });
+        });
+
+        $('#detailreturn').hide();
+
+        var datevte = $("#SoldDate").val();
+        var d = new Date();
+        if ($("#SoldDate").val() == "") {
+            datevte = d.getFullYear() + "/" + d.getMonth() + "/" + d.getDay();
+        }
+
+        GetReturnAbleSales(false, datevte);
+        $("#SoldDate").on('change', function () {
+            datevte = $("#SoldDate").val();
+            GetReturnAbleSales(true, datevte);
+        });
+        loadTableDetailVente(false, 0);
+
+        $('#btnCancel').on('click', function () {
+            location.reload(true);
+        });
+
+    });
+</script>

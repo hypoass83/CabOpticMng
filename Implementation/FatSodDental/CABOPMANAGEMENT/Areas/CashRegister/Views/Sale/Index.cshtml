@@ -1,0 +1,1383 @@
+﻿@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+@using CABOPMANAGEMENT.Tools;
+@using FatSod.Supply.Entities;
+
+@{
+    ViewBag.Title = Resources.SALE;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+
+    string cashRegisterCode = CodeValue.Accounting.DefaultCodeAccountingSection.CODECAIS;
+    string banCode = CodeValue.Accounting.DefaultCodeAccountingSection.CODEBANK;
+
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+<div class="row" style="margin-top:5px;margin-left:25px">
+    @if (TempData["Message"] != null)
+    {
+        @Html.Raw(TempData["Message"])
+    }
+</div>
+<div class="box box-primary box-body" id="SaleValideForm">
+    <div class="col-md-12">
+        @*<div class="row" style="margin-top:-5px;">*@
+        <fieldset>
+            @*<legend>@Resources.CustomerIdentification</legend>*@
+            <input class="form-control input-sm" id="DisplayForm" type="hidden" value="@ViewBag.DisplayForm">
+
+            <div class="panel panel-default">
+                <div class="panel-body1">
+                    <input type="hidden" id="StatutSale" value="@SalePurchaseStatut.Delivered" />
+                    <input type="hidden" id="OldStatutSale" value="@SalePurchaseStatut.Ordered" />
+
+                    <input type="hidden" id="SaleValidate" value="true" />
+                    <input type="hidden" id="SaleID" />
+
+                    <input type="hidden" id="CashRegisterCode" value="@cashRegisterCode" />
+                    <input type="hidden" id="heureVente" />
+
+                    <input type="hidden" id="TypeLens" />
+
+                    <input type="hidden" id="SaleReceiptNumber" />
+                    <div class="col-md-6">
+                        <div class="row ipt" style="margin-top:2px;">
+                            <div class="col-sm-3">@Resources.Branches<code>(*)</code></div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <input type="hidden" id="DefaultBranchID" value="@ViewBag.CurrentBranch" />
+                                    <select id="BranchID" class="form-control"></select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-3">@Resources.Customer<code>(*)</code></div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <input type="text" id="CustomerName" placeholder="@Resources.Select" class="input-sm form-control">
+                                    <input type="hidden" id="CustomerID" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-3">@Resources.UIDateOperation</div>
+                            <div class="col-sm-6">
+                                <input type="text" id="SaleDate" class="input-sm form-control" readonly />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="row ipt">
+                            <div class="col-sm-3">@Resources.PhoneNumber</div>
+                            <div class="col-sm-6">
+                                <input class="form-control input-sm" id="Remarque" type="text">
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-3">@Resources.MedecinTraitant</div>
+                            <div class="col-sm-6">
+                                <input class="form-control input-sm" id="MedecinTraitant" type="text">
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-6">
+                                <input type="checkbox" id="spray" value="0" onclick="CheckSprayClick()" /> @Resources.lensspray
+                            </div>
+                            <div class="col-sm-6">
+                                <input type="checkbox" id="boitier" value="0"  onclick="CheckboitierClick()" /> @Resources.lenscase
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </fieldset>
+        @*</div>*@
+    </div>
+    @*<div class="row" style="margin-top:-205px;">*@
+    <div class="col-md-12" style="margin-top:-25px;">
+        <fieldset>
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    @*<div class="row ipt">*@
+                    <input type="hidden" id="GridState" value="0" />
+                    <input type="hidden" id="LineID" value="0" />
+                    <input type="hidden" id="SpecialOrderLineCode" />
+                    <input type="hidden" id="LELineID" value="0" />
+                    <input type="hidden" id="RELineID" value="0" />
+                    <input type="hidden" id="FRLineID" value="0" />
+                    <input type="hidden" id="LensCategory" />
+                    <input type="hidden" id="LocalizationID" class="input-sm form-control" />
+                    <input type="hidden" id="SalesProductsType" class="input-sm form-control">
+                    @*</div>*@
+                    <fieldset style="margin-top:-25px;">
+                        <legend>@Resources.frameProperties</legend>
+                        <div class="panel panel-default">
+                            <div class="panel-bodyFrame">
+                                <div class="col-md-6">
+                                    <div class="row ipt">
+                                        <div class="col-sm-4">@Resources.chooseFrameProduct <code>(*)</code></div>
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <select id="ProductID" class="input-sm form-control"></select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row ipt">
+                                        <div class="col-sm-4">@Resources.Marque <code>(*)</code></div>
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <input type="text" id="marque" class="input-sm form-control" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row ipt">
+                                        <div class="col-sm-4">@Resources.UnitPrice <code>(*)</code></div>
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <input type="number" min="0" id="FramePrice" class="input-sm form-control" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="row ipt">
+                                        <div class="col-sm-4">@Resources.StockQuantity</div>
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <input type="number" id="StockQuantity" class="input-sm form-control" readonly />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row ipt">
+                                        <div class="col-sm-4">@Resources.Reference <code>(*)</code></div>
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <input type="text" id="reference" class="input-sm form-control" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row ipt">
+                                        <div class="col-sm-4">@Resources.Quantity <code>(*)</code></div>
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <input type="number" min="1" id="FrameLineQuantity" class="input-sm form-control"  />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <fieldset style="margin-top:-25px;">
+                        <legend>@Resources.lensProperties</legend>
+                        <div class="panel panel-default">
+                            <div class="panel-bodyLens">
+                                <div class="col-md-6">
+                                    <div class="row ipt">
+                                        <div class="col-sm-4">@Resources.Categories</div>
+                                        <div class="row">
+                                            <div class="col-sm-7">
+                                                <select id="LensCategoryCode" class="input-sm form-control"></select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="row ipt">
+                                        <div class="col-sm-2">@Resources.SupplyingName</div>
+                                        <div class="row">
+                                            <div class="col-sm-9">
+                                                <input type="text" id="SupplyingName" class="input-sm form-control">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-12">
+                                    <div class="row ipt">
+                                        <div class="col-sm-2">
+                                            <span>@Resources.EyeSide</span>
+                                        </div>
+                                        <div class="col-sm-2" style="margin-left:-75px;">
+                                            <span>Sphere</span>
+                                        </div>
+                                        <div class="col-sm-2" style="margin-left:-25px;">
+                                            <span>Cylinder</span>
+                                        </div>
+                                        <div class="col-sm-2" style="margin-left:-25px;">
+                                            <span>Axis</span>
+                                        </div>
+                                        <div class="col-sm-2" style="margin-left:-25px;">
+                                            <span>Addition</span>
+                                        </div>
+                                        <div class="col-sm-2" style="margin-left:-25px;">
+                                            <span>Command Lens ?</span>
+                                        </div>
+                                    </div>
+                                    <div class="row ipt">
+                                        <div class="col-sm-2">
+                                            <span>@Resources.RightSide</span>
+                                        </div>
+                                        <div class="col-sm-2" style="margin-left:-75px;">
+                                            <input type="text" id="RESphere" class="input-sm form-control">
+                                        </div>
+                                        <div class="col-sm-2" style="margin-left:-25px;">
+                                            <input type="text" id="RECylinder" class="input-sm form-control">
+                                        </div>
+                                        <div class="col-sm-2" style="margin-left:-25px;">
+                                            <input type="text" id="REAxis" class="input-sm form-control NumbersAndDecimal">
+                                        </div>
+                                        <div class="col-sm-2" style="margin-left:-25px;">
+                                            <input type="text" id="REAddition" class="input-sm form-control">
+                                        </div>
+                                        <div class="col-sm-2" style="margin-left:-25px;">
+                                            <select id="isRCommandGlass" class="input-sm form-control">
+                                                <option value="False">NO</option>
+                                                <option value="True">YES</option>
+                                            </select>
+                                        </div>
+                                        <input type="hidden" id="REIndex" class="input-sm form-control NumbersAndDecimal">
+                                        <div class="col-sm-2" style="width:10px;margin-left:-25px;margin-top:-1px;">
+                                            <button type="submit" class="btn btn-primary" id="btnApplyREToLE"><span class="glyphicon glyphicon-chevron-down"></span></button>
+                                        </div>
+                                    </div>
+
+                                    <div class="row ipt">
+                                        <div class="col-sm-2">
+                                            <span>@Resources.LeftSide</span>
+                                        </div>
+                                        <div class="col-sm-2" style="margin-left:-75px;">
+                                            <input type="text" id="LESphere" class="input-sm form-control">
+                                        </div>
+                                        <div class="col-sm-2" style="margin-left:-25px;">
+                                            <input type="text" id="LECylinder" class="input-sm form-control">
+                                        </div>
+                                        <div class="col-sm-2" style="margin-left:-25px;">
+                                            <input type="text" id="LEAxis" class="input-sm form-control NumbersAndDecimal">
+                                        </div>
+                                        <div class="col-sm-2" style="margin-left:-25px;">
+                                            <input type="text" id="LEAddition" class="input-sm form-control">
+                                        </div>
+                                        <div class="col-sm-2" style="margin-left:-25px;">
+                                            <select id="isLCommandGlass" class="input-sm form-control">
+                                                <option value="False">NO</option>
+                                                <option value="True">YES</option>
+                                            </select>
+                                        </div>
+                                        <input type="hidden" id="LEIndex" class="input-sm form-control NumbersAndDecimal">
+                                        <div class="col-sm-2" style="width:10px;margin-left:-25px;">
+                                            <button type="submit" class="btn btn-primary" id="btnApplyLEToRE"><span class="glyphicon glyphicon-chevron-up"></span></button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="row ipt">
+                                        <div class="col-sm-5">@Resources.LensPrice <code>(*)</code></div>
+                                        <div class="row">
+                                            <div class="col-sm-4">
+                                                <input type="number" min="0" id="LensPrice" class="input-sm form-control" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="row ipt">
+                                        <div class="col-sm-4">@Resources.Quantity <code>(*)</code></div>
+                                        <div class="row">
+                                            <div class="col-sm-4">
+                                                <input type="number" min="1" id="LensLineQuantity" class="input-sm form-control" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                
+                            </div>
+                        </div>
+                    </fieldset>
+                    <div class="row ipt" style="margin-top:-25px;">
+                        <div class="col-sm-2" style="margin-left:25px;">@Resources.SaleAmount</div>
+                        <div class="col-sm-2" style="margin-left:-25px;">
+                            <input type="number" id="LineUnitPrice" class="input-sm form-control" readonly />
+                        </div>
+                        <div class="col-sm-2">@Resources.AdvancedAmount</div>
+                        <div class="col-sm-2" style="margin-left:-55px;">
+                            <input type="number" id="SliceAmount" class="input-sm form-control" />
+                        </div>
+                        <div class="col-sm-2">@Resources.RemainingAmount</div>
+                        <div class="col-sm-2" style="margin-left:-20px;">
+                            <input type="number" id="RemaingAmount" class="input-sm form-control" readonly/>
+                        </div>
+                    </div>
+                    @*</div>*@
+                </div>
+            </div>
+        </fieldset>
+    </div>
+    @*</div>*@
+    @*<div class="row"  style="margin-top:-35px;">*@
+
+    <div class="col-md-12" style="margin-top:-10px;">
+        <fieldset style="height:95px;">
+
+            <div class="panel panel-default">
+                <div class="panel-body3">
+
+                    <input class="form-control" id="CashRegisterCode" name="CashRegisterCode" value="@cashRegisterCode" type="hidden">
+                    <input class="form-control" id="banCode" name="banCode" value="@banCode" type="hidden">
+
+                    <input class="form-control number" id="PaymentDelay" name="PaymentDelay" value="0" type="hidden">
+                    <input class="form-control number" id="Guaranteed" name="Guaranteed" value="0" type="hidden">
+                    <div class="col-sm-4">
+                        <div class="row ipt">
+                            <div class="col-sm-4">@Resources.PaymentMethod</div>
+                            <div class="col-sm-7">
+                                <select class="form-control" id="BuyType" name="BuyType"></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4";>
+                        <div class="row ipt"">
+                            <div class="col-sm-4" id="labelchoixbank">@Resources.ChoixBank</div>
+                            <div class="col-sm-6" id="inputchoixbank"">
+                                <select class="form-control" id="PaymentMethodID" name="PaymentMethodID"></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <input class="form-control" id="DeviseID" name="DeviseID" value="@ViewBag.DefaultDeviseID" type="hidden" />
+                        <div class="row ipt">
+                            <div class="col-sm-4">
+                                <div class="row ipt">
+                                    <input type="radio" name="SaleDeliver" id="NonLivre" value="0" checked="checked" /> @Resources.NonLivre
+                                </div>
+                                <div class="row ipt">
+                                    <input type="radio" name="SaleDeliver" id="Livre" value="1" /> @Resources.Livre
+                                </div>
+                            </div>
+                            <div class="col-sm-3">@Resources.Deliverydate</div>
+                            <div class="col-sm-5" style="margin-left:-5px;">
+                                <input class="form-control datepicker" type="text" id="SaleDeliveryDate" value="@ViewBag.BusnessDayDate" />
+                                @*<input class="form-control" id="Devise" name="Devise" value="@ViewBag.DefaultDevise" type="text" disabled />*@
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </fieldset>
+    </div>
+    <!-- Save and Reset Buttons -->
+    <div class="row" style="margin-top:-15px;">
+        <div class="col-sm-3">
+        </div>
+        <div class="col-sm-2">
+            <button type="submit" class="btn btn-primary btn-success" id="btnSubmit">@Resources.SaveButton</button>
+        </div>
+        <div class="col-sm-2">
+            <button id="btnReceipt" class="btn btn-primary" onclick="location.href='@Url.Action("RptReceipt", "ReportsHome", new { area = ""})'"><i class="fa fa-print"></i> @Resources.PrintReceipt</button>
+        </div>
+        <div class="col-sm-2">
+            <button id="btnDeliveryOrder" class="btn btn-primary" onclick="location.href='@Url.Action("RptReceiptDetail", "ReportsHome", new { area = "" })'"><i class="fa fa-print"></i> @Resources.PrintDatailReceipt</button>
+        </div>
+        <div class="col-sm-1">
+        </div>
+        <div class="col-sm-2">
+            <button type="button" id="btnCancel" class="btn btn-primary btn-danger">@Resources.ResetButton</button>
+        </div>
+    </div>
+</div> 
+
+<!-- Css Begins Here -->
+
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+    .ipt {
+        margin-bottom: 3px;
+        margin-left: -5px;
+    }
+
+    #img-upload {
+        width: 100%;
+    }
+
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin: 0;
+        min-width: 0;
+        padding: 10px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 395px;
+        margin-bottom:1%;
+    }
+
+    .panel-body1 {
+        height: 90px;
+        margin-bottom:1%;
+    }
+
+    .panel-body3 {
+        height: 60px;
+        margin-top :3px;
+        margin-bottom:1%;
+    }
+
+    .panel-bodyFrame {
+        height: 100px;
+    }
+
+    .panel-bodyLens {
+        height: 150px;
+        margin-bottom:2%;
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+</style>
+
+<!--********** JavaScripts **********-->
+<script>
+
+    function enablebutton()
+    {
+        $('#btnDeliveryOrder').prop('disabled', false);
+        $('#btnReceipt').prop('disabled', false);
+    }
+    function disablebutton() {
+        $('#btnDeliveryOrder').prop('disabled', true);
+        $('#btnReceipt').prop('disabled', true);
+    }
+    // Get the Branch List
+    function populateBranch() {
+        $.get('@Url.Action("GetOpenedBranches", "Sale")', {}, function (data) {
+            $('#BranchID').empty();
+            $('#BranchID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#BranchID').append($("<option></option>").val(value.BranchID).html(value.BranchName));
+            });
+            var _DefaultId = $('#DefaultBranchID').val();
+            $('#BranchID').val(_DefaultId);
+            InitDate(_DefaultId);
+        }, 'json');
+    }
+    function InitDate(Branch) {
+        $.get('@Url.Action("InitDate", "Sale")', { BranchID: Branch }, function (data) {
+            $('#SaleDate').empty();
+            $('#MedecinTraitant').empty();
+            $('#LocalizationID').empty();
+            $('#SalesProductsType').empty();
+
+            $.each(data, function (key, value) {
+                $('#SaleDate').val(value.SaleDate);
+                $('#MedecinTraitant').val(value.MedecinTraitant);
+                $('#LocalizationID').val(value.LocalizationID);
+                $('#SalesProductsType').val(value.SalesProductsType);
+            });
+            //chargement des frames
+            var LocalizationID = $("#LocalizationID").val();
+            populateGetFrameProducts(LocalizationID);
+        }, 'json');
+    }
+
+    // Get the Frame List
+    function populateGetFrameProducts(DepartureLocalizationID) {
+        $.get('@Url.Action("GetAllProducts", "Sale")', { DepartureLocalizationID: DepartureLocalizationID }, function (data) {
+            $('#ProductID').empty();
+            $('#ProductID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#ProductID').append($("<option></option>").val(value.ProductID).html(value.ProductCode));
+            });
+        }, 'json');
+    }
+
+    //det detail selected frame
+    function OnProductSelected(Localization, CurrentProduct) {
+        $.get('@Url.Action("OnProductSelected", "Sale")', { Localization: Localization, CurrentProduct: CurrentProduct }, function (data) {
+            $('#StockQuantity').empty();
+            $('#FrameLineQuantity').empty();
+            $('#FramePrice').empty();
+
+            $.each(data, function (key, value) {
+                $('#StockQuantity').val(value.StockQuantity);
+                $('#FrameLineQuantity').val(value.FrameLineQuantity);
+                $('#FramePrice').val(value.FramePrice);
+            });
+            onPriceAmountChanged();
+        }, 'json');
+    };
+
+    // Get the Product category List
+    function GetAllLensCategories() {
+        $.get('@Url.Action("GetAllLensCategories", "Sale")', {}, function (data) {
+            $('#LensCategoryCode').empty();
+            $('#LensCategoryCode').append($("<option value='0' selected='selected'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#LensCategoryCode').append($("<option></option>").val(value.CategoryCode).html(value.CategoryCode));
+            });
+            var LensCategoryCode = $('#LensCategoryCode').val();
+            SetSupplyingName(LensCategoryCode);
+
+        }, 'json');
+    }
+
+
+
+    function SetSupplyingName(LensCategoryCode) {
+        $.get('@Url.Action("SetSupplyingName", "Sale")', { LensCategoryCode: LensCategoryCode }, function (data) {
+            $('#SupplyingName').empty();
+            $('#LensLineQuantity').val('0');
+            $('#TypeLens').empty();
+            $('#LineUnitPrice').val('0');
+            $('#SliceAmount').val('0');
+            $('#RemaingAmount').val('0');
+            $.each(data, function (key, value) {
+                $('#SupplyingName').val(value.SupplyingName);
+                $('#LensLineQuantity').val(value.LensLineQuantity);
+                $('#TypeLens').val(value.TypeLens);
+            });
+            var TypeLens = $('#TypeLens').val();
+            if (TypeLens == "SV") {
+                $('#REAddition').prop('readonly', true);
+                $('#LEAddition').prop('readonly', true);
+            }
+            else {
+                $('#REAddition').prop('readonly', false);
+                $('#LEAddition').prop('readonly', false);
+            }
+        }, 'json');
+    }
+
+    function LActivateAxe(CylinderVal) {
+        if (CylinderVal.trim() == '' || CylinderVal.length == 0) {
+            $('#LEAxis').prop('readonly', true);
+            $('#LEAxis').val('');
+        }
+        else {
+            $('#LEAxis').prop('readonly', false);
+        }
+    }
+    function RActivateAxe(CylinderVal) {
+        if (CylinderVal.trim() == '' || CylinderVal.length == 0) {
+            $('#REAxis').prop('readonly', true);
+            $('#REAxis').val('');
+        }
+        else {
+            $('#REAxis').prop('readonly', false);
+        }
+    }
+
+    function InitialiseHeader() {
+        //header
+        $("#SaleID").val('');
+        $('#Customer').val('');
+        $('#CustomerName').val('');
+        $('#CustomerID').val('');
+        $('#Remarque').val('');
+        $('#MedecinTraitant').val('');
+
+
+        //amount detail
+        $('#LineUnitPrice').val('0');
+        $('#SliceAmount').val('0');
+        $('#RemaingAmount').val('0');
+
+        var _DefaultId = $('#DefaultBranchID').val();
+        $('#BranchID').val(_DefaultId);
+        InitDate(_DefaultId);
+    }
+    function InitialiseFrame()
+    {
+        $('#FrameLineQuantity').val('');
+        $('#FramePrice').val('');
+        $('#ProductID').val('');
+        $('#marque').val('');
+        $('#reference').val('');
+    }
+    function productitems()
+    {
+        $('#LensLineQuantity').val('0');
+        $('#LensPrice').val('0');
+        $('#LensCategoryCode').val('0');
+        $('#SupplyingName').val('');
+        InitRE();
+        InitLE();
+    }
+    function productitemsansCat() {
+        InitRE();
+        InitLE();
+        $('#LensLineQuantity').val('0');
+        $('#LensPrice').val('0');
+        $('#SupplyingName').val('');
+    }
+
+    function ClearForm() {
+        InitialiseHeader();
+        InitialiseFrame();
+        productitems();
+        $('#btnSubmit').prop('disabled', false);
+    }
+
+    // Get the BuyType List
+    function populateBuyType() {
+        $.get('@Url.Action("populateBuyType", "Sale")', {}, function (data) {
+            $('#BuyType').empty();
+            $('#BuyType').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#BuyType').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+
+
+    $(document).on('ready', function () {
+
+        if ($('#DisplayForm').val().trim() == 0) {
+            $("#SaleValideForm").hide();
+        }
+        else {
+            $("#SaleValideForm").show();
+        }
+
+        var todaysDate = $('#SaleDate').val();
+        $(function () {
+            $(".datepicker").datepicker({
+                format: 'yyyy-mm-dd',
+                showButtonPanel: true,
+                minDate: todaysDate
+            });
+        });
+
+        InitialiseHeader();
+        //chargement des agence
+        populateBranch();
+        //chargement des clients
+        populateCustomer();
+        //chargement des qte de frame product
+        $('#ProductID').change(function () {
+            var ProductID = $('#ProductID').val();
+            var LocalizationID = $('#LocalizationID').val();
+            OnProductSelected(LocalizationID, ProductID);
+
+        });
+
+        populateBuyType();
+        $("#BuyType").change(function () {
+            loadBankChoice();
+        });
+
+        $('#FramePrice').on('keyup', function () {
+            onPriceAmountChanged();
+        });
+        $('#LensPrice').on('keyup', function () {
+            onPriceAmountChanged();
+        });
+        $('#LensLineQuantity').on('keyup', function () {
+            onPriceAmountChanged();
+        });
+        $('#FrameLineQuantity').on('keyup', function () {
+            onPriceAmountChanged();
+        });
+        $('#RECylinder').on('keyup', function () {
+            var RCylinderVal = $('#RECylinder').val();
+            RActivateAxe(RCylinderVal)
+        });
+
+        $('#REAxis').on('keyup', function () {
+            var RCylinderVal = $('#RECylinder').val();
+            RActivateAxe(RCylinderVal)
+        });
+
+        $('#LECylinder').on('keyup', function () {
+            var LCylinderVal = $('#LECylinder').val();
+            LActivateAxe(LCylinderVal)
+        });
+
+        $('#LEAxis').on('keyup', function () {
+            var LCylinderVal = $('#LECylinder').val();
+            LActivateAxe(LCylinderVal)
+        });
+
+        //chargement des categories
+        GetAllLensCategories();
+        $('#LensCategoryCode').change(function () {
+            productitemsansCat();
+        });
+        $('#LensCategoryCode').change(function () {
+            var LensCategoryCode = $('#LensCategoryCode').val();
+            SetSupplyingName(LensCategoryCode);
+        });
+
+        //action kd la caisse saisi le montant du avancé par le client
+        $("#SliceAmount").blur(function () {
+            OnSliceAmountChanged();
+        });
+        //action kd la caisse saisi le montant du avancé par le client
+        $("#SliceAmount").keyup(function () {
+            var TotalPriceTTC = $('#LineUnitPrice').val().trim();
+            var SliceAmount = $('#SliceAmount').val().trim();
+            var remaingAmount = parseInt(TotalPriceTTC) - parseInt(SliceAmount);
+            $('#RemaingAmount').val(remaingAmount);
+        });
+
+
+        $('#btnApplyREToLE').on('click', function () {
+            ApplyREToLE();
+        });
+        $('#btnApplyLEToRE').on('click', function () {
+            ApplyLEToRE();
+        });
+
+        $('#btnCancel').on('click', function () {
+            location.reload(true);
+        });
+        $('#btnSubmit').on('click', function () {
+            ValideCommande();
+        });
+
+    });
+
+    function OnSliceAmountChanged() {
+
+        var BuyType = $('#BuyType').val().trim();
+
+        var cashRegisterCode = $('#CashRegisterCode').val();
+
+
+        var SliceAmount = $('#SliceAmount').val();
+        var TotalPriceTTC = $('#LineUnitPrice').val();
+        var remaingAmount = parseInt(TotalPriceTTC) - parseInt(SliceAmount);
+        $('#RemaingAmount').val(remaingAmount);
+
+        //if (parseInt(SliceAmount) > 0) {//Si le mode de paiement est credit alors
+        //    $('#BuyType').val(cashRegisterCode);
+        //}
+
+        loadBankChoice();
+    }
+    function loadBankChoice() {
+        var BuyTypeCode = $('#BuyType').val().trim();
+        var banCode = $('#banCode').val().trim();
+        if (BuyTypeCode == banCode) {
+            $('#labelchoixbank').show();
+            $('#inputchoixbank').show();
+            $('#PaymentMethodID').empty();
+            populatePaymentMethodID(BuyTypeCode);
+        }
+        else {
+            $('#PaymentMethodID').empty();
+            $('#labelchoixbank').hide();
+            $('#inputchoixbank').hide();
+        }
+    }
+    // Get the PaymentMethodID List
+    function populatePaymentMethodID(BuyTypeCode) {
+
+        $.get('@Url.Action("PaymentMethods", "Sale")', { BuyTypeCode: BuyTypeCode }, function (data) {
+            $('#PaymentMethodID').empty();
+            $('#PaymentMethodID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#PaymentMethodID').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+    function onPriceAmountChanged() {
+        var FramePrice = ($('#FramePrice').val() == '') ? 0 : parseFloat($('#FramePrice').val());
+        var LensPrice = ($('#LensPrice').val() == '') ? 0 : parseFloat($('#LensPrice').val());
+
+        $('#LineUnitPrice').val('0');
+        //lens details
+        var LensCategoryCode= $.trim($('#LensCategoryCode').val());
+
+
+        var LECylinder= $.trim($('#LECylinder').val());
+        var LESphere= $.trim($('#LESphere').val());
+
+
+        var RECylinder= $.trim($('#RECylinder').val());
+        var RESphere= $.trim($('#RESphere').val());
+
+        var LensLineQuantity = ($('#LensLineQuantity').val() == '') ? 0 : parseFloat($('#LensLineQuantity').val());
+        var FrameLineQuantity = ($('#FrameLineQuantity').val() == '') ? 0 : parseFloat($('#FrameLineQuantity').val());
+
+        $.get('@Url.Action("GetTotalPrice", "Sale")', {
+            LensLineQuantity: LensLineQuantity, FramePrice: FramePrice, LensPrice: LensPrice, FrameLineQuantity: FrameLineQuantity,
+            LECylinder: LECylinder, LESphere: LESphere,RECylinder: RECylinder,RESphere: RESphere
+        }, function (data) {
+            $.each(data, function (key, value) {
+                $('#LineUnitPrice').val(value.LineUnitPrice);
+            });
+        }, 'json');
+
+        //var TotalAmount = FramePrice + LensPrice;
+        //$('#LineUnitPrice').val(TotalAmount);
+    }
+
+    // Get the Customer List
+    function populateCustomer() {
+
+        $("#CustomerName").autocomplete({
+            minLength: 1, // set minimum of 1 characters before search executes.
+            delay: 100, // wait 0.1 second after keystroke before search executes.
+            source: function (request, response) {
+                $.ajax({
+                    url: '@Url.Action("LoadCustomers", "Sale")',
+                    type: "POST",
+                    dataType: "json",
+                    //cache: false,
+                    data: { filter: request.term },
+                    success: function (data) {
+                        response($.map(data, function (item) {
+                            return { label: item.Name, value: item.Name, id: item.ID };
+                        }))
+                    }
+                })
+            },
+            messages: {
+                noResults: "No results",
+                results: function (count) {
+                    return count + (count == 0 ? ' result' : ' results');
+                }
+            },
+            select: function (event, ui) {
+                $("#CustomerID").val(ui.item.id);
+                var _CustomerID = $('#CustomerID').val();
+                //var _BranchID = $('#BranchID').val();
+                loadCustomerPhone(_CustomerID);
+            }
+        });
+    }
+
+    function loadCustomerPhone(CustomerID) {
+        $.get('@Url.Action("InitTrnNumber", "Sale")', { CustomerID: CustomerID }, function (data) {
+            $('#Remarque').empty();
+            
+            $.each(data, function (key, value) {
+                $('#Remarque').val(value.Remarque);
+            });
+        }, 'json');
+    }
+
+    //validation d'une commande
+    function ValideCommande() {
+
+        var isAllValid = true;
+        var d = new Date();
+        var hourPayment = d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds();
+        $('#heureVente').val(hourPayment);
+
+        if ($('#heureVente').val().trim() == '') {
+            isAllValid = false;
+        }
+
+        //entete
+        if ($('#MedecinTraitant').val().trim() == '') {
+            isAllValid = false;
+            $("#MedecinTraitant").addClass("invalid-data");
+        }
+        else {
+            $("#MedecinTraitant").addClass("valid-data");
+        }
+        if ($('#SalesProductsType').val() == "0") {
+            isAllValid = false;
+            $("#SalesProductsType").addClass("invalid-data");
+        }
+        else {
+            $("#SalesProductsType").addClass("valid-data");
+        }
+        if ($('#CustomerName').val() == '') {
+            isAllValid = false;
+            $("#CustomerName").addClass("invalid-data");
+        }
+        else {
+            $("#CustomerName").addClass("valid-data");
+        }
+
+        if ($('#SaleDate').val() == '') {
+            isAllValid = false;
+            $("#SaleDate").addClass("invalid-data");
+        }
+        else {
+            $("#SaleDate").addClass("valid-data");
+        }
+        if ($('#MedecinTraitant').val() == '') {
+            isAllValid = false;
+            $("#MedecinTraitant").addClass("invalid-data");
+        }
+        else {
+            $("#MedecinTraitant").addClass("valid-data");
+        }
+        if ($('#LocalizationID').val() == "0") {
+            isAllValid = false;
+            $("#LocalizationID").addClass("invalid-data");
+        }
+        else {
+            $("#LocalizationID").addClass("valid-data");
+        }
+
+        //si le cadre n'est pas clique
+        if ($('#ProductID').val() == "0" || $('#ProductID').val() == '') { //cadre
+            //on verifi si le verre est choisi
+            if ($('#LensCategoryCode').val() == "0") {
+                isAllValid = false;
+                $("#LensCategoryCode").addClass("invalid-data");
+                $("#ProductID").addClass("invalid-data");
+            }
+            else { //si le verre est choisi -> saisi seulement du verre
+                $("#LensCategoryCode").addClass("valid-data");
+                if (parseFloat($('#LensPrice').val()) <= 0) {
+                    isAllValid = false;
+                    $("#LensPrice").addClass("invalid-data");
+                }
+                else {
+                    $("#LensPrice").addClass("valid-data");
+                }
+                //on verrifi les caracterisque du verre
+                //verification de l'addition
+                var TypeLens = $('#TypeLens').val();
+                if (TypeLens != "SV") {
+                    var RESphere = $('#RESphere').val();
+                    var RECylinder = $('#RECylinder').val();
+                    var REAddition = $('#REAddition').val();
+                    if ((RESphere != null && RESphere.length >= 4) || (RECylinder != null && RECylinder.length >= 4)) {
+                        if ($('#REAddition').val().trim() == '') {
+                            isAllValid = false;
+                            $("#REAddition").addClass("invalid-data");
+                        }
+                        else {
+                            $("#REAddition").addClass("valid-data");
+                        }
+                    }
+                    var LESphere = $('#LESphere').val();
+                    var LECylinder = $('#LECylinder').val();
+                    if ((LESphere != null && LESphere.length >= 4) || (LECylinder != null && LECylinder.length >= 4)) {
+                        if ($('#LEAddition').val().trim() == '') {
+                            isAllValid = false;
+                            $("#LEAddition").addClass("invalid-data");
+                        }
+                        else {
+                            $("#LEAddition").addClass("valid-data");
+                        }
+                    }
+                }
+
+
+            }
+        }
+        else { //si le cadre est choisi
+            if ($('#marque').val().trim() == '') {
+                isAllValid = false;
+                $("#marque").addClass("invalid-data");
+            }
+            else {
+                $("#marque").addClass("valid-data");
+            }
+            if ($('#reference').val().trim() == '') {
+                isAllValid = false;
+                $("#reference").addClass("invalid-data");
+            }
+            else {
+                $("#reference").addClass("valid-data");
+            }
+
+            if ($('#FrameLineQuantity').val().trim() == '') {
+                isAllValid = false;
+                $("#FrameLineQuantity").addClass("invalid-data");
+            }
+            else {
+                $("#FrameLineQuantity").addClass("valid-data");
+            }
+
+            // si le verre n'est pas choisi
+            if ($('#LensCategoryCode').val() == "0") {
+                isAllValid = true;
+                $("#LensCategoryCode").addClass("valid-data");
+                $("#ProductID").addClass("valid-data");
+            }
+            else { //si le verre est choisi -> saisi seulement du verre
+                $("#LensCategoryCode").addClass("valid-data");
+                //on verrifi les caracterisque du verre
+                if (parseFloat($('#LensPrice').val()) <= 0) {
+                    isAllValid = false;
+                    $("#LensPrice").addClass("invalid-data");
+                }
+                else {
+                    $("#LensPrice").addClass("valid-data");
+                }
+                //verification de l'addition
+                var TypeLens = $('#TypeLens').val();
+                if (TypeLens != "SV") {
+                    var RESphere = $('#RESphere').val();
+                    var RECylinder = $('#RECylinder').val();
+                    var REAddition = $('#REAddition').val();
+                    if ((RESphere != null && RESphere.length >= 4) || (RECylinder != null && RECylinder.length >= 4)) {
+                        if ($('#REAddition').val().trim() == '') {
+                            isAllValid = false;
+                            $("#REAddition").addClass("invalid-data");
+                        }
+                        else {
+                            $("#REAddition").addClass("valid-data");
+                        }
+                    }
+                    var LESphere = $('#LESphere').val();
+                    var LECylinder = $('#LECylinder').val();
+                    if ((LESphere != null && LESphere.length >= 4) || (LECylinder != null && LECylinder.length >= 4)) {
+                        if ($('#LEAddition').val().trim() == '') {
+                            isAllValid = false;
+                            $("#LEAddition").addClass("invalid-data");
+                        }
+                        else {
+                            $("#LEAddition").addClass("valid-data");
+                        }
+                    }
+                }
+            }
+        }
+
+
+        //footer
+
+        if ($('#BuyType').val() == "0") {
+            isAllValid = false;
+            $("#BuyType").addClass("invalid-data");
+        }
+        else {
+            $("#BuyType").addClass("valid-data");
+        }
+
+        if (parseFloat($('#LineUnitPrice').val()) <= 0) {
+            isAllValid = false;
+            $("#LineUnitPrice").addClass("invalid-data");
+        }
+        else {
+            $("#LineUnitPrice").addClass("valid-data");
+        }
+
+
+        if ($('#DeviseID').val().trim() == '') {
+            isAllValid = false;
+            $("#DeviseID").addClass("invalid-data");
+        }
+        else {
+            $("#DeviseID").addClass("valid-data");
+        }
+
+        if ($('#BranchID').val().trim() == '') {
+            isAllValid = false;
+            $("#BranchID").addClass("invalid-data");
+        }
+        else {
+            $("#BranchID").addClass("valid-data");
+        }
+
+        if ($('#SaleDeliveryDate').val().trim() == '') {
+            isAllValid = false;
+            $("#SaleDeliveryDate").addClass("invalid-data");
+        }
+        else {
+            $("#SaleDeliveryDate").addClass("valid-data");
+        }
+
+        if (parseFloat($('#SliceAmount').val()) <= 0) {
+            isAllValid = false;
+            $("#SliceAmount").addClass("invalid-data");
+        }
+        else {
+            $("#SliceAmount").addClass("valid-data");
+        }
+
+
+
+        if (isAllValid) {
+
+
+            var data = {
+                heureVente: $('#heureVente').val().trim(),
+                BuyType: $('#BuyType').val(),
+                PaymentMethodID: $('#PaymentMethodID').val(),
+                SaleDate: $('#SaleDate').val(),
+                SaleDeliveryDate: $('#SaleDeliveryDate').val(),
+                Remarque: $('#Remarque').val().trim(),
+                MedecinTraitant: $('#MedecinTraitant').val().trim(),
+                CustomerName: $('#CustomerName').val(),
+                CustomerID: $('#CustomerID').val(),
+                DeviseID: $('#DeviseID').val(),
+                BranchID: $('#BranchID').val(),
+                SalesProductsType: $.trim($('#SalesProductsType').val()),
+                LocalizationID: $.trim($('#LocalizationID').val()),
+                SaleDeliver: $('input[name=SaleDeliver]:checked').val(),
+                SaleID: $("#SaleID").val(),
+
+                //frame details
+                FrameLineQuantity: $.trim($('#FrameLineQuantity').val()),
+                FramePrice: $.trim($('#FramePrice').val()),
+                FrameProductID: $('#ProductID').val(),
+                marque: $('#marque').val(),
+                reference: $('#reference').val(),
+                FRLineID: $('#FRLineID').val(),
+                //lens details
+                LensCategoryCode: $.trim($('#LensCategoryCode').val()),
+                SupplyingName: $.trim($('#SupplyingName').val()),
+                LEAddition: $.trim($('#LEAddition').val()),
+                LEAxis: $.trim($('#LEAxis').val()),
+                LEIndex: $.trim($('#LEIndex').val()),
+                LECylinder: $.trim($('#LECylinder').val()),
+                LESphere: $.trim($('#LESphere').val()),
+                LELineID: $('#LELineID').val(),
+                isLCommandGlass: $('#isLCommandGlass').val(),
+
+                REAddition: $.trim($('#REAddition').val()),
+                REAxis: $.trim($('#REAxis').val()),
+                REIndex: $.trim($('#REIndex').val()),
+                RECylinder: $.trim($('#RECylinder').val()),
+                RESphere: $.trim($('#RESphere').val()),
+                RELineID: $('#RELineID').val(),
+                isRCommandGlass: $('#isRCommandGlass').val(),
+
+                LensLineQuantity: $.trim($('#LensLineQuantity').val()),
+                LensPrice: $.trim($('#LensPrice').val()),
+                //price detail
+                TotalPriceTTC: $.trim($('#LineUnitPrice').val()),
+                SliceAmount: $.trim($('#SliceAmount').val()),
+                //
+                spray: $('#spray').val(),
+                boitier: $('#boitier').val()
+            }
+            $(this).val('Please wait...');
+            $('#btnSubmit').prop('disabled', true);
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("AddSale", "Sale")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        //location.reload(true);
+                        ClearForm();
+                        enablebutton();
+                    }
+                    else {
+                        alert(d.Message);
+                        disablebutton();
+                        $('#btnSubmit').prop('disabled', false);
+                    }
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                    disablebutton();
+                    $('#btnSubmit').prop('disabled', false);
+                }
+            });
+        }
+
+    }
+
+
+    //supression commande en attente
+    function DeleteCommand(obj) {
+        if (confirm("Do you want to Delete ?")) {
+            var globalID = $(obj).parent().siblings(":first").text();
+            //post to the server
+            $(this).val('Please wait...');
+            var data = {
+                ID: parseInt(globalID)
+            }
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("DeleteCommand", "Sale")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        //location.reload(true);
+                        ClearForm();
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                }
+            });
+        }
+
+    }
+
+
+    function InitRE() {
+        //set values
+        $('#REAddition').val('');
+        $('#REAxis').val('');
+        $('#REIndex').val('');
+        $('#RECylinder').val('');
+        $('#RESphere').val('');
+        $('#isRCommandGlass').val('False');
+    }
+    function ApplyLEToRE() {
+        //get values
+        var LEAddition = $('#LEAddition').val();
+        var LEAxis = $('#LEAxis').val();
+        var LEIndex = $('#LEIndex').val();
+        var LECylinder = $('#LECylinder').val();
+        var LESphere = $('#LESphere').val();
+        var isLCommandGlass = $('#isLCommandGlass').val();
+
+        //set values
+        $('#REAddition').val(LEAddition);
+        $('#REAxis').val(LEAxis);
+        $('#REIndex').val(LEIndex);
+        $('#RECylinder').val(LECylinder);
+        $('#RESphere').val(LESphere);
+        $('#isRCommandGlass').val(isLCommandGlass);
+    }
+
+    function InitLE() {
+        //set values
+        $('#LEAddition').val('');
+        $('#LEAxis').val('');
+        $('#LEIndex').val('');
+        $('#LECylinder').val('');
+        $('#LESphere').val('');
+        $('#isLCommandGlass').val('False');
+    }
+
+
+    function ApplyREToLE() {
+
+        //get values
+        var REAddition = $('#REAddition').val();
+        var REAxis = $('#REAxis').val();
+        var REIndex = $('#REIndex').val();
+        var RECylinder = $('#RECylinder').val();
+        var RESphere = $('#RESphere').val();
+        var isRCommandGlass = $('#isRCommandGlass').val();
+        //set values
+        $('#LEAddition').val(REAddition);
+        $('#LEAxis').val(REAxis);
+        $('#LEIndex').val(REIndex);
+        $('#LECylinder').val(RECylinder);
+        $('#LESphere').val(RESphere);
+        $('#isLCommandGlass').val(isRCommandGlass);
+
+    }
+
+    function LEIndexChange() {
+
+        var SupplyingName = $('#SupplyingName').val();
+        var LEIndex = ' ' + " INDEX " + $('#LEIndex').val();
+        if ($('#LEIndex').val().length > 0) {
+            if (SupplyingName.indexOf("INDEX") == -1) {//On n'a pas index dans la chaine
+                SupplyingName = SupplyingName + LEIndex;
+                $('#SupplyingName').val(SupplyingName);
+            }
+            else {
+                //Recherche et suppression de l'ancienne index
+                var start = SupplyingName.indexOf("INDEX");
+                var end = SupplyingName.length;
+                var oldLEIndex = SupplyingName.slice(start, end);
+
+                SupplyingName = SupplyingName.replace(oldLEIndex, "");
+                //alert(SupplyingName);
+                SupplyingName = SupplyingName.trim();
+
+                SupplyingName = SupplyingName + LEIndex;
+                $('#SupplyingName').val(SupplyingName);
+            }
+        }
+
+    }
+
+    function REIndexChange() {
+
+        if ($('#REIndex').val().length > 0) {
+
+            var SupplyingName =$('#SupplyingName').val();
+            var REIndex = ' ' + " INDEX " + $('#REIndex').val();
+
+            if (SupplyingName.indexOf("INDEX") == -1) {//On n'a pas index dans la chaine
+                SupplyingName = SupplyingName + REIndex;
+                $('#SupplyingName').val(SupplyingName);
+            }
+            else {
+                //Recherche et suppression de l'ancienne index
+                var start = SupplyingName.indexOf("INDEX");
+                var end = SupplyingName.length;
+                var oldLEIndex = SupplyingName.slice(start, end);
+                SupplyingName = SupplyingName.replace(oldLEIndex, "");
+                SupplyingName = SupplyingName.trim();
+
+                SupplyingName = SupplyingName + REIndex;
+                $('#SupplyingName').val(SupplyingName);
+            }
+        }
+    }
+
+    function CheckSprayClick() {
+
+        if ($('input[id="spray"]').prop('checked')) {
+            $('input[id="spray"]').prop('value', 1);
+        }
+        else {
+            $('input[id="spray"]').prop('value', 0);
+        }
+    };
+    function CheckboitierClick() {
+
+        if ($('input[id="boitier"]').prop('checked')) {
+            $('input[id="boitier"]').prop('value', 1);
+        }
+        else {
+            $('input[id="boitier"]').prop('value', 0);
+        }
+    };
+    /*Fin du code JS de la page OrderLensOrder*/
+</script>

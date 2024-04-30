@@ -1,0 +1,83 @@
+﻿@{
+    var X = Html.X();
+}
+
+@(
+    X.XScript()
+        .ScriptBlock(@"
+            <script>
+
+                var loadPage = function (tabPanel, record, loading, icon) {
+                    var tab = tabPanel.getComponent(record.getId());
+
+                    if (!tab) {
+                        tab = tabPanel.add({
+                            id          : record.getId(),
+                            title       : record.data.text,
+                            closable    : true,
+                            bodyStyle   : 'background-color:#f0f6ff;',
+                            icon        : icon,
+                            loader      : {
+                                            url     : record.data.href,
+                                            renderer: 'frame',
+                                            loadMask: {
+                                                        showMask    : true,
+                                                        msg         : loading + ' ' + record.data.text + '...'
+                                            }
+                            },
+                            autoScroll  : false
+                        });
+                    }
+    
+                    tab.on('activate', function (tab) {
+                                        #{DESC}.setValue(record.getId());
+                                        }
+                    );      
+    
+                    tabPanel.setActiveTab(tab);
+                };
+    
+    
+                var loadPage_link = function (tabPanel, id, url, title, loading) {
+                    var tab = tabPanel.getComponent(id);
+                
+                    if (!tab) {
+                        tab = tabPanel.add({
+                            id          : id,
+                            title       : title,
+                            closable    : true,
+                            bodyStyle   : 'background-color:#f0f6ff;',
+                            //icon      : record.data.icon,
+                            loader      : {
+                                            url     : url,
+                                            renderer: 'frame',
+                                            loadMask: {
+                                                        showMask    : true,
+                                                        msg         : loading + ' ' + title + '...'
+                                            }
+                            },
+                            autoScroll  : false
+                        });
+                    }
+            
+                    tab.on('activate', function (tab) {
+                                        #{DESC}.setValue(id);
+                                    }
+                    );
+                
+                    tabPanel.setActiveTab(tab);
+                };
+                
+                var onTaskUpdate = function() {
+                    var ladate = new Date();
+                    #{lb_horloge}.setText(
+                        ladate.getHours() + ':' + ladate.getMinutes()
+                    );
+                };
+
+        var closePage = function (tabPanel, record) {
+                    tabPanel.getComponent(record.getId()).remove();
+                };
+        </script>"
+            )
+)

@@ -1,0 +1,295 @@
+﻿@using FatSod.Ressources;
+@model IEnumerable<FatSod.Supply.Entities.Account>
+
+@{
+    ViewBag.Title = "Add new General Ledger Account";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<link href="~/Scripts/AdminLTE/plugins/iCheck/square/red.css" rel="stylesheet" />
+<link href="~/Scripts/AdminLTE/plugins/iCheck/minimal/minimal.css" rel="stylesheet" />
+<script src="~/Scripts/AdminLTE/plugins/iCheck/icheck.min.js"></script>
+
+@*<h2>@Resources.UIAccountTitle</h2>*@
+
+<div class="box box-primary box-body">
+    <!--<form id="FormAccountingSection">-->
+    @****************************@
+    @Html.AntiForgeryToken()
+    <h6>@Resources.RequireField <code>(*)</code></h6>
+    <hr />
+    <h4>@Resources.AccountFieldSetTitle</h4><hr>
+
+    <div class="row">
+        <div class="col-sm-1"></div>
+        <div class="col-sm-8">
+            <div class="row">
+                <input id="AccountID" name="AccountID" type="hidden" class="form-control" />
+                <div class="col-sm-4">@Resources.UINumero<code>(*)</code></div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <select id="CollectifAccountID" name="CollectifAccountID" class="form-control"></select><span class="error">Champs Obligatoire !</span>
+                    </div>
+                    <div class="col-md-3">
+                        <input id="AccountNumber" name="AccountNumber" type="text" disabled="disabled" class="form-control" />
+                    </div>
+                </div>
+                <span class="error">Champs Obligatoire !</span>
+            </div>
+            <div class="row">
+                <div class="col-sm-4">@Resources.UINom<code>(*)</code></div>
+                <div class="col-sm-8">
+                    <input type="text" id="AccountLabel" name="AccountLabel" class="form-control" /><span class="error"></span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-4">@Resources.UIisManualPosting</div>
+                <div class="col-sm-8">
+                    <input type="radio" name="isManualPosting" id="isManualPostingYes" value="1"  /> @Resources.Yess
+                    <input type="radio" name="isManualPosting" id="isManualPostingNO" value="0" checked="checked" /> @Resources.No
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-1">
+                </div>
+                <hr />
+                <div class="col-sm-4">
+                    <button type="button" id="btnCancel" class="btn btn-primary">@Resources.ResetButton</button>
+                </div>
+                <div class="col-sm-8">
+                    <button type="submit" class="btn btn-primary" id="btnSubmit">@Resources.SaveButton</button>
+                </div>
+            </div>
+            <!--</form>-->
+        </div>
+    </div>
+</div>
+
+<!-- Ajout de la table contenant les data deja enregistrees-->
+<h2>List of General Ledger Account</h2>
+<div class="box box-body box-primary">
+
+    <table class="table" id="mainTable">
+        <thead>
+            <tr class="dataTableHead">
+                <th>
+                   ID
+                </th>
+                <th>
+                    @Resources.UINumero
+                </th>
+                <th>
+                    @Resources.UINom
+                </th>
+                <th>
+                    @Resources.UIisManualPosting
+                </th>
+                <th>
+                </th>
+            </tr>
+        </thead>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.AccountID)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.AccountNumber)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.AccountLabel)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.isManualPosting)
+                </td>
+                <td>
+                    <a href=# onclick="EditItem(this)"><span class="glyphicon glyphicon-edit"></span></a> |
+                    <a href=# onclick="DeleteItem(this)"><span class="glyphicon glyphicon-trash"></span></a>
+                </td>
+            </tr>
+        }
+
+    </table>
+</div>
+        
+
+<!--********** JavaScripts **********-->
+<script>
+    function populateCollectifAccount() {
+        $.get('@Url.Action("populateCollectifAccount", "Account")', {}, function (data) {
+            $('#CollectifAccountID').empty();
+            $('#CollectifAccountID').append($("<option value='0'>@Resources.Select_collective_account</option>"));
+            $.each(data, function (key, value) {
+                $('#CollectifAccountID').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+
+    function clearForm() {
+        $('#AccountNumber').val('');
+        $('#CollectifAccountID').val('');
+        $('#AccountLabel').val('');
+        $('#AccountID').val('');
+    }
+
+
+    $(document).on('ready', function () {
+        populateCollectifAccount();
+
+        $('#CollectifAccountID').on('change', function () {
+            var val = $(this).val(); // on récupère la valeur de la classe du compte
+            if (val != '') {
+                $('#AccountNumber').empty();
+                $.get('@Url.Action("generateAccount", "Account")', { CollectifAccountID: val }, function (data) {
+                    $.each(data, function (key, value) {
+                        $('#AccountNumber').val(value.AccountNumber);//.html(value.Name);
+                    });
+                }, 'json');
+            };
+        });
+
+        $('#btnCancel').on('click', function () {
+            clearForm();
+        });
+
+        $('#mainTable').DataTable();
+
+        $('#btnSubmit').on('click', function () {
+            var isAllValid = true;
+
+
+            if ($('#CollectifAccountID').val() == "0") {
+                isAllValid = false;
+                $('#CollectifAccountID').siblings('span.error').css('visibility', 'visible');
+            }
+            else {
+                $('#CollectifAccountID').siblings('span.error').css('visibility', 'hidden');
+            }
+
+            if ($('#AccountNumber').val().trim() == '') {
+                isAllValid = false;
+                $('#AccountNumber').siblings('span.error').css('visibility', 'visible');
+            }
+            else {
+                $('#AccountingSectionCode').siblings('span.error').css('visibility', 'hidden');
+            }
+
+            if ($('#AccountLabel').val() == '') {
+                isAllValid = false;
+                $('#AccountLabel').siblings('span.error').css('visibility', 'visible');
+            }
+            else {
+                $('#AccountLabel').siblings('span.error').css('visibility', 'hidden');
+            }
+            if (isAllValid) {
+                var data = {
+                    CollectifAccountID: $('#CollectifAccountID').val().trim(),
+                    AccountNumber: $('#AccountNumber').val().trim(),
+                    isManualPosting: $('input[name=isManualPosting]:checked').val().trim(),
+                    AccountLabel: $('#AccountLabel').val().trim(),
+                    AccountID: $('#AccountID').val().trim()
+                }
+                $(this).val('Please wait...');
+
+
+                //post data to server
+                $.ajax({
+                    url: '@Url.Action("AddAccount", "Account")',
+                    type: "POST",
+                    data: JSON.stringify(data),
+                    dataType: "JSON",
+                    contentType: "application/json",
+                    success: function (d) {
+                        //check is successfully save to database
+                        if (d.status == true) {
+                            //will send status from server side
+                            alert(d.Message);
+                            location.reload(true);
+                            //$('#mainTable').DataTable().ajax.reload();
+                            //clear form
+                            clearForm();
+                        }
+                        else {
+                            alert(d.Message);
+                        }
+                        $('#submit').val('@Resources.SaveButton');
+                    },
+                    error: function () {
+                        alert('Error. Please try again.');
+                        $('#btnSubmit').val('@Resources.SaveButton');
+                    }
+                });
+            }
+        });
+    });
+
+    function EditItem(obj)
+    {
+
+        var globalID=$(obj).parent().siblings(":first").text();
+
+        $.get('@Url.Action("IniatializeFieldAccount", "Account")', { id : parseInt(globalID) },  function (data) {
+            $.each(data, function (key, value) {
+                $('#CollectifAccountID').val(value.CollectifAccountID);
+                $('#AccountNumber').val(value.AccountNumber);
+                $('input[name=isManualPosting][value="' + value.isManualPosting + '"]').prop('checked', true);
+                $('#AccountLabel').val(value.AccountLabel);
+                $('#AccountID').val(value.AccountID);
+
+            });
+        }, 'json');
+
+
+    }
+    function DeleteItem  (obj)
+    {
+        if (confirm("Do you want to Delete ?"))
+        {
+            var globalID=$(obj).parent().siblings(":first").text();
+            //post to the server
+            $(this).val('Please wait...');
+            var data = {
+                ID: parseInt(globalID)
+            }
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("DeleteAccount", "Account")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        location.reload(true);
+                        //$('#mainTable').DataTable().ajax.reload();
+                        //clear form
+                        clearForm();
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                }
+            });
+        }
+
+    }
+</script>
+
+<style>
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+    #after_manual_posting_yes { margin-right : 15px; }
+</style>

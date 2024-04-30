@@ -1,0 +1,37 @@
+﻿
+@{
+    var X = Html.X();
+}
+
+@(
+    X.Panel()
+        .Region(Region.Center)
+        .Layout(LayoutType.Fit)
+        .BodyPadding(5)
+        .BodyStyle(Theme.Default.ToString())
+        .Border(false)
+        .Items(
+            X.TabPanel()
+                .ID("tabPanel")
+                .Frame(true)
+                .Add(
+                    X.Panel()
+                        .Title("Home")
+                        //.IconCls("x-payroll")
+                        .BodyStyle(Theme.Default.ToString())
+                        .Layout(LayoutType.VBox)
+                        .BodyPadding(5)
+                        .Defaults(X.Parameter().Name("margins").Value("0 5 0 0").Mode(ParameterMode.Value))
+                        .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center, Pack = BoxPack.Center })
+                        .Items(
+                            X.Image()
+                                .ImageUrl("~/Content/Images/png/FsInventory.png")
+                                .Height(400)
+                                .Width(400)
+                        )
+                        .Listeners(l => 
+                            l.Activate.Handler = "#{DESC}.setValue('Home');"
+                        )
+                )
+        )
+)

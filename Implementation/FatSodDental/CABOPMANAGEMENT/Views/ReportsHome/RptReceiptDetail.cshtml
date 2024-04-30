@@ -1,0 +1,208 @@
+﻿@using FatSod.Ressources;
+
+@model FatSod.Report.WrapReports.RptReceipt
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+}
+
+<section class="invoice" style="font-size:0.85em">
+    <!-- title row -->
+    <div class="row">
+        @*<div class="col-xs-3" style="text-align:left;padding:0px;margin-top:-5px;">
+            <img id='img-upload' src="~/User/File?id=@ViewBag.CompanyLogoID" style="height:90px; width:250px;" />
+        </div>*@
+        <div class="col-xs-6" style="text-align:left; margin-left:15px;padding:0px;margin-top:0px;">
+            <strong style="font-size:1.4em;">@Model.CompanyName</strong><br />
+            @Model.CompanyAdress<br />
+            @Model.CompanyRC<br />
+        </div>
+            <div class="col-xs-2">
+            </div>
+            <div class="col-xs-4" style="text-align:left; margin-left:-10px;padding:0px;margin-top:0px;">
+                @Model.CompanyTel<br />
+                @Model.CompanyCNI<br />
+                <br />
+            </div>
+            @*<div class="col-xs-4" style="text-align:left; margin-left:-10px;padding:0px;margin-top:5px;">
+                <strong>@Model.BranchName</strong><br />
+                @Model.BranchAdress<br />
+                @Model.BranchTel<br />
+                @Model.CustomerAdress<br />
+            </div>*@
+            <!-- /.col -->
+        </div>
+    <!-- info row -->
+    <div class="row">
+        <div class="col-xs-12 invoice-title" style="margin-left:30%;margin-top:-10px;">
+            <strong><u> REÇU / CASH RECEIPT </u></strong>
+        </div>
+    </div>
+    <div class="row invoice-info">
+        <div class="col-xs-6">
+            Client / Customer : @Model.CustomerName
+        </div>
+        <div class="col-xs-6">
+            Date Operation / Operation Date: @Model.OperationDate.ToString("dd/MM/yyyy") @Model.OperationHour
+        </div>
+    </div>
+    <div class="row invoice-info">
+        <!-- /.col -->
+        <div class="col-xs-6">
+            Operateur / Operator: @Model.Operator
+        </div>
+        <div class="col-xs-6">
+            <strong style="font-size:1.4em;">Reference: @Model.Ref</strong>
+        </div>
+    </div>
+
+    <!-- /.row -->
+    <!-- Table row -->
+    <div class="row invoice-info">
+        <div class="col-xs-12 table-responsive" style="margin-bottom:-17px;">
+            <table class="table table-striped" border="1">
+                <thead style="text-align:center;">
+                    <tr style="border:1px solid;">
+                        @*<th style="border:1px solid;text-align:center;padding:3px;">#</th>*@
+                        <th style="border:1px solid;text-align:center;padding:1px;">@Resources.Qty</th>
+                        <th style="border:1px solid;text-align:center;padding:1px;">@Resources.Designation</th>
+                        @*<th style="border:1px solid;text-align:center;padding:3px;">@Resources.UPrice</th>*@
+                        <th style="border:1px solid;text-align:center;padding:1px;">@Resources.Value</th>
+                    </tr>
+                </thead>
+
+                <tbody style="border:1px solid">
+
+                    @foreach (var item in Model.ReceiptLines)
+                    {
+                        <tr style="border:1px dashed;">
+                            @*<td style="border:1px solid;text-align:center;padding:3px;width:5%;">
+                                @item.ReceiptLineID
+                            </td>*@
+                            <td style="border:1px solid;text-align:center;padding:1px;width:10%;">
+                                @item.ReceiptLineQuantity
+                            </td>
+                            <td style="border:1px solid;margin-left:15px; padding:1px;width:50%;">
+                                @item.Designation
+                            </td>
+                            @*<td style="border:1px solid;text-align:right;padding:3px;width:15%;">
+                                @item.ReceiptLineUnitPrice.ToString("0,0")
+                            </td>*@
+                            <td style="border:1px solid;text-align:right;padding:1px; width:15%;">
+                                @item.ReceiptLineAmount.ToString("0,0")
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot style="text-align:center;">
+                    <tr style="border:1px solid;">
+                        @*<th style="border:1px solid;text-align:center;padding:3px;"></th>*@
+                        <th style="border:1px solid;text-align:center;padding:1px;"></th>
+                        <th style="border:1px solid;margin-left:15px;padding:1px;">TOTAL (FCFA)</th>
+                        <th style="border:1px solid;text-align:right;padding:1px;">@Model.TotalAmountTTC</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <!-- /.col -->
+    </div>
+    <!-- /.row -->
+    <!-- Table row comptabilite-->
+    <div class="row invoice-info">
+        <!-- /.col -->
+        <div class="col-xs-1">
+        </div>
+        <div class="col-xs-4">
+            Paiements / Payments
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-4 table-responsive" style="margin-bottom:-17px;">
+            <table class="table table-striped" border="1">
+                <thead style="text-align:center;">
+                    <tr style="border:1px solid;">
+                        <th style="border:1px solid;text-align:center;padding:1px;">#</th>
+                        <th style="border:1px solid;text-align:center;padding:1px;">@Resources.Amount</th>
+                        <th style="border:1px solid;text-align:center;padding:1px;">@Resources.SellingDate</th>
+                        <th style="border:1px solid;text-align:center;padding:1px;">@Resources.Reference</th>
+                    </tr>
+                </thead>
+
+                <tbody style="border:1px solid">
+
+                    @foreach (var item in Model.PaymentDetails)
+                    {
+                        <tr style="border:1px dashed;">
+                            <td style="border:1px solid;text-align:center;padding:1px;width:5%;">
+                                @item.PaymentDetailID
+                            </td>
+                            <td style="border:1px solid;text-align:center;padding:1px;width:30%;">
+                                @item.PaymentDetailAmount.ToString("0,0")
+                            </td>
+                            <td style="border:1px solid;text-align:center;padding:1px;width:30%;">
+                                @item.PaymentDate.ToString("dd/MM/yyyy")
+                            </td>
+                            <td style="border:1px solid;text-align:center;padding:1px;width:35%;">
+                                @item.Reference
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <!-- /.col -->
+        <div class="col-xs-5">
+            @*<div class="col-xs-6">*@
+            <span><b>@Resources.CashReceived: <u>@Model.ReceiveAmount.ToString("0,0") FCFA</u></b></span><br />
+            <span><b>@Resources.RemainingAmount: <u>@Model.Balance.ToString("0,0") FCFA</u></b></span><br />
+            @*<span><b>Date Livraison / Delivered Date : @Model.SaleDeliveryDate.ToString("dd/MM/yyyy")</b></span><br />*@
+            @*</div>*@
+        </div>
+        <div class="row invoice-info">
+            <div class="col-xs-3">
+                Date vente / Selling Date: @Model.SaleDate.ToString("dd/MM/yyyy HH:mm:ss")
+            </div>
+        </div>
+        @*<div class="col-xs-3" style="margin-left:-30px;">
+            <span style="font-size:1.25em"><b>@Model.Deliver</b></span>
+        </div>*@
+    </div>
+    <div class="row">
+        <div class="col-md-12" style="text-align:center">
+            <span><b>Please,Items sold are non reimbursable / Les Marchandises vendues ne sont pas remboursables</b></span>
+        </div>
+        <br />
+    </div>
+    <div class="row">
+        <div class="col-md-12" style="text-align:center">
+            <div class="col-xs-6">
+                @Resources.ClientSignature
+            </div>
+            <div class="col-xs-6">
+                @Resources.OperatorSignarture
+            </div>
+        </div>
+    </div>
+
+    <!-- /.row -->
+    <!-- this row will not appear when printing -->
+    <div class="row no-print">
+        <div class="col-xs-12">
+            <a href="#" onclick="window.focus(); window.print(); window.close();" target="_blank" class="btn btn-primary"><i class="fa fa-print"></i> Imprimer</a>
+            <a href="@Request.UrlReferrer" class="btn btn-warning"><i class="fa fa-angle-left"></i>@Resources.previous</a>
+        </div>
+    </div>
+</section>
+
+
+<style>
+    .invoice {
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+</style>
+
+
+
+
+
+

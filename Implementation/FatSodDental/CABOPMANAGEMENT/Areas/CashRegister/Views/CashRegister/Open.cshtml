@@ -1,0 +1,242 @@
+﻿@using FatSod.Ressources;
+@model IEnumerable<FatSod.Supply.Entities.TillDay>
+
+@{
+    ViewBag.Title = @Resources.OpenCashRgisterTitle;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row" style="margin-top:5px;margin-left:25px">
+    @if (TempData["Message"] != null)
+    {
+        @Html.Raw(TempData["Message"])
+    }
+</div>
+
+<div class="box box-primary box-body" id="TillDayForm">
+    <header>
+        <h4>@Resources.OpenCashRgisterTitle</h4>
+        <h6>@Resources.OpenCashRgisterSubTitle</h6>
+    </header>
+    <div class="row">
+        <fieldset class="col-md-10">
+            <legend>@Resources.OpenCaisseFeat</legend>
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <div class="row ipt">
+                        <input class="form-control input-sm" id="DisplayForm" type="hidden" value="@ViewBag.DisplayForm">
+                        <input class="form-control input-sm" id="TillDayID" type="hidden">
+                        <input class="form-control input-sm" id="TillID" type="hidden" value="@ViewBag.TillID">
+                        <input class="form-control input-sm" id="CashInitialization" type="hidden" value="@ViewBag.CashInitialization">
+                        <input class="form-control input-sm" id="TillDayClosingPrice" type="hidden" value="@ViewBag.YesterdayClosingPrice">
+                        <div class="col-sm-3">@Resources.UIDateOperation</div>
+                        <div class="col-sm-3">
+                            <input class="form-control" id="TillDayDate" name="TillDayDate" type="text" value="@ViewBag.BusnessDayDate">
+                        </div>
+                        <div class="col-sm-3">@Resources.MntFermCaisseHier</div>
+                        <div class="col-sm-3">
+                            <input class="form-control" id="TillDayOpenPrice" name="TillDayOpenPrice" type="number">
+                        </div>
+                    </div>
+
+                </div>
+                <div class="row" style="margin-bottom:15px;">
+                    <div class="col-sm-3">
+                        <button id="btnCancel" style="margin-left:20px;" class="btn btn-primary btn-danger">@Resources.ResetButton</button>
+                    </div>
+                    <div class="col-sm-4">
+                        <button id="btnSubmit" class="btn btn-primary">@Resources.OpenCash</button>
+                    </div>
+
+                </div>
+            </div>
+        </fieldset>
+        <fieldset class="col-md-10">
+            <!-- Ajout de la table contenant les data deja enregistrees-->
+            <h2>@Resources.OpClosecashReg</h2>
+            <div class="box box-body box-primary">
+
+                <table class="table" id="mainTable">
+                    <thead>
+                        <tr class="dataTableHead">
+                            <th>
+                                @Resources.OpAmnt
+                            </th>
+                            <th>
+                                @Resources.CloseAmnt
+                            </th>
+                            <th>
+                                @Resources.UIDateOperation
+                            </th>
+                            <th>
+                                @Resources.State
+                            </th>
+                            <th>
+                                @Resources.TellerName
+                            </th>
+                        </tr>
+                    </thead>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.TillDayOpenPrice)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.TillDayClosingPrice)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.TillDayDate)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.IsOpen)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Till.Name)
+                            </td>
+                        </tr>
+                    }
+
+                </table>
+            </div>
+        </fieldset>
+    </div>
+</div>
+
+<!-- Css Begins Here -->
+
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 6px;
+    }
+
+    #img-upload {
+        width: 100%;
+    }
+
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin-left: 5%;
+        min-width: 0;
+        padding: 10px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 70px;
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+</style>
+<!--********** JavaScripts **********-->
+<script>
+    function clearForm() {
+        $('#TillDayOpenPrice').val('');
+    }
+    $(document).on('ready', function () {
+        if ($('#DisplayForm').val().trim() == 0) {
+            $("#TillDayForm").hide();
+        }
+        else {
+            $("#TillDayForm").show();
+        }
+
+        $('#btnCancel').on('click', function () {
+            clearForm();
+        });
+        //$('#mainTable').DataTable();
+        $('#btnSubmit').on('click', function () {
+            var isAllValid = true;
+
+
+            if ($('#TillDayDate').val().trim() == '') {
+                isAllValid = false;
+                $("#TillDayDate").addClass("invalid-data");
+            }
+            else {
+                $("#TillDayDate").addClass("valid-data");
+            }
+
+            if ($('#TillDayOpenPrice').val().trim() == '') {
+                isAllValid = false;
+                $("#TillDayOpenPrice").addClass("invalid-data");
+            }
+            else {
+                $("#TillDayOpenPrice").addClass("valid-data");
+            }
+
+            if (isAllValid) {
+
+                var formData = new FormData();
+
+                formData.append("TillDayDate", $('#TillDayDate').val().trim());
+                formData.append("TillDayOpenPrice", $('#TillDayOpenPrice').val().trim());
+                formData.append("TillDayID", $('#TillDayID').val().trim());
+                formData.append("TillID", $('#TillID').val().trim());
+                formData.append("CashInitialization", $('#CashInitialization').val().trim());
+                formData.append("YesterdayClosingPrice", $('#TillDayClosingPrice').val().trim());
+
+                $(this).val('Please wait...');
+
+                //post data to server
+                $.ajax({
+                    url: '@Url.Action("OpenDay", "CashRegister")',
+                    type: "POST",
+                    data: formData,
+                    dataType: "JSON",
+                    //contentType: "application/json",
+                    contentType: false,
+                    processData: false,
+                    success: function (d) {
+                        //check is successfully save to database
+                        if (d.status == true) {
+                            alert(d.Message);
+                            window.location.href = d.redirectUrl;
+                        }
+                        else {
+                            alert(d.Message);
+                            clearForm();
+                        }
+                        $('#btnSubmit').val('@Resources.OpenCash');
+                    },
+                    error: function (response) {
+                        alert('Error. Please try again.');
+                        $('#btnSubmit').val('@Resources.OpenCash');
+                    }
+                });
+            }
+        });
+    });
+</script>

@@ -1,0 +1,784 @@
+﻿
+@using FatSod.Ressources;
+@using FatSod.Supply.Entities;
+@using FatSod.DataContext.Initializer;
+@using CABOPMANAGEMENT.Tools;
+
+@{
+    ViewBag.Title = @Resources.ConsultRDV;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var profile = (Session["UserProfile"] == null) ? 0 : (int)Session["UserProfile"];
+    var user = (Session["UserID"] == null) ? 0 : (int)Session["UserID"];
+    //Session["CustomerID"] = 0;
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+
+<div class="box box-primary box-body" id="SaleValideForm">
+    <form id="RDV-Consult" action="#">
+        <h3>@Resources.CustomerIdentification</h3>
+        <fieldset style="">
+            <legend style="text-align:center">@Resources.CustomerIdentification</legend>
+            <input class="form-control input-sm" id="DisplayForm" type="hidden" value="@ViewBag.DisplayForm">
+            <div class="panel panel-default" style="margin-bottom: 0.5px;">
+                <div class="panel-body2" style="margin-bottom: -30px;">
+
+                    <table class="table" id="mainTable">
+                        <thead>
+                            <tr class="dataTableHead">
+                                <th>ID</th>
+                                <th>@Resources.CustoID</th>
+                                <th>@Resources.UIDateOperation</th>
+                                <th>@Resources.DateOfBirth</th>
+                                <th>@Resources.Customer</th>
+                                <th>@Resources.PersonSurname</th>
+                                <th>@Resources.CustomerNumber</th>
+                                <th>@Resources.Quater</th>
+                                <th>@Resources.Value</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+
+                    </table>
+                </div>
+            </div>
+            <div class="row" style="margin-top: 5px;background-color: #fff; margin-left: 0px; margin-right: 0px">
+
+                <div class="col-md-12" style="margin-top:10px">
+                    <div class="panel panel-default" style="border-color: white">
+                        <div class="panel-body1">
+                            <input class="form-control" id="GlobalPersonID" name="GlobalPersonID" type="hidden">
+                            <input class="form-control" id="heureVente" name="heureVente" type="hidden">
+                            <input class="form-control" id="DeviseID" name="DeviseID" value="@ViewBag.DefaultDeviseID" type="hidden" />
+                            <input class="form-control" id="BranchID" name="BranchID" value="@ViewBag.CurrentBranch" type="hidden">
+
+                            <input type="hidden" id="LELineID" value="0" />
+                            <input type="hidden" id="RELineID" value="0" />
+
+
+                            <input type="hidden" id="TypeLens" />
+
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="row ipt">
+                                        <div class="col-sm-12">@Resources.Customer</div>
+                                        <div class="col-sm-12">
+                                            <input class="form-control required" id="CustomerName" type="text" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="row ipt">
+                                        <div class="col-sm-12">@Resources.CustomerNumber</div>
+                                        <div class="col-sm-12">
+                                            <input class="form-control required" id="CustomerNumber" type="text" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="row ipt">
+                                        <div class="col-sm-12">@Resources.DateOfBirth</div>
+                                        <div class="col-sm-12">
+                                            <input type="text" id="CustomerDateOfBirth" class="input-sm form-control datepicker" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="row ipt">
+                                        <div class="col-sm-12">Age</div>
+                                        <div class="col-sm-12">
+                                            <input type="text" id="CustomerAge" class="input-sm form-control" readonly />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row ipt">
+                                <div class="col-md-4">
+                                    <div class="row ipt">
+                                        <!-- RaisonRdv -->
+                                        <div class="col-sm-12">@Resources.RdvReason</div>
+                                        <div class="col-sm-12">
+                                            <textarea type="text" id="RaisonRdv" class="input-sm form-control"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="row ipt">
+                                        <div class="col-sm-12">@Resources.Marqueter<code>(*)</code></div>
+                                        <div class="col-sm-12">
+                                            <select id="GestionnaireID" class="form-control"></select><br />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <div class="row ipt" id="PreferredLanguage">
+                                        <div class="col-sm-12">@Resources.Language<code>(*)</code></div>
+                                            <div class="col-sm-6">
+                                                @Resources.English <input type="checkbox" name="PreferredLanguage" id="PreferredLanguage_EN" value="EN" />
+                                            </div>
+                                            <div class="col-sm-6">
+                                                @Resources.French <input type="checkbox" name="PreferredLanguage" id="PreferredLanguage_FR" value="FR" />
+                                            </div>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </fieldset>
+
+        <h3>@Resources.AnciennePrescription</h3>
+        <fieldset>
+            <legend style="text-align:center">@Resources.AnciennePrescription</legend>
+            <div class="col-md-12">
+                <div class="panel panel-default">
+                    <div class="panel-bodypres1">
+                        <div class="col-md-12" style="margin-left:10%">
+                            <div class="row ipt">
+                                <div class="col-sm-2">@Resources.Categories</div>
+                                <div class="col-sm-10" style="margin-left:-35px;width:80%">
+                                    <input type="text" id="OldSupplyingName" class="input-sm form-control" style="width:800px;" readonly>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-12" style="margin-left:10%">
+                            <div class="row ipt">
+                                <div class="col-sm-2" style="margin-right:2px;">
+                                    @Resources.EyeSide
+                                </div>
+                                <div class="col-sm-2" style="margin-left:-75px;">
+                                    Sphere
+                                </div>
+                                <div class="col-sm-2" style="margin-left:-25px;">
+                                    Cylinder
+                                </div>
+                                <div class="col-sm-2" style="margin-left:-25px;">
+                                    Axis
+                                </div>
+                                <div class="col-sm-2" style="margin-left:-25px;">
+                                    Addition
+                                </div>
+
+                            </div>
+                            <div class="row ipt">
+                                <div class="col-sm-2">
+                                    <span>@Resources.RightSide</span>
+                                </div>
+                                <div class="col-sm-2" style="margin-left:-75px;">
+                                    <input type="text" id="OldRESphere" class="input-sm form-control" readonly>
+                                </div>
+                                <div class="col-sm-2" style="margin-left:-25px;">
+                                    <input type="text" id="OldRECylinder" class="input-sm form-control" readonly>
+                                </div>
+                                <div class="col-sm-2" style="margin-left:-25px;">
+                                    <input type="text" id="OldREAxis" class="input-sm form-control NumbersAndDecimal" readonly>
+                                </div>
+                                <div class="col-sm-2" style="margin-left:-25px;">
+                                    <input type="text" id="OldREAddition" class="input-sm form-control" readonly>
+                                </div>
+
+                                <input type="hidden" id="OldREIndex" class="input-sm form-control NumbersAndDecimal">
+
+                            </div>
+
+                            <div class="row ipt">
+                                <div class="col-sm-2">
+                                    <span>@Resources.LeftSide</span>
+                                </div>
+                                <div class="col-sm-2" style="margin-left:-75px;">
+                                    <input type="text" id="OldLESphere" class="input-sm form-control" readonly>
+                                </div>
+                                <div class="col-sm-2" style="margin-left:-25px;">
+                                    <input type="text" id="OldLECylinder" class="input-sm form-control" readonly>
+                                </div>
+                                <div class="col-sm-2" style="margin-left:-25px;">
+                                    <input type="text" id="OldLEAxis" class="input-sm form-control NumbersAndDecimal" readonly>
+                                </div>
+                                <div class="col-sm-2" style="margin-left:-25px;">
+                                    <input type="text" id="OldLEAddition" class="input-sm form-control" readonly>
+                                </div>
+
+                                <input type="hidden" id="OldLEIndex" class="input-sm form-control NumbersAndDecimal">
+
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                <div class="panel panel-default">
+                    <div class="panel-bodypres2">
+                        <div class="col-md-12" style="margin-left:15%">
+                            <div class="col-md-6" style="margin-left:-75px;">
+                                <div class="row ipt">
+                                    <div class="col-sm-4">@Resources.frame </div>
+                                    <div class="col-sm-6">
+                                        <input type="text" id="ProductName" class="input-sm form-control" readonly />
+                                    </div>
+                                </div>
+                                <div class="row ipt">
+                                    <div class="col-sm-4">@Resources.Marque</div>
+                                    <div class="col-sm-6">
+                                        <input type="text" id="marque" class="input-sm form-control" readonly />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="row ipt">
+                                    <div class="col-sm-4">@Resources.NumeroSerie </div>
+                                    <div class="col-sm-6">
+                                        <input type="text" id="NumeroSerie" class="input-sm form-control" readonly />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12" style="margin-left:15%">
+                            <div class="col-md-6" style="margin-left:-75px;">
+                                <div class="row ipt">
+                                    <div class="col-sm-4">@Resources.DatedernierConsultation</div>
+                                    <div class="col-sm-6">
+                                        <input class="form-control required" id="DateDernierConsultation" type="text" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="row ipt">
+                                    <div class="col-sm-4">@Resources.DateProchaineConsultation</div>
+                                    <div class="col-sm-6">
+                                        <input type="text" id="DateProchaineCunsultation" class="input-sm form-control" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+    </form>
+</div>
+
+
+<!-- Css Begins Here -->
+
+<style>
+    .wizard > .content {
+        min-height: 43em;
+        overflow: auto;
+    }
+    .invalid-data {
+        border: 1px solid red !important;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc !important;
+    }
+
+    .ipt {
+        margin-bottom: 6px;
+    }
+
+    #img-upload {
+        width: 100%;
+    }
+
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin-left: 10px;
+        margin-right: 10px;
+        min-width: 0;
+        padding: 10px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 70px;
+    }
+
+    .panel-bodyfielset1 {
+        height: 60px;
+    }
+
+    .panel-bodyfielset2 {
+        height: 50px;
+    }
+
+    .panel-bodyfielPresc {
+        height: 250px;
+        margin-bottom: 1%;
+    }
+
+    .panel-body1 {
+        height: 45px;
+        margin-top: 1%;
+        margin-bottom: 2%;
+    }
+
+    .panel-bodyprespre {
+        height: 200px;
+        margin-bottom: 1%;
+    }
+
+    .panel-bodypres1 {
+        height: 110px;
+        margin-top: 1%;
+        margin-bottom: 1%;
+    }
+
+    .panel-bodypres2 {
+        height: 110px;
+        margin-top: 1%;
+        margin-bottom: 1%;
+    }
+
+    .panel-bodypresdil {
+        height: 45px;
+        margin-top: 5px;
+        margin-bottom: 0px;
+    }
+
+    .panel-body2 {
+        height: 280px;
+        margin-top: 5px;
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+
+    .panel-body3 {
+        height: 75px;
+        margin-top: 5px;
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+
+    .panel-body4 {
+        height: 300px;
+        margin-left: 10px;
+    }
+
+</style>
+
+<script>
+    // var colorIndex = 0;
+        var form = $("#RDV-Consult").show();
+
+        var stepForm = form.steps({ // http://www.jquery-steps.com/
+            headerTag: "h3",
+            bodyTag: "fieldset",
+            transitionEffect: "slideLeft",
+            onStepChanging: function (event, currentIndex, newIndex) { // https://github.com/rstaib/jquery-steps/wiki/Settings#events
+
+
+                console.log('currentIndex = ' + currentIndex, 'newIndex = ' + newIndex);
+                if (currentIndex == 0) {
+                    if ($('#CustomerDateOfBirth').val() == '' || $('#CustomerDateOfBirth').val() == '01-01-1900') {
+                        $("#CustomerDateOfBirth").addClass("invalid-data");
+                        alert("Please correct Date of Birth");
+                        return false;
+                    }
+
+                    if ($('#GestionnaireID').val() == '' || $('#GestionnaireID').val() == '0') {
+                        $("#GestionnaireID").addClass("invalid-data");
+                        alert("Please choose a Marketer");
+                        return false;
+                    }
+
+                    var language = $('input[name=PreferredLanguage]:checked').val();
+                    if (language != "FR" && language != "EN") {
+                        isAllValid = false;
+                        $('#PreferredLanguage').addClass("invalid-data");
+                        alert('Please select a valid Language(English Or French) for Customer ');
+                        return false;
+                    }
+
+                }
+                // Allways allow previous action even if the current form is not valid!
+                if (currentIndex > newIndex) {
+                    return true;
+                }
+                //// Forbid next action on "Warning" step if the user is to young
+                //if (newIndex === 3 && Number($("#age-2").val()) < 18) {
+                //    return false;
+                //}
+                // Needed in some cases if the user went back (clean up)
+                if (currentIndex < newIndex) {
+                    // To remove error styles
+                    form.find(".body:eq(" + newIndex + ") label.error").remove();
+                    form.find(".body:eq(" + newIndex + ") .error").removeClass("error");
+                }
+                form.validate().settings.ignore = ":disabled,:hidden";
+                return form.valid();
+            },
+            onStepChanged: function (event, currentIndex, priorIndex) {
+                // Used to skip the "Warning" step if the user is old enough.
+                //if (currentIndex === 2 && Number($("#age-2").val()) >= 18) {
+                //    form.steps("next");
+                //}
+                // Used to skip the "Warning" step if the user is old enough and wants to the previous step.
+                //if (currentIndex === 2 && priorIndex === 3) {
+                //    form.steps("previous");
+                //}
+                
+            },
+            onFinishing: function (event, currentIndex) {
+                form.validate().settings.ignore = ":disabled";
+                return form.valid();
+            },
+            onFinished: function (event, currentIndex) {
+                ValideCommande();
+                //form.steps("previous");
+                //currentIndex = 1;
+            }
+        }).validate({
+            errorPlacement: function errorPlacement(error, element) { element.before(error); },
+            rules: {
+                confirm: {
+                    equalTo: "#password-2"
+                }
+            }
+        });
+
+        var oTable = null;
+        
+        function populateMarqueters() {
+            $.get('@Url.Action("populateMarqueters", "ConsultRDV")', {}, function (data) {
+                $('#GestionnaireID').empty();
+                $('#GestionnaireID').append($("<option value='0'>@Resources.Select</option>"));
+                $.each(data, function (key, value) {
+                    $('#GestionnaireID').append($("<option></option>").val(value.ID).html(value.Name));
+                });
+            }, 'json');
+        }
+
+        //chargement des commandes a valider
+        function GetAllCommand(test) {
+
+            if (test) {
+                $('#mainTable').dataTable().fnDestroy();
+            }
+           oTable = $('#mainTable');
+
+            oTable = $('#mainTable').dataTable({
+
+                fixedColumns: true,
+                "paging": true,
+                "pageLength": 3,
+                "lengthMenu": [[3, 5, 10, -1], [3, 5, 10, "All"]],
+                "lengthChange": false, // https://datatables.net/reference/option/lengthChange
+                "searching": true,
+                "ordering": true,
+                "pagingType": "full_numbers",
+                "order": [[0, 'desc']],
+                // Ajax call
+                "ajax": "@Url.Action("PendingConsultationCustomer", "ConsultRDV")",
+                //"dom": '<"toolbar">frtip',
+                "columns": [
+                    { "data": "GlobalPersonID", "width": "5%" },
+                    { "data": "CNI", "width": "10%" },
+                    { "data": "Dateregister", "width": "10%" },
+                    { "data": "DateOfBirth", "width": "10%" },
+                    { "data": "CustomerFullName", "width": "20%" },
+                    { "data": "Surname", "width": "20%" },
+                    { "data": "CustomerNumber", "width": "10%" },
+                    { "data": "QuarterLabel", "width": "15%" },
+                    { "data": "CustomerValue", "width": "5%" },
+                    {// this is Actions Column
+                        mRender: function (data, type, row) {
+
+                            var updateOption = '@LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, @profile, CodeValue.CRM.RendezVous.ConsultRDV, db)';
+                            var T_updateOption = (updateOption == 'False') ? '<a href="#" class="editor_remove" onclick="UpdateItem(' + row.GlobalPersonID + ')"><span class="glyphicon glyphicon-edit"></a>' : '';
+
+                            return T_updateOption;
+                        }
+                    }
+                ],
+                "fnRowCallback": function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                    if (aData.CustomerValue == 'VIP') {
+                        $(nRow).addClass('vip');
+                    }
+                }
+            });
+
+            $('#mainTable tbody').on('click', 'tr', function () {
+                // retirer la classe selected a tout row qui a deja cette classe
+                oTable.$('tr.selected').removeClass('selected');
+                // ajouter la classe selected au row qui a ete selectionne
+                $(this).addClass('selected');
+            });
+        }
+
+    function removeSelectedRow() {
+        // oTable.table.row('.selected').remove().draw(false);
+        oTable = $("#mainTable").dataTable();
+        oTable.table.rows('.selected').remove().draw(false);
+    }
+
+        function UpdateItem(obj) {
+            var globalID = obj;
+            $('#CustomerName').val('');
+            $('#GlobalPersonID').val('');
+            $('#CustomerNumber').val('');
+            $('#CustomerDateOfBirth').val('');
+            $('#OldSupplyingName').val('');
+            $('#CustomerAge').val('');
+            $("#PreferredLanguage_EN").prop("checked", false);
+            $("#PreferredLanguage_FR").prop("checked", false);
+
+            $.get('@Url.Action("InitializeFields", "ConsultRDV")', { GlobalPersonID: parseInt(globalID) }, function (data) {
+                $.each(data, function (key, value) {
+                    $('#GlobalPersonID').val(value.GlobalPersonID);
+                    $('#CustomerName').val(value.CustomerName);
+                    $('#CustomerNumber').val(value.CustomerNumber);
+
+                    $('#CustomerDateOfBirth').val(value.DateOfBirth);
+                    $('#MedecinTraitant').val(value.Medecin);
+
+                    $('#OldRESphere').val(value.OldRESphere);
+                    $('#OldRECylinder').val(value.OldRECylinder);
+                    $('#OldREAxis').val(value.OldREAxis);
+                    $('#OldREAddition').val(value.OldREAddition);
+                    $('#OldLESphere').val(value.OldLESphere);
+                    $('#OldLECylinder').val(value.OldLECylinder);
+                    $('#OldLEAxis').val(value.OldLEAxis);
+                    $('#OldLEAddition').val(value.OldLEAddition);
+                    $('#OldSupplyingName').val(value.OldSupplyingName);
+
+                    $('#DateDernierConsultation').val(value.DateDernierConsultation);
+                    $('#DateProchaineCunsultation').val(value.DateProchaineCunsultation);
+                    $('#ProductName').val(value.ProductName);
+                    $('#marque').val(value.marque);
+                    $('#NumeroSerie').val(value.NumeroSerie);
+                    $('#CustomerAge').val(value.CustomerAge);
+                    console.log("Update Item ", value.PreferredLanguage, value);
+                    $('input[name=PreferredLanguage][value="' + value.PreferredLanguage + '"]').prop('checked', true);
+                });
+            }, 'json');
+
+
+        }
+
+
+
+        function InitOldLE() {
+            //set values
+            $('#OldLEAddition').val('');
+            $('#OldLEAxis').val('');
+            $('#OldLEIndex').val('');
+            $('#OldLECylinder').val('');
+            $('#OldLESphere').val('');
+        }
+
+        function InitOldRE() {
+            //set values
+            $('#OldREAddition').val('');
+            $('#OldREAxis').val('');
+            $('#OldREIndex').val('');
+            $('#OldRECylinder').val('');
+            $('#OldRESphere').val('');
+        }
+
+
+
+        $(document).on('ready', function () {
+            if ($('#DisplayForm').val().trim() == 0) {
+                $("#SaleValideForm").hide();
+            }
+            else {
+                $("#SaleValideForm").show();
+            }
+
+            populateMarqueters();
+
+            //datepicker
+            $(function () {
+                $(".datepicker").datepicker({
+                    format: 'dd-mm-yyyy'
+                });
+            });
+
+            ////datepicker
+            var todaysDate = new Date();
+            //$(function () {
+            //    $(".datepicker").datepicker({
+            //        format: 'dd/MM/yyyy',
+            //        showButtonPanel: true,
+            //        minDate: todaysDate
+            //    });
+            //});
+          
+            $("#CustomerDateOfBirth").blur(function () {
+                var DateOfBirth = $('#CustomerDateOfBirth').val();
+                //alert("DateOfBirth:" + DateOfBirth);
+                var dobyear = parseInt(DateOfBirth.substring(6, 10))
+                //alert("today: " +todaysDate.getFullYear());
+                //alert("dob: " + dobyear);
+                var CustomerAge = todaysDate.getFullYear() - dobyear;
+                //alert("Age: " + CustomerAge);
+                
+                $('#CustomerAge').val(CustomerAge);
+            });
+
+            GetAllCommand(false);
+            $("input:checkbox").on('click', function () {
+                // in the handler, 'this' refers to the box clicked on
+                var $box = $(this);
+                if ($box.is(":checked")) {
+                    // the name of the box is retrieved using the .attr() method
+                    // as it is assumed and expected to be immutable
+                    var group = "input:checkbox[name='" + $box.attr("name") + "']";
+                    // the checked state of the group/box on the other hand will change
+                    // and the current value is retrieved using .prop() method
+                    $(group).prop("checked", false);
+                    $box.prop("checked", true);
+                } else {
+                    $box.prop("checked", false);
+                }
+            });
+
+
+        });
+
+      /*  function InitialiseHeader() {
+            //header
+            $('#CustomerName').val('');
+            $('#GlobalPersonID').val('');
+            $('#CustomerNumber').val('');
+            $('#DateOfBirth').val('');
+            $('#OldSupplyingName').val('');
+        }
+        function ClearForm() {
+            InitialiseHeader();
+            InitOldLE();
+            InitOldRE();
+
+            GetAllCommand(true);
+        }
+    */
+
+        //validation d'une commande
+        function ValideCommande() {
+
+            var isAllValid = true;
+            var d = new Date();
+            var hourPayment = d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds();
+            $('#heureVente').val(hourPayment);
+
+            if ($('#heureVente').val().trim() == '') {
+                isAllValid = false;
+            }
+
+            //entete
+            var PreferredLanguage = $('input[name=PreferredLanguage]:checked').val();
+            if (PreferredLanguage != "FR" && PreferredLanguage != "EN") {
+                isAllValid = false;
+                $('#PreferredLanguage').addClass("invalid-data");
+                alert('Please select a valid Language(English Or French) for Customer ');
+            }
+
+            if ($('#CustomerNumber').val().trim() == '') {
+                isAllValid = false;
+                $("#CustomerNumber").addClass("invalid-data");
+                alert("Wrong Customer Name");
+                return false;
+            }
+            else {
+                $("#CustomerNumber").addClass("valid-data");
+            }
+
+            if ($('#CustomerName').val() == '') {
+                isAllValid = false;
+                $("#CustomerName").addClass("invalid-data");
+                alert("Wrong Customer Name");
+                return false;
+            }
+            else {
+                $("#CustomerName").addClass("valid-data");
+            }
+
+            if ($('#CustomerDateOfBirth').val() == '') {
+                isAllValid = false;rem
+                $("#CustomerDateOfBirth").addClass("invalid-data");
+                alert("Wrong Format Date of Birth");
+                return false;
+            }
+            else {
+                $("#CustomerDateOfBirth").addClass("valid-data");
+            }
+
+
+            if (isAllValid) {
+
+
+                var data = {
+                    //heureVente: $('#heureVente').val().trim(),
+                    CustomerID: $('#GlobalPersonID').val(),
+                    SaleRef: $.trim($('#CustomerNumber').val()),
+                    CustomerName: $.trim($('#CustomerName').val()),
+                    CustomerDateOfBirth: $('#CustomerDateOfBirth').val(),
+                    RaisonRdv: $('#RaisonRdv').val(),
+                    GestionnaireID: $('#GestionnaireID').val(),
+                    PreferredLanguage: PreferredLanguage
+                }
+                $(this).val('Please wait...');
+                console.log("Submit langue", PreferredLanguage, data);
+                //post data to server
+                $.ajax({
+                    url: '@Url.Action("AddRendezVous", "ConsultRDV")',
+                    type: "POST",
+                    data: JSON.stringify(data),
+                    dataType: "JSON",
+                    contentType: "application/json",
+                    success: function (d) {
+                        //check is successfully save to database
+                        if (d.status == true) {
+                            //will send status from server side
+                            alert(d.Message);
+                            //ClearForm();
+                            location.reload(true);
+                            // var form = $("#RDV-Consult");
+                            // removeSelectedRow();
+                            // stepForm.steps("previous");
+                            // $('#previous').click();
+                            // var x = document.getElementByTagName("a").hasAttribute("onclick");
+
+                        }
+                        else {
+                            alert(d.Message);
+                        }
+                    },
+                    error: function (response) {
+                        alert('Error. Please try again.');
+                    }
+                });
+            }
+
+            return true;
+        }
+
+</script>

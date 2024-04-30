@@ -1,0 +1,657 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+
+@model System.Collections.IEnumerable
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    string labelSeparator = "  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :";
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+
+    var com = new ComboBox();
+}
+@section header
+{
+    <style>
+        .search-item {
+            font: normal 11px tahoma, arial, helvetica, sans-serif;
+            padding: 3px 10px 3px 10px;
+            border: 1px solid #fff;
+            border-bottom: 1px solid #eeeeee;
+            white-space: normal;
+            color: #555;
+        }
+
+            .search-item h3 {
+                display: block;
+                font: inherit;
+                font-weight: bold;
+                color: #222;
+                margin: 0px;
+            }
+
+                /*.search-item h3 span {
+                    float: right;
+                    font-weight: normal;
+                    margin: 0 0 5px 5px;
+                    width: 100px;
+                    display: block;
+                    clear: none;
+                }*/
+
+        p {
+            width: 650px;
+        }
+
+        .ext-ie .x-form-text {
+            position: static !important;
+        }
+    </style>
+}
+@section content
+{
+
+    @***********************************************************@
+    @(
+
+
+        //formulaire général
+        //c'est ausi le container qui (contient) le fieldset des éléments de formulaire d'un achat, le formulaire du panier et le tableau représentant le contenu du panier
+
+X.Container()
+        .Layout(LayoutType.HBox)
+        .MarginSpec("-10 0 0 0")
+        .ID("DefaultContainer")
+        .Layout(LayoutType.Fit)
+        .Items(
+
+        X.FormPanel()
+                .ID("GeneralForm")
+                .Frame(true)
+                .MarginSpec("10 10 0 0")
+                .Padding(0)
+                .Listeners(ls =>
+                        {
+                            ls.FieldChange.Handler = "activateValidateSupplierOrder();";
+                        })
+                .FieldDefaults(fd => { fd.LabelWidth = 120; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+                .Buttons(
+                    X.Button()
+                        .ID("btnSave")
+                        .Text(Resources.SaveButton)
+                        .Disabled(true)
+                        .Icon(Icon.Disk)
+                        .DirectEvents(de =>
+                        {
+                            de.Click.Url = Url.Action("AddInventoryDirectory");
+                            de.Click.EventMask.ShowMask = true;
+                            de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                        }),
+
+                    X.Button()
+                        .ID("Cancel1")
+                        .Text(Resources.Cancel)
+                        .MarginSpec("0 20 10 10")
+                        .DirectEvents(de =>
+                        {
+                            de.Click.Url = Url.Action("Reset");
+                            de.Click.Complete = "";
+                            de.Click.EventMask.ShowMask = true;
+                            de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                        })
+                )
+            .Items(
+        //Container des éléments de formulaire de la table InventoryDirectory
+                X.FormPanel()
+                    .ID("InventoryDirectoryForm")
+                    .Layout(LayoutType.HBox)
+                    .MarginSpec("10 10 10 10")
+                    .Title(Resources.b_InventoryDirectory +  " Informations")
+                    .Items(
+                         X.FieldSet()
+                          .Height(110)
+                          .Flex(6)
+                          .Layout(LayoutType.Column)
+                            .Title(Resources.GeneralInfoIdentification)
+                          .MinHeight(110)
+                          .Items(
+                                X.TextField().Name("InventoryDirectoryID").ID("InventoryDirectoryID").Hidden(true),
+                                X.ComboBox()
+                                    .ID("BranchID")
+                                    .Name("BranchID")
+                                    .FieldLabel(Resources.Branches)
+                                    .AllowBlank(false).ForceSelection(true)
+                                    .BlankText(Resources.Branches + " " + Resources.RequiredField)
+                                    .LabelSeparator(labelSeparator)
+                                    .EmptyText(Resources.Select)
+                                    .DisplayField("BranchName")
+                                    .ValueField("BranchID")
+                                    .DirectEvents(de =>
+                                    {
+                                        de.Change.Url = Url.Action("ChangeBusDay");
+                                        de.Change.ExtraParams.Add(new Parameter("BranchID", "this.getValue()", ParameterMode.Raw));
+                                        de.Change.EventMask.ShowMask = true;
+                                        de.Change.EventMask.Msg = Resources.EventMaskMsg;
+                                    })
+
+                                        .Store(
+                                            X.Store()
+                                            .AutoLoad(true)
+                                            .Model(
+                                                X.Model()
+                                                    .IDProperty("BranchIDtore")
+                                                    .Fields(
+                                                        new ModelField("BranchID", ModelFieldType.Int) { Mapping = "BranchID" },
+                                                        new ModelField("BranchName", ModelFieldType.String) { Mapping = "BranchName" }
+                                                    )
+                                            )
+                                            .Proxy(
+                                                X.AjaxProxy()
+                                                    .Url(Url.Action("OpenedBusday"))
+                                                    .Reader(X.JsonReader().RootProperty("data"))
+                                            )
+
+                                        ),
+
+                            X.DateField().FieldLabel(Resources.UIDateOperation)
+                                .AllowBlank(false)
+                                .Name("InventoryDirectoryCreationDate")
+                                .ID("InventoryDirectoryCreationDate")
+                                .InputType(Ext.Net.InputType.DateTime)
+                                .ReadOnly(true),
+
+
+                                X.DateField().FieldLabel(Resources.UIDateOperation)
+                                    .AllowBlank(false)
+                                    .Name("InventoryDirectoryDate")
+                                    .ID("InventoryDirectoryDate")
+                                    .InputType(Ext.Net.InputType.DateTime)
+                                    .ReadOnly(true).Hidden(true)
+                                    .Value(DateTime.Now),
+
+                          X.TextField()
+                            .ID("InventoryDirectoryReference")
+                            .Name("InventoryDirectoryReference")
+                            .FieldLabel(Resources.Reference)
+                            .MarginSpec("0 0 5 0")
+                            .AllowBlank(false)
+                            .EnforceMaxLength(true)
+                            .MinLength(4)
+                            .ReadOnly(true),
+
+                        X.TextArea()
+                            .ID("InventoryDirectoryDescription")
+                            .Name("InventoryDirectoryDescription")
+                            .FieldLabel(FatSod.Ressources.Resources.Description)
+                            .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"></span> :")
+                          )
+
+                    ),
+
+                   //fin du items du fieldset contenant les infos sur l'achat
+
+                  X.Container()
+                    .Layout(LayoutType.HBox)
+                    .MarginSpec("10 10 10 10")
+                    .Items(
+                        X.FormPanel()
+                            .ID("FormAddInventoryDirectoryLine")
+                            .Title(Resources.AddProdCady)
+                            .Disabled(true)
+                            .Layout(LayoutType.Anchor)
+                            .Width(450)
+                            .DefaultAnchor("98%")
+                            .Listeners(ls =>
+                                {
+                                    ls.FieldChange.Handler = "ActivateValidateCady();";
+                                }
+                                )
+                            .Buttons(
+                                X.Button()
+                                    .Text(Resources.AddProdCady)
+                                    .Disabled(true)
+                                    .ID("AddToCady")
+                                    .DirectEvents(de =>
+                                    {
+                                        de.Click.Url = Url.Action("AddInventoryDirectoryLine");
+                                        de.Click.EventMask.ShowMask = true;
+                                        de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                                    }),
+                                X.Button()
+                                    .ID("Cancel2")
+                                    .Text("Cancel")
+                                    .OnClientClick("this.up('form').reset();")
+                              )
+                            .Items(
+                                X.TextField().Name("IsCadyEmpty").ID("IsCadyEmpty").Hidden(true).Value(1),
+                                X.TextField().Name("InventoryDirectoryLineID").ID("InventoryDirectoryLineID").Hidden(true),
+                                X.TextField().Name("TMPID").ID("TMPID").Hidden(true).Value(0),
+                               
+                                          X.ComboBox()
+                                                    .Name("LocalizationID")
+                                                    .FieldLabel(Resources.Localization)
+                                    .AllowBlank(false)
+                                    .ForceSelection(true)
+                                                    .BlankText(Resources.Localization + " " + Resources.RequiredField)
+                                    .ID("LocalizationID")
+                                                    .LabelSeparator(labelSeparator)
+                                                    .EmptyText(Resources.Select)
+                                                    .DisplayField("LocalizationLabel")
+                                                    .ValueField("LocalizationID")
+                                                    .Store(
+                                                        X.Store()
+                                                        .AutoLoad(false)
+                                                        .Model(
+                                                            X.Model()
+                                                                .IDProperty("DepartureLocationIDtore")
+                                                                .Fields(
+                                                                    new ModelField("LocalizationID", ModelFieldType.Int) { Mapping = "LocalizationID" },
+                                                                    new ModelField("LocalizationLabel", ModelFieldType.String) { Mapping = "LocalizationLabel" }
+                                                )
+                                                        )
+                                                        .Proxy(
+                                                            X.AjaxProxy()
+                                                                .Url(Url.Action("GetAllStockedLocations"))
+                                                                .Reader(X.JsonReader().RootProperty("data"))
+                                                        )
+                                                        .Parameters(ps =>
+                                                            ps.Add(new StoreParameter("BranchID", "App.BranchID.getValue()", ParameterMode.Raw))
+                                                        )
+                                                    )
+                                                    ,
+                                            X.FieldContainer().FieldLabel(Resources.Categories) //conteneur des choix pr la recherche d'un produit
+                                                .Layout(LayoutType.Anchor)
+                                    .LabelSeparator(labelSeparator)
+                                                .ID("ProductCategoryContent")
+                                                    .Items(
+                                                        X.ComboBox().Name("ProductCategory") //category des produits
+                                                        .Items(LoadComponent.GetProductCategory())
+                                                        .ValueField("ProductCategory")
+                                                        .DisplayField("ProductCategory")
+                                                        .AllowBlank(false).ForceSelection(true)
+                                                        .ID("ProductCategoryID")
+                                                        .Width(200)
+                                                        .EmptyText(Resources.chooseCategories)
+                                                        .AutoSelect(false)
+                                                        .SelectOnFocus(true)
+                                                        .Listeners(ls => ls.Select.Handler = @"App.ProductID.clear();
+                                                                                App.ProductNumberID.clear();
+                                                                                App.ProductID.getStore().load();
+                                                                                "
+                                                                    )
+                                                        .DirectEvents(de =>
+                                                            {
+                                                                //Chargement du combo des produits en fct du magasin, category et du numero du verre
+                                                                de.Select.Url = Url.Action("DisableNumero");
+                                                                de.Select.ExtraParams.Add(new Parameter("ProductCategoryID", "this.getValue()", ParameterMode.Raw));
+                                                            })
+                                                        ,
+
+                                                            X.Component().Width(10),
+
+                                                            X.ComboBox()
+                                                                .Name("ProductNumberID")
+                                                                .ID("ProductNumberID")
+                                                                .EmptyText(Resources.SelectNumber)
+                                                                .DisplayField("LensNumberFullCode")
+                                                                .ValueField("LensNumberID")
+                                                                .TypeAhead(false)
+                                                                .Width(300)
+                                                                .PageSize(10)
+                                                                .HideTrigger(true)
+                                                                .MinChars(0)
+                                                                .TriggerAction(TriggerAction.Query)
+                                                                .ListConfig(Html.X().BoundList()
+                                                                                .LoadingText("Searching...")
+                                                                                .ItemTpl(Html.X().XTemplate()
+                                                                                .Html(@<text>
+                                                                                    <div class="search-item">
+                                                                                        <h3><span>{LensNumberFullCode}</span></h3>
+                                                                                    </div>
+                                                                                </text>)
+                                                                )
+                                                            )
+                                                            .Store(Html.X().Store()
+                                                                .AutoLoad(false)
+                                                                .Proxy(Html.X().AjaxProxy()
+                                                                    .Url(Url.Action("GetAllPagingNumbers"))
+                                                                    .ActionMethods(am => am.Read = HttpMethod.POST)
+                                                                    .Reader(Html.X().JsonReader().RootProperty("data"))
+                                                                )
+                                                                .Model(Html.X().Model()
+                                                                    .Fields(
+                                                                        Html.X().ModelField().Name("LensNumberID").Type(ModelFieldType.Int),
+                                                                        Html.X().ModelField().Name("LensNumberFullCode").Type(ModelFieldType.String)
+                                                                    )
+                                                                )
+
+                                                                .Parameters(ps =>
+                                                                        { //en fct du magasin et de la category
+                                                                            ps.Add(new StoreParameter("ProductCategory", "App.ProductCategoryID.getValue()", ParameterMode.Raw));
+                                                                            ps.Add(new StoreParameter("localization", "App.LocalizationID.getValue()", ParameterMode.Raw));
+                                                                        })
+
+                                                            )
+                                                            .DirectEvents(de =>
+                                                                {
+                                                                    //recuperation des qtes du produit en fonction du magasin et du produit
+                                                                    de.Select.Url = Url.Action("OnLensNumberSelected");
+                                                                    de.Select.ExtraParams.Add(new Parameter("Localization", "App.LocalizationID.getValue()", ParameterMode.Raw));
+                                                                    de.Select.ExtraParams.Add(new Parameter("ProductNumberID", "this.getValue()", ParameterMode.Raw));
+                                                                    de.Select.ExtraParams.Add(new Parameter("ProductCategoryID", "App.ProductCategoryID.getValue()", ParameterMode.Raw));
+                                                                })
+                                                            .Listeners(ls =>
+                                                                {
+                                                                    ls.Select.Handler = @"App.ProductID.clear();
+                                                                            App.ProductID.getStore().load();
+
+                                                                            ";
+                                                                })
+
+                                                ),
+
+                                                X.FieldContainer().FieldLabel(Resources.Productlabel)
+                                .Layout(LayoutType.HBox)
+                                .LabelSeparator(labelSeparator)
+                                .ID("ProductlabelContent")
+                                    .Items(
+                                    X.ComboBox().Name("ProductID")
+                                        //.FieldLabel(Resources.Productlabel)
+                                        .Width(270)
+                                        .AllowBlank(false)
+                                        .ForceSelection(true)
+                                        .BlankText(Resources.Localization + " " + Resources.RequiredField)
+                                        .ID("ProductID")
+                                        .LabelSeparator(labelSeparator)
+                                        .EmptyText(Resources.Select)
+                                        //.SelectOnFocus(true)
+                                        //.HideBaseTrigger(false)
+                                        .HideTrigger(true)
+                                        //.TypeAhead(false)
+                                        //.PageSize(10)
+                                        .DisplayField("ProductCode")
+                                        .ValueField("ProductID")
+                                        .DirectEvents(de =>
+                                            {
+                                                //recuperation des qtes du produit en fonction du magasin et du produit
+                                                de.Select.Url = Url.Action("OnProductSelected");
+                                                de.Select.ExtraParams.Add(new Parameter("Localization", "App.LocalizationID.getValue()", ParameterMode.Raw));
+                                                de.Select.ExtraParams.Add(new Parameter("CurrentProduct", "this.getValue()", ParameterMode.Raw));
+                                            })
+                                        .TriggerAction(TriggerAction.Query)
+                                        .QueryMode(DataLoadMode.Local)
+                                        .ListConfig(Html.X().BoundList()
+                                            .LoadingText("Searching...")
+                                            .ItemTpl(Html.X().XTemplate()
+                                                .Html(@<text>
+                                                <div class="search-item">
+                                                    <h3><span>{ProductQuantity}</span>{ProductCode}</h3>
+                                                    {ProductLabel}
+                                                </div>
+                                                </text>)
+                                                    )
+                                                )
+
+                                                .Store(
+                                                    X.Store()
+                                                    .AutoLoad(true)
+                                                    .Model(
+                                                        X.Model()
+                                                        .IDProperty("ProductIDP")
+                                                        .Fields(
+                                                            new ModelField("ProductID", ModelFieldType.Int) { Mapping = "ProductID" },
+                                                            new ModelField("ProductCode", ModelFieldType.String) { Mapping = "ProductCode" },
+                                                            new ModelField("ProductLabel", ModelFieldType.String) { Mapping = "ProductLabel" },
+                                                            new ModelField("ProductQuantity", ModelFieldType.Float) { Mapping = "ProductQuantity" }
+                                                        )
+                                                    )
+                                                    .Proxy(
+                                                        X.AjaxProxy()
+                                                        .Url(Url.Action("GetAllProducts"))
+                                                        .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                                                        .Reader(X.JsonReader().RootProperty("data"))
+                                                    )
+                                                    .Parameters(ps =>
+                                                        {
+                                                            ps.Add(new StoreParameter("LocalizationID", "App.LocalizationID.getValue()", ParameterMode.Raw));
+                                                            ps.Add(new StoreParameter("ProductCategoryID", "App.ProductCategoryID.getValue()", ParameterMode.Raw));
+                                                            ps.Add(new StoreParameter("ProductNumberID", "App.ProductNumberID.getValue()", ParameterMode.Raw));
+                                                        }
+                                                    )
+                                                )
+                                                    )
+                                                )
+                                    ,
+                                 X.Component().Width(10),
+                                 X.FieldSet()
+                                    .Flex(1)
+                                    .Layout(LayoutType.Fit)
+                                    .Border(false)
+                                    .Padding(0)
+                                    .DefaultAnchor("100%")
+                                    .Items(
+                                        X.GridPanel()
+                                            .Title(Resources.CadyContent)
+                                            .Disabled(true)
+                                            .ID("InventoryDirectoryLines")
+                                            .Layout(LayoutType.Fit)
+                                            .MarginSpec("0 0 0 0")
+                                            .Frame(true)
+                                            .Collapsible(true)
+                                            .Store(
+                                                X.Store()
+                                                    .RemotePaging(true)
+                                                    .AutoLoad(false)
+                                                    .PageSize(6)
+                                                    .AutoLoad(true)
+                                                    .ID("InventoryDirectoryLineStore")
+                                                    .Model(
+                                                        X.Model()
+                                                            .Fields(
+                                                                new ModelField() { Name = "TMPID", Type = ModelFieldType.Int },
+                                                                new ModelField() { Name = "ProductLabel", Type = ModelFieldType.String },
+                                                                new ModelField() { Name = "LocalizationLabel", Type = ModelFieldType.String }
+                                                            )
+                                                    )
+                                                    .ServerProxy(
+                                                            X.AjaxProxy()
+                                                            .Url(Url.Action("InventoryDirectoryLines"))
+                                                            .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                                                            .Reader(X.JsonReader().RootProperty("data"))
+                                                    )
+                                            )
+
+                                            .ColumnModel(
+                                                    Html.X().Column()
+                                                        .Text(Resources.Designation)
+                                                        .DataIndex("ProductLabel")
+                                                        .Flex(1),
+                                                    Html.X().Column()
+                                                        .Text(Resources.Localization)
+                                                        .DataIndex("LocalizationLabel")
+                                                        .Flex(1),
+
+                                                    Html.X().ImageCommandColumn()
+                                                        .Width(30)
+                                                        .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.DELETE, profile, CodeValue.Supply.InventoryDirectory_SM.CODE,db))
+                                                        .Commands(
+                                                            Html.X().ImageCommand()
+                                                                .CommandName("Delete")
+                                                                .IconCls("icon-delete")
+                                                                .ToolTip(tt =>
+                                                                    {
+                                                                        tt.Text = Resources.msgDelete;
+                                                                        tt.Title = "Supression";
+                                                                    }
+                                                                    )
+                                                        )
+                                                        .DirectEvents(de =>
+                                                        {
+                                                            de.Command.Action = "RemoveInventoryDirectoryLine";
+                                                            de.Command.Confirmation.ConfirmRequest = true;
+                                                            de.Command.Confirmation.Message = Resources.ConfirmDeleteMessage;
+                                                            de.Command.Confirmation.Title = Resources.ConfirmDeleteTitle;
+                                                            de.Command.ExtraParams.Add(new Parameter("TMPID", "record.data.TMPID", ParameterMode.Raw));
+                                                            de.Command.EventMask.ShowMask = true;
+                                                            de.Command.EventMask.Msg = Resources.EventMaskMsg;
+                                                        }),
+                                                    Html.X().ImageCommandColumn()
+                                                            .Width(30)
+                                                            .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, profile, CodeValue.Supply.InventoryDirectory_SM.CODE,db))
+                                                            .Commands(
+                                                            Html.X().ImageCommand()
+                                                                    .CommandName("Edit")
+                                                                    .IconCls("icon-edit")
+                                                                    .ToolTip(tt => tt.Text = Resources.msgUpdate)
+                                                            )
+
+                                                            .DirectEvents(de =>
+                                                            {
+                                                                de.Command.Action = "UpdateInventoryDirectoryLine";
+                                                                de.Command.ExtraParams.Add(new Parameter("TMPID", "record.data.TMPID", ParameterMode.Raw));
+                                                                de.Command.EventMask.ShowMask = true;
+                                                                de.Command.EventMask.Msg = Resources.EventMaskUpdate;
+                                                            })
+                                                    )
+                                                        .Plugins(
+                                                    X.FilterHeader()
+                                                )
+                                                .BottomBar(
+                                                    X.PagingToolbar()
+                                            )
+
+                                    )//fin du tableau présentant le contenu du panier
+
+                            )//fin du items du formpanel du panier
+
+                 )//fin du items du formpanel
+
+
+            )//fin du items du container general
+
+
+    )
+
+    @* Tableau contenant la liste des achats *@
+    @(Html.X().GridPanel()
+        .Title(Resources.inventoryDirectoryList)
+        .ID("inventoryDirectoryList")
+        .Layout(LayoutType.Fit)
+        .MarginSpec("10 10 10 10")
+        .Margin(5)
+        .Frame(true)
+        .Collapsible(false)
+        .Store(X.Store()
+            .DataSource(Model)
+            .GroupField("Light")
+            .ID("InventoryDirectoryListStore")
+            //.RemotePaging(true)
+            .AutoLoad(true)
+            .PageSize(10)
+            .Model(
+                X.Model()
+                    .IDProperty("InventoryDirectoryListModel")
+                    .Fields(
+                        new ModelField("InventoryDirectoryID", ModelFieldType.Int),
+                        new ModelField("InventoryDirectoryReference", ModelFieldType.String),
+                        new ModelField("InventoryDirectoryCreationDate", ModelFieldType.Date),
+                        new ModelField("Branch", ModelFieldType.String),
+                        new ModelField("InventoryDirectoryDescription", ModelFieldType.String)
+
+                    )
+            )
+            
+            .Proxy(
+                X.AjaxProxy()
+                .Url(Url.Action("GetAllInventoryDirectories"))
+                .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                .Reader(X.JsonReader().RootProperty("data"))
+            )
+            .Sorters(
+                    X.DataSorter()
+                    .Property("Branch")
+                    .Direction(Ext.Net.SortDirection.ASC)
+            )
+        )
+
+        .ColumnModel(
+
+            Html.X().Column()
+                .Text(Resources.Branches)
+                .DataIndex("Branch")
+                .Flex(1),
+
+            Html.X().Column()
+                .Text(Resources.Reference)
+                .DataIndex("InventoryDirectoryReference")
+                .Flex(1)
+                ,
+            Html.X().DateColumn()
+                .Text(Resources.CreationDate)
+                .DataIndex("InventoryDirectoryCreationDate")
+                .Flex(1),
+            Html.X().Column()
+                .Text(Resources.Description)
+                .DataIndex("InventoryDirectoryDescription")
+                .Flex(1),
+
+            Html.X().ImageCommandColumn()
+                        .Width(30)
+                        .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.DELETE, profile, CodeValue.Supply.InventoryDirectory_SM.CODE,db))
+                        .Commands(
+                            Html.X().ImageCommand()
+                                .CommandName("Delete")
+                                .IconCls("icon-delete")
+                                .ToolTip(tt =>
+                                    {
+                                        tt.Text = Resources.msgDelete;
+                                        tt.Title = "Supression";
+                                    }
+                                 )
+                        )
+                        .DirectEvents(de =>
+                        {
+                            de.Command.Action = "DeleteInventoryDirectory";
+                            de.Command.Method = HttpMethod.POST;
+                            de.Command.Confirmation.ConfirmRequest = true;
+                            de.Command.Confirmation.Message = Resources.ConfirmDeleteMessage;
+                            de.Command.Confirmation.Title = Resources.ConfirmDeleteTitle;
+                            de.Command.ExtraParams.Add(new Parameter("InventoryDirectoryID", "record.data.InventoryDirectoryID", ParameterMode.Raw));
+                            de.Command.EventMask.ShowMask = true;
+                            de.Command.EventMask.Msg = Resources.EventMaskMsg;
+                        }),
+            Html.X().ImageCommandColumn()
+                    .Width(30)
+                    .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, profile, CodeValue.Supply.InventoryDirectory_SM.CODE,db))
+                    .Commands(
+                    Html.X().ImageCommand()
+                            .CommandName("Edit")
+                            .IconCls("icon-edit")
+                            .ToolTip(tt => tt.Text = Resources.msgUpdate)
+                    )
+
+                    .DirectEvents(de =>
+                    {
+                        de.Command.Action = "UpdateInventoryDirectory";
+                        de.Command.Method = HttpMethod.POST;
+                        de.Command.ExtraParams.Add(new Parameter("InventoryDirectoryID", "record.data.InventoryDirectoryID", ParameterMode.Raw));
+                        de.Command.EventMask.ShowMask = true;
+                        de.Command.EventMask.Msg = Resources.EventMaskUpdate;
+                    })
+            )
+                    .Plugins(
+                    X.FilterHeader()
+                )
+                .BottomBar(
+                    X.PagingToolbar()
+            )
+    )
+
+}

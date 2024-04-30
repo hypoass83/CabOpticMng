@@ -1,0 +1,281 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Supply.Entities;
+@using FatSod.DataContext.Initializer;
+@using FatSod.Ressources;
+
+
+@model FatSodDental.UI.Areas.Supply.ViewModel.ProductModel
+
+@{
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+    var X = Html.X();
+    
+    
+}
+
+@section content
+{
+    <h1>@FatSod.Ressources.Resources.ProductFormTitle</h1>
+
+    <p>
+        @FatSod.Ressources.Resources.RequireField <code>(*)</code>.
+    </p>
+
+    @(
+            //Début du FormPanel
+            X.FormPanel()
+                //paramétrages du formpanel
+                .ID("GenericProductForm")
+                .Collapsible(true)
+                .Layout(LayoutType.Column)
+                .Title(FatSod.Ressources.Resources.ProductAddTitle)
+                .Frame(true)
+                .MarginSpec("0 20 20 20")
+                .BodyPadding(10)
+                .FieldDefaults(fd => { fd.LabelWidth = 140; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; fd.LabelSeparator = "<span style = \"color : #ff0000; font-size: 1em;\"> * </span> : "; })
+                 //buttons enregistrer et Réinitialiser
+                .Buttons(
+                    //buttons enregistrer
+                    X.Button()
+                        .ID("btnSave")
+                        .Text(FatSod.Ressources.Resources.SaveButton)
+                        .Disabled(true)
+                        .Icon(Icon.Disk)
+                        .Margin(10)
+                            .DirectEvents(
+                                de =>
+                                {
+                                    de.Click.Url = Url.Action("AddManager");
+                                    de.Click.EventMask.ShowMask = true;
+                                    de.Click.EventMask.Msg = FatSod.Ressources.Resources.EventMaskMsg;
+                                }
+                            ),
+                        //buttons Réinitialiser
+                        X.Button()
+                            .ID("btnReset")
+                            .Text(FatSod.Ressources.Resources.ResetButton)
+                            .Icon(Icon.ArrowRefresh)
+                            .MarginSpec("0 20 10 10")
+                            .DirectEvents(
+                                    de =>
+                                    {
+                                        de.Click.Url = Url.Action("Reset");
+                                        de.Click.EventMask.ShowMask = true;
+                                        de.Click.EventMask.Msg = FatSod.Ressources.Resources.EventMaskMsg;
+                                    }
+                            )
+                    )
+                    //listeners du formpanel
+                    .Listeners(
+                        ls =>
+                        {
+                            ls.FieldChange.Handler = "if(App.GenericProductForm.isValid()){App.btnSave.setDisabled(false);}else{App.btnSave.setDisabled(true);}";
+                            ls.AfterRender.Handler = "if(App.GenericProductForm.isValid()){App.btnSave.setDisabled(false);}else{App.btnSave.setDisabled(true);}";
+                        }
+                     )
+                      //les champs de saisie du formulaire
+                     .Items(
+                        X.Container() @*début du box contenant code et libellé*@
+                            .PaddingSpec("5")
+                            .Layout(LayoutType.VBox)
+                                .Items(
+                                //identifiant
+                                X.TextField()
+                                    .Name("ProductID")
+                                    .ID("ProductID")
+                                    .Hidden(true),
+                                //code
+                                X.TextField()
+                                    .ID("ProductCode")
+                                    .Name("ProductCode")
+                                    .FieldLabel(FatSod.Ressources.Resources.Code)
+                                    .MsgTarget(MessageTarget.Side)//le lieu d'affichage du message d'erreur lié à un défaut de validation
+                                    .BlankText(FatSod.Ressources.Resources.InputBlankTextMessage)//message qui sera afficher si le champ reste vide
+                                    .AllowBlank(false)//dit si oui ou non le champ peut etre vide
+                                    .MinLength(4),
+                                //label
+                                X.TextField()
+                                    .ID("ProductLabel")
+                                    .Name("ProductLabel")
+                                    .FieldLabel(FatSod.Ressources.Resources.Label)
+                                    .MsgTarget(MessageTarget.Side)//le lieu d'affichage du message d'erreur lié à un défaut de validation
+                                    .BlankText(FatSod.Ressources.Resources.InputBlankTextMessage)//message qui sera afficher si le champ reste vide
+                                    .AllowBlank(false),//dit si oui ou non le champ peut etre vide
+                                //description
+                                X.TextArea()
+                                .ID("ProductDescription")
+                                .Name("ProductDescription")
+                                .FieldLabel(FatSod.Ressources.Resources.Description)
+                                .Value(Model.ProductDescription)//valeur par défaut de la zone de saisie
+                               ), @*fin du box contenant code, libellé et description*@
+    
+                           X.Container() @*début du box contenant stock de sécurité, catégorie et numéro de compte*@
+                            .PaddingSpec("5")
+                            .Layout(LayoutType.VBox)
+                                .Items(                                         
+                                //Catégorie
+                                X.ComboBox()
+                                    .ID("CategoryID")
+                                    .Name("CategoryID")
+                                    .FieldLabel(FatSod.Ressources.Resources.Categories)
+                                    .Items(Model.Categories)
+                                    .Value(Model.CategoryID)
+                                    .ValueField("CategoryID")
+                                    .AllowBlank(false)
+                                    .ForceSelection(true)//cette propriété empeche à l'utilisateur de soumettre le formulaire avec un contenu différent de ce qui est dans la liste déroulante
+                                    .EmptyText(FatSod.Ressources.Resources.Choice),    
+                                    //compte
+                                     X.ComboBox()
+                                        .ID("AccountID")
+                                        .Name("AccountID")
+                                        .FieldLabel(FatSod.Ressources.Resources.AccountNumber)
+                                        .Items(Model.AccountNumbers)
+                                        .ValueField("AccountID")
+                                        .AllowBlank(false)
+                                        .EmptyText(FatSod.Ressources.Resources.Choice),
+                                    //compte
+                                     X.NumberField()
+                                        .ID("SellingPrice")
+                                        .Name("SellingPrice")
+                                        .FieldLabel(FatSod.Ressources.Resources.Sellingprice)
+                                        .AllowBlank(false)
+                                        .MinValue(0)
+                                        .Value(0)
+                                        .EmptyText(FatSod.Ressources.Resources.Choice),
+
+                                    X.MultiCombo().Name("Stores")
+                                        //.MarginSpec("50 0 0 0")
+                                        .FieldLabel("Stores")
+                                        .AutoSelect(true)
+                                        //.LabelSeparator(" <span style = \"color : #ff0000; font-size: 1em;\">  </span> :")
+                                        .Items(LoadComponent.Localizations)
+                                        .ForceSelection(true)
+                                        .ID("Stores")
+                                        .AllowBlank(true)
+                                        .BlankText(Resources.Localization + " " + Resources.RequiredField)
+                               ) @*fin du box contenant stock de sécurité, catégorie et numéro de compte*@
+
+                                )
+                                @*Fin du FormPanel*@
+    )
+    @*fin de la partie formulaire*@
+
+    @*Début du tableau*@
+    @(Html.X().GridPanel()
+        .Title(FatSod.Ressources.Resources.GenericProductList)
+        .ID("ProductList")
+        .Layout(LayoutType.Fit)
+        .Padding(10)
+        .Frame(true)
+        .Collapsible(true)
+        .Store(
+            
+            Html.X().Store()
+                .RemotePaging(true)
+                .ID("ProductListStore")
+                .AutoLoad(true)
+                .PageSize(10)
+                .GroupField("Light")
+                .DataSource(Model.Products)
+                .Model(Html.X().Model()
+                    .Fields(
+                        new ModelField() { Name = "ProductID", Type = ModelFieldType.Int },
+                        new ModelField() { Name = "ProductCode", Type = ModelFieldType.String },
+                        new ModelField() { Name = "ProductLabel", Type = ModelFieldType.String },
+                        new ModelField() { Name = "CategoryLabel", Type = ModelFieldType.String },
+                        new ModelField() { Name = "AccountLabel", Type = ModelFieldType.String },
+                        new ModelField() { Name = "ProductDescription", Type = ModelFieldType.String },
+                        new ModelField() { Name = "SellingPrice", Type = ModelFieldType.Float }
+            )
+                )
+                .ServerProxy(X.AjaxProxy()
+                .Url(Url.Action("GetAllProducts"))
+                .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                .Reader(X.JsonReader().RootProperty("data"))
+            ))
+
+        .ColumnModel(
+            Html.X().Column()
+                    .Text(FatSod.Ressources.Resources.Code)
+                    .DataIndex("ProductCode")
+                    .Flex(1),
+            Html.X().Column()
+                .Text(FatSod.Ressources.Resources.Label)
+                .DataIndex("ProductLabel")
+                .Flex(1),            
+            Html.X().Column()
+                    .Text(FatSod.Ressources.Resources.Category)
+                    .DataIndex("CategoryLabel")
+                    .Flex(1),
+            Html.X().Column()
+                .Text(FatSod.Ressources.Resources.AccountNumber)
+                .DataIndex("AccountLabel")
+                .Flex(1),
+            Html.X().Column()
+                .Text(FatSod.Ressources.Resources.Sellingprice)
+                .DataIndex("SellingPrice")
+                .Flex(1),    
+            Html.X().Column()
+                .Text(FatSod.Ressources.Resources.Description)
+                .DataIndex("ProductDescription")
+                .Flex(1),    
+            Html.X().ImageCommandColumn()
+                .Width(30)
+                .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.DELETE, profile, CodeValue.Supply.GenericProduct_SM.CODE,db))
+                .Commands(
+                    Html.X().ImageCommand()
+                        .CommandName("Delete")
+                        .IconCls("icon-delete")
+                        .ToolTip(tt =>
+                            {
+                                tt.Text = FatSod.Ressources.Resources.ConfirmDeleteMessage;
+                                tt.Title = "Supression";
+                            }
+                            )
+                )
+                .DirectEvents(de =>
+                {
+                    de.Command.Action = "DeleteProduct";
+                    de.Command.Method = HttpMethod.POST;
+                    de.Command.Confirmation.ConfirmRequest = true;
+                    de.Command.Confirmation.Message = FatSod.Ressources.Resources.ConfirmDeleteMessage;
+                    de.Command.Confirmation.Title = FatSod.Ressources.Resources.ConfirmDeleteTitle;
+                    de.Command.ExtraParams.Add(new Parameter("ProductID", "record.data.ProductID", ParameterMode.Raw));
+                    de.Command.EventMask.ShowMask = true;
+                    de.Command.EventMask.Msg = FatSod.Ressources.Resources.EventMaskMsg;
+                }),
+            Html.X().ImageCommandColumn()
+                .Width(30)
+                .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, profile, CodeValue.Supply.GenericProduct_SM.CODE,db))
+                .Commands(
+                Html.X().ImageCommand()
+                        .CommandName("Edit")
+                        .IconCls("icon-edit")
+                        .ToolTip(tt => tt.Text = "Modifier ?")
+                )
+
+                .DirectEvents(de =>
+                {
+                    de.Command.Action = "UpdateProduct";
+                    de.Command.Method = HttpMethod.GET;
+                    de.Command.ExtraParams.Add(new Parameter("ProductID", "record.data.ProductID", ParameterMode.Raw));
+                    de.Command.EventMask.ShowMask = true;
+                    de.Command.EventMask.Msg = FatSod.Ressources.Resources.EventMaskUpdate;
+                })
+            )
+            .Plugins(
+                X.FilterHeader()
+            )
+                    .BottomBar(
+                            X.PagingToolbar()
+                    )
+    )
+    @*Fin du tableau*@
+}

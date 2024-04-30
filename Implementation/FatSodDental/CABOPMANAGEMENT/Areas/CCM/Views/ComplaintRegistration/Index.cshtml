@@ -1,0 +1,520 @@
+﻿@using FatSod.Ressources;
+@using FatSod.Supply.Entities;
+@using FatSod.DataContext.Initializer;
+@using CABOPMANAGEMENT.Tools;
+
+@{
+    ViewBag.Title = @Resources.CCM_REG;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+<div class="box box-primary box-body">
+    <div class="row">
+        <div class="col-md-12">
+            <fieldset>
+                <div class="panel panel-default">
+                    <div class="panel-body2">
+                        <div id="searchForm" class="row ipt">
+                            <div class="col-sm-2">@Resources.UIBeginDate</div>
+                            <div class="col-sm-3">
+                                <input class="form-control datepicker checkDateNoGraterThanToday" id="startDate" type="text" placeholder="choose sale date" value="@ViewBag.OperationDate">
+                            </div>
+
+                            <div class="col-sm-2">@Resources.UIEndDate</div>
+                            <div class="col-sm-3">
+                                <input class="form-control datepicker checkDateNoGraterThanToday" id="endDate" type="text" placeholder="choose sale date" value="@ViewBag.OperationDate">
+                            </div>
+
+                            <div class="col-sm-2">
+                                <button id="btnSearch" class="btn btn-primary btn-success">@Resources.Search</button>
+                            </div>
+
+                        </div>
+                        <table class="table" id="mainTable">
+                            <thead>
+                                <tr class="dataTableHead">
+                                    <th>@Resources.UIDateOperation</th>
+                                    <th>@Resources.Customer</th>
+                                    <th>@Resources.PhoneNumber</th>
+                                    <th>@Resources.Value</th>
+                                    <th>@Resources.CustomerType</th>
+                                    <th>@Resources.Insurance</th>
+                                    <th>@Resources.InsuredCompany</th>
+                                    <th>Occurrences</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                        </table>
+                        <div class="col-sm-offset-5 col-sm-2" style="/*margin-top:10px;*/">
+                            <button id="btnNotFound" class="btn btn-primary btn-danger">Not Found</button>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+    <div class="row">
+    </div>
+    <div id="ComplaintForm">
+        <div class="row">
+            <div class="col-md-12">
+                <fieldset>
+                    <legend>Complaint Form</legend>
+                    <div class="panel" style="background-color: #99bce8;">
+                        <div class="panel-body">
+                            <input type="hidden" id="CumulSaleAndBillID" />
+                            <div class="row">
+
+                                <div class="col-sm-6">
+                                    <div class="row">
+                                        <div class="col-sm-offset-6 col-sm-6">
+                                            @Resources.Complaint
+                                        </div>
+                                        <div class="col-sm-12">
+                                            <textarea class="form-control complaint-textarea" id="Complaint"></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-4">
+                                            <div class="row">
+                                                <div class="col-sm-12">Is Cash<code>(*)</code></div>
+                                                <div class="col-sm-offset-1 col-sm-12">
+                                                    <input type="checkbox" id="IsCashCustomer" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-4">
+                                            <div class="row">
+                                                <div class="col-sm-12">Is Cash Other<code>(*)</code></div>
+                                                <div class="col-sm-offset-2 col-sm-12">
+                                                    <input type="checkbox" id="IsCashOtherCustomer" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-4">
+                                            <div class="row">
+                                                <div class="col-sm-12">Is Insured<code>(*)</code></div>
+                                                <div class="col-sm-offset-1 col-sm-12">
+                                                    <input type="checkbox" id="IsInsuredCustomer" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-3">
+                                    <div class="row ipt">
+                                        <div class="col-sm-12">@Resources.ComplaintQuotation<code>(*)</code></div>
+                                        <div class="col-sm-12">
+                                            <select id="ComplaintQuotationId" class="form-control"></select><br />
+                                        </div>
+                                    </div>
+                                    <div class="row ipt">
+                                        <div class="col-sm-12">Purchase Date<code>(*)</code></div>
+                                        <div class="col-sm-12">
+                                            <input class="form-control datepicker checkDateNoGraterThanToday" id="PurchaseDate" type="text" placeholder="choose Purchase date">
+                                        </div>
+                                    </div>
+                                    <div class="row ipt">
+                                        <div class="col-sm-12">Customer Name<code>(*)</code></div>
+                                        <div class="col-sm-12">
+                                            <input type="text" id="CustomerName" class="form-control"/>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-sm-3">
+                                    <div class="row ipt">
+                                        <div class="col-sm-12">@Resources.PhoneNumber<code>(*)</code></div>
+                                        <div class="col-sm-12">
+                                            <input type="text" id="PhoneNumber" class="form-control" />
+                                        </div>
+                                    </div>
+                                    <div class="row ipt">
+                                        <div class="col-sm-12">@Resources.Insurance<code>(*)</code></div>
+                                        <div class="col-sm-12">
+                                            <input type="text" id="Insurance" class="form-control" />
+                                        </div>
+                                    </div>
+                                    <div class="row ipt">
+                                        <div class="col-sm-12">@Resources.InsuredCompany<code>(*)</code></div>
+                                        <div class="col-sm-12">
+                                            <input type="text" id="InsuredCompany" class="form-control" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-2" style="margin-left:10%;margin-top:10px;">
+                <button id="btnCancel" class="btn btn-primary btn-danger">@Resources.ResetButton</button>
+            </div>
+            <div class="col-sm-2" style="margin-top:10px;">
+                <button id="btnSubmit" class="btn btn-primary btn-success">@Resources.ValidateButton</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Css Begins Here -->
+
+<style>
+
+    input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+    }
+
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 6px;
+    }
+
+    #img-upload {
+        width: 100%;
+    }
+
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        /*border: 1px solid #ddd !important;*/
+        margin-left: 10px;
+        min-width: 0;
+        padding: 0px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 70px;
+    }
+
+    .panel-body1 {
+        height: 100px;
+        margin-top: 5px;
+        /*margin-left: 15%;*/
+    }
+
+    .panel-body2 {
+        height: 225px;
+        /*margin-top: 10px;*/
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+
+    .panel-body3 {
+        height: 75px;
+        margin-top: 5px;
+        /*margin-left: 15%;*/
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        /* width: 100%; */
+        /*border: 1px solid #ddd;*/
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #99bce8;
+        /* margin-top: 10px;*/
+    }
+
+    #searchForm {
+        padding-bottom: 5px;
+        background-color: #99bce8;
+        padding-top: 5px;
+    }
+
+    #ComplaintForm {
+        margin-top: 5px;
+    }
+</style>
+
+<script>
+    var isCustomerNotFound = false;
+    function getCustomerComplaints(test) {
+
+        var startDate = $("#startDate").val();
+        var endDate = $("#endDate").val();
+
+        $('#ComplaintForm').hide();
+        if (test) {
+            $('#mainTable').dataTable().fnDestroy();
+        }
+        var oTable = $('#mainTable');
+        oTable = $('#mainTable').dataTable({
+            fixedColumns: true,
+            "paging": true,
+            "pageLength": 4,
+            "lengthMenu": [[4, 8, 12, -1], [4, 8, 12, "All"]],
+            "searching": true,
+            "ordering": true,
+            "pagingType": "full_numbers",
+            // Ajax call
+            "ajax": {
+                "url": "@Url.Action("getCustomerComplaints", "ComplaintRegistration")",
+                //"type": "GET",
+                "datatype": "json",
+                "data": { startDate: startDate, endDate: endDate }
+            },
+
+            "columns": [
+                { "data": "DisplayDate", "width": "10%" },
+                { "data": "Customer", "width": "20%" },
+                { "data": "PhoneNumber", "width": "10%" },
+                { "data": "CustomerValue", "width": "10%" },
+                { "data": "CustomerType", "width": "5%" },
+                { "data": "Insurance", "width": "15%" },
+                { "data": "InsuredCompany", "width": "15%" },
+                { "data": "Occurrences", "width": "5%" },
+                {// this is Actions Column
+                    mRender: function (data, type, row) {
+                        var addOption = '@LoadAction.IsSubMenuActionAble(MenuAction.ADD, @profile, CodeValue.CCM.ComplaintRegistration.CODE, db)';
+                        var T_addOption = (addOption == 'False') ? '<a href="#" class="editor_remove" onclick="GetDetails(' + row.CumulSaleAndBillID + ',' + row.Occurrences +')"><span class="glyphicon glyphicon-edit"></a>' : '';
+                        return T_addOption;
+                    }
+                }
+            ],
+            "fnRowCallback": function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                if (aData.CustomerValue == 'VIP') {
+                    $(nRow).addClass('vip');
+                }
+
+                if (aData.Occurrences >= 1) {
+                    $(nRow).addClass('urgent-sale');
+                }
+            },
+            dom: 'Bfrtip',
+            buttons: [
+                'copy', 'csv', 'excel'
+            ]
+        });
+
+    }
+
+    function GetDetails(CumulSaleAndBillID, occurrences) {
+        populateProfiles(occurrences);
+
+        var customerComplaint = getEmptyCustomerComplaint();
+        customerComplaint.CumulSaleAndBillID = CumulSaleAndBillID;
+        FillNotFoundFields(CumulSaleAndBillID);
+        $('#ComplaintForm').show();
+        initComplaintForm(customerComplaint);
+    }
+
+    function FillNotFoundFields(CumulSaleAndBillID) {
+        $.get('@Url.Action("GetSaleDetails", "ComplaintRegistration")', { CumulSaleAndBillID: CumulSaleAndBillID }, function (cumulSaleAndBill) {
+            console.log("Sale Details: ", cumulSaleAndBill);
+
+            $('#PhoneNumber').val(cumulSaleAndBill.PhoneNumber);
+            $('#Insurance').val(cumulSaleAndBill.Insurance);
+            $('#InsuredCompany').val(cumulSaleAndBill.InsuredCompany);
+            $('#CustomerName').val(cumulSaleAndBill.Customer);
+            $('#PurchaseDate').val(cumulSaleAndBill.DisplayDate);
+
+            $('#IsCashCustomer').prop('checked', cumulSaleAndBill.IsCashCustomer);
+            $('#IsCashOtherCustomer').prop('checked', cumulSaleAndBill.IsCashOtherCustomer);
+            $('#IsInsuredCustomer').prop('checked', cumulSaleAndBill.IsInsuredCustomer);
+
+        });
+    }
+
+    function validateComplaintForm() {
+        var isAllValid = true;
+        if (isCustomerNotFound == false && ($('#CumulSaleAndBillID').val() == 0 || $('#CumulSaleAndBillID').val().trim() == '0')) {
+            isAllValid = false;
+            $("#CumulSaleAndBillID").addClass("invalid-data");
+        }
+        else {
+            $("#CumulSaleAndBillID").addClass("valid-data");
+        }
+
+        if ($('#ComplaintQuotationId').val() == 0 || $('#ComplaintQuotationId').val().trim() == '0') {
+            isAllValid = false;
+            $("#ComplaintQuotationId").addClass("invalid-data");
+        }
+        else {
+            $("#ComplaintQuotationId").addClass("valid-data");
+        }
+
+        if ($('#Complaint').val() == 0 || $('#Complaint').val().trim() == '0') {
+            isAllValid = false;
+            $("#Complaint").addClass("invalid-data");
+        }
+        else {
+            $("#Complaint").addClass("valid-data");
+        }
+
+        return isAllValid;
+    }
+
+
+    function AddCustomerComplaint() {
+        console.log('Data To Persist ');
+        var isAllValid = validateComplaintForm();;
+
+        if (isAllValid) {
+            var data = getComplaintFormData();
+            console.log('Data To Persist ', data);
+            $(this).val('Please wait...');
+
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("AddCustomerComplaint", "ComplaintRegistration")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        //reinitialisation des champs
+                        getCustomerComplaints(true);
+                        ClearForm();
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                },
+                error: function (response) {
+                    console.log(response);
+                    alert('Error. Please try again.', response);
+                }
+            });
+        }
+    }
+
+    function ClearForm() {
+        $('#CumulSaleAndBillID').val(0);
+        $('#Complaint').val("");
+        $('#ComplaintQuotationId').val(0);
+        $('#PhoneNumber').val("");
+        $('#Insurance').val("");
+        $('#InsuredCompany').val("");
+        $('#CustomerName').val("");
+        $('#PurchaseDate').val("");
+
+        $('#IsCashCustomer').prop('checked', false);
+        $('#IsCashOtherCustomer').prop('checked', false);
+        $('#IsInsuredCustomer').prop('checked', false);
+    }
+
+    function initComplaintForm(customerComplaint) {
+        $('#CumulSaleAndBillID').val(customerComplaint.CumulSaleAndBillID);
+        $('#Complaint').val(customerComplaint.Complaint);
+        $('#ComplaintQuotationId').val(customerComplaint.ComplaintQuotationId);
+    }
+
+    function getEmptyCustomerComplaint() {
+        var customerComplaint = {
+            Complaint: "",
+            ComplaintQuotationId: 0,
+            CumulSaleAndBillID: 0,
+        };
+        return customerComplaint;
+    }
+
+    function populateProfiles(occurrences) {
+        console.log("Populate Profile ", occurrences);
+        $.get('@Url.Action("GetProfiles", "ComplaintRegistration")', { occurrences: occurrences }, function (data) {
+            console.log("Profiles ", data);
+            $('#ComplaintQuotationId').empty();
+            $('#ComplaintQuotationId').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#ComplaintQuotationId').append($("<option></option>").val(value.ProfileID).html(value.ProfileLabel));
+            });
+        }, 'json');
+    }
+
+    function getComplaintFormData() {
+        var customerComplaint = {
+            Complaint: $('#Complaint').val(),
+            ComplaintQuotationId: $('#ComplaintQuotationId').val(),
+            CumulSaleAndBillID: $('#CumulSaleAndBillID').val(),
+            PhoneNumber: $('#PhoneNumber').val(),
+            Insurance: $('#Insurance').val(),
+            InsuredCompany: $('#InsuredCompany').val(),
+            Customer: $('#CustomerName').val(),
+            PurchaseDate: $('#PurchaseDate').val(),
+            IsCashCustomer: $('#IsCashCustomer').prop('checked'),
+            IsCashOtherCustomer: $('#IsCashOtherCustomer').prop('checked'),
+            IsInsuredCustomer: $('#IsInsuredCustomer').prop('checked'),
+            IsCustomerNotFound: isCustomerNotFound
+        };
+        return customerComplaint;
+    }
+    $(document).on('ready', function () {
+
+        $(function () {
+            $(".datepicker").datepicker({
+                format: 'yyyy-mm-dd'
+            });
+        });
+
+        $('#ComplaintForm').hide();
+
+
+        $('#btnNotFound').on('click', function () {
+            isCustomerNotFound = !isCustomerNotFound;
+            $('#CumulSaleAndBillID').val(0);
+            console.log("isCustomerNotFound ", isCustomerNotFound);
+            if (isCustomerNotFound == true) {
+                $('#ComplaintForm').show();
+                populateProfiles(0);
+            }
+
+            if (isCustomerNotFound == false) {
+                $('#ComplaintForm').hide();
+            }
+        });
+
+        $('#btnSearch').on('click', function () {
+            $('#ComplaintForm').hide();
+            getCustomerComplaints(true);
+        });
+
+        $('#btnSubmit').on('click', function () {
+            AddCustomerComplaint();
+        });
+
+        $('#btnCancel').on('click', function () {
+            // location.reload(true);
+            initComplaintForm(getEmptyCustomerComplaint());
+        });
+
+        getCustomerComplaints(false);
+
+    });
+</script>

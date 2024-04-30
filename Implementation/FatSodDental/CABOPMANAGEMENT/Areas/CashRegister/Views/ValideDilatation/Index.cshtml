@@ -1,0 +1,879 @@
+﻿@using FatSod.Ressources;
+@using FatSod.Supply.Entities;
+@using FatSod.DataContext.Initializer;
+
+@{
+    ViewBag.Title = @Resources.ValideDilatation;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string cashRegisterCode = CodeValue.Accounting.DefaultCodeAccountingSection.CODECAIS;
+    string banCode = CodeValue.Accounting.DefaultCodeAccountingSection.CODEBANK;
+    string digitalPaymentCode = CodeValue.Accounting.DefaultCodeAccountingSection.DIGITAL_PAYMENT;
+}
+
+<div class="row" style="margin-top:5px;margin-left:25px">
+    @if (TempData["Message"] != null)
+    {
+        @Html.Raw(TempData["Message"])
+    }
+</div>
+<div class="box box-primary box-body" id="SaleValideForm">
+    <div class="row">
+        <div class="col-md-12">
+            <fieldset>
+                <input class="form-control input-sm" id="DisplayForm" type="hidden" value="@ViewBag.DisplayForm">
+                <div class="panel panel-default">
+                    <div class="panel-body2">
+
+                        <table class="table" id="mainTable">
+                            <thead>
+                                <tr class="dataTableHead">
+                                    <th>ID</th>
+                                    <th>@Resources.UIDateOperation</th>
+                                    <th>@Resources.CustorderEstimation</th>
+                                    <th>@Resources.Commandref</th>
+                                    <th>@Resources.Customer</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+
+                        </table>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+    <div class="row" style="margin-top:-20px">
+        <div class="col-md-12">
+            <fieldset class="panel-bodyfielset1">
+                <div class="panel panel-default">
+                    <div class="panel-body1">
+                        <input class="form-control" id="heureVente" name="heureVente" type="hidden">
+                        <input class="form-control" id="StatutSale" name="StatutSale" value="@SalePurchaseStatut.Delivered" type="hidden">
+                        <input class="form-control" id="OldStatutSale" name="OldStatutSale" value="@SalePurchaseStatut.Ordered" type="hidden">
+                        <input class="form-control number" id="SaleValidate" name="SaleValidate" value="0" type="hidden">
+                        <input class="form-control" id="SaleDeliver" name="SaleDeliver" type="hidden">
+                        <input class="form-control" id="AuthoriseSaleID" name="AuthoriseSaleID" type="hidden">
+                        <input class="form-control" id="ReceiveAmoungID" name="ReceiveAmoungID" value="1" type="hidden">
+                        <input class="form-control number" id="SavingSaleID" name="SavingSaleID" value="1" type="hidden">
+                        <input class="form-control" id="BranchID" name="BranchID" type="hidden">
+                        <input class="form-control" id="CustomerID" name="CustomerID" type="hidden">
+                        <input type="hidden" id="PostByID" />
+                        <input type="hidden" id="ConsultDilPrescID" />
+                        <input type="hidden" id="SellerID" />
+                        
+                        <div class="row ipt">
+                            <div class="col-sm-1">@Resources.Customer</div>
+                            <div class="col-sm-3">
+                                <input class="form-control" id="CustomerName" name="CustomerName" type="text" readonly>
+                            </div>
+                            <div class="col-sm-1">@Resources.Commanddate</div>
+                            <div class="col-sm-3">
+                                <input class="form-control" id="SaleDate" name="SaleDate" type="text" value="@ViewBag.BusnessDayDate" readonly>
+                            </div>
+                            <div class="col-sm-1">@Resources.Deliverydate</div>
+                            <div class="col-sm-3">
+                                <input class="form-control" id="SaleDeliveryDate" name="SaleDeliveryDate" type="text" value="@ViewBag.BusnessDayDate" readonly>
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-1">@Resources.SaleRef</div>
+                            <div class="col-sm-3">
+                                <input class="form-control" id="SaleReceiptNumber" name="SaleReceiptNumber" type="text" readonly>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-7">
+            <fieldset>
+                <div class="panel panel-default">
+                    <div class="panel-body4">
+                        <table class="table" id="CommandlineTable">
+                            <thead>
+                                <tr class="dataTableHead">
+                                    <th>@Resources.Productlabel</th>
+                                    <th>@Resources.Sellingprice</th>
+                                    <th>@Resources.Quantity</th>
+                                    <th>@Resources.Partialprice</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+        <div class="col-md-5">
+            <fieldset>
+                <div class="panel panel-default">
+                    <div class="panel-body4">
+                        <div class="row ipt" style="margin-top:2px;">
+                            <input class="form-control" id="GridState" name="GridState" type="hidden" value="0">
+                            <div class="col-sm-4">@Resources.GrossAmount</div>
+                            <div class="col-sm-6" style="padding-left: 0px; padding-right: 25px;">
+                                <input class="form-control" id="InitialHT" type="text" readonly>
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <input class="form-control" id="InitialTTC" type="hidden">
+                            <div class="col-sm-4">@Resources.Reduction (%)</div>
+                            <div class="col-sm-3" style="padding: 0px">
+                                <input class="form-control" id="Reduction" name="RateReduction" type="number" value="0" readonly>
+                            </div>
+                            <div class="col-sm-4" style="padding: 0px">
+                                <input class="form-control" id="ReductionAmount" type="number" name="ReductionAmount" value="0" readonly>
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-4">@Resources.NetCom</div>
+                            <div class="col-sm-6" style="padding-left: 0px; padding-right: 25px;">
+                                <input class="form-control" id="NetCom" name="NetCom" type="text" readonly>
+                            </div>
+                        </div>
+                        <div class="row ipt" id="discountdiv">
+                            <div class="col-sm-4">@Resources.Discount (%)</div>
+                            <div class="row">
+                                <div class="col-sm-3" style="padding: 0px">
+                                    <input class="form-control" id="Discount" name="RateDiscount" type="number" value="0" readonly>
+                                </div>
+                                <div class="col-sm-4" style="padding: 0px">
+                                    <input class="form-control" id="DiscountAmount" name="DiscountAmount" type="number" value="0" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-4">@Resources.NetFin</div>
+                            <div class="col-sm-6" style="padding-left: 0px; padding-right: 25px;">
+                                <input class="form-control" id="TotalPriceHT" name="TotalPriceHT" type="text" readonly>
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-4">@Resources.Transport</div>
+                            <div class="col-sm-6" style="padding-left: 0px; padding-right: 25px;">
+                                <input class="form-control" id="Transport" name="Transport" type="text" value="0" readonly>
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-4">@Resources.TVA (%)</div>
+                            <div class="row">
+                                <div class="col-sm-3" style="padding: 0px">
+                                    <input class="form-control" id="VatRate" name="VatRate" type="text" value="0" readonly>
+                                </div>
+                                <div class="col-sm-4" style="padding: 0px">
+                                    <input class="form-control" id="TVAAmount" name="TVAAmount" type="text" value="0" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-4">@Resources.PriceTTC</div>
+                            <div class="col-sm-6" style="padding-left: 0px; padding-right: 25px;">
+                                <input class="form-control" id="TotalPriceTTC" name="TotalPriceTTC" type="text" readonly>
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-4">@Resources.AdvancedAmount</div>
+                            <div class="col-sm-6" style="padding-left: 0px; padding-right: 25px;">
+                                <input class="form-control" id="SliceAmount" name="SliceAmount" type="number" readonly>
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-4">@Resources.RemainingAmount</div>
+                            <div class="col-sm-6" style="padding-left: 0px; padding-right: 25px;">
+                                <input class="form-control" id="RemaingAmount" name="RemaingAmount" type="text" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <fieldset style="margin-top:-25px">
+                <div class="panel panel-default">
+                    <div class="panel-body3">
+                        <input class="form-control" id="CashRegisterCode" name="CashRegisterCode" value="@cashRegisterCode" type="hidden">
+                        <input class="form-control" id="banCode" name="banCode" value="@banCode" type="hidden">
+                        <input class="form-control" id="digitalPaymentCode" name="digitalPaymentCode" value="@digitalPaymentCode" type="hidden">
+
+                        <input class="form-control number" id="PaymentDelay" name="PaymentDelay" value="0" type="hidden">
+                        <input class="form-control number" id="Guaranteed" name="Guaranteed" value="0" type="hidden">
+
+                        <div class="row ipt" style="margin-left:1%; margin-bottom: 5px;">
+
+                            <div class="col-sm-4">
+                                <div class="row ipt">
+                                    <div class="col-sm-12">@Resources.PaymentMethod <code>(*)</code></div>
+                                </div>
+                                <div class="row ipt">
+                                    <div class="col-sm-12">
+                                        <select class="form-control" id="BuyType" name="BuyType"></select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-4" id="BankInfo" hidden>
+                                <div class="row ipt">
+                                    <div class="col-sm-12" id="labelchoixbank">@Resources.ChoixBank <code>(*)</code></div>
+                                </div>
+                                <div class="row ipt">
+                                    <div class="col-sm-12" id="inputchoixbank">
+                                        <select class="form-control" id="PaymentMethodID" name="PaymentMethodID"></select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-8" id="DigitalPaymentInfo" hidden>
+                                <div class="row ipt">
+                                    <div class="col-sm-6">
+                                        <div class="row ipt">
+                                            <div class="col-sm-12">@Resources.Choice <code>(*)</code></div>
+                                        </div>
+                                        <div class="row ipt">
+                                            <div class="col-sm-12">
+                                                <select class="form-control" id="DigitalPaymentMethodID" name="DigitalPaymentMethodID"></select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <div class="row ipt">
+                                            <div class="col-sm-12">@Resources.TransactionCode <code>(*)</code></div>
+                                        </div>
+                                        <div class="row ipt">
+                                            <div class="col-sm-12">
+                                                <input type="text" class="form-control" id="TransactionIdentifier" name="TransactionIdentifier" class="input-sm form-control" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="row ipt" style="margin-left:2%;">
+                            <div class="col-sm-4">
+                                <div class="row">
+                                    <div class="col-sm-12">@Resources.UIDevise</div>
+                                </div>
+                                <div class="row">
+                                    <input class="form-control" id="DeviseID" name="DeviseID" value="@ViewBag.DefaultDeviseID" type="hidden" />
+                                    <input class="form-control" id="Devise" name="Devise" value="@ViewBag.DefaultDevise" type="text" disabled />
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="row">
+                                    <div class="col-sm-12">@Resources.Representant</div>
+                                </div>
+                                <div class="row">
+                                    <input class="form-control" id="Representant" name="Representant" type="text">
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </fieldset>
+        </div>
+    </div>
+    <div class="row" style="margin-top:-20px">
+        <div class="col-sm-2" style="margin-left:10%">
+            <button id="btnCancel" class="btn btn-primary btn-danger">@Resources.ResetButton</button>
+        </div>
+        <div class="col-sm-2">
+            <button id="btnSubmit" class="btn btn-primary btn-success">@Resources.SaveButton</button>
+        </div>
+        <div class="col-sm-2">
+        </div>
+
+        <div class="col-sm-2">
+            <button id="btnPrint" class="btn btn-primary" onclick="location.href='@Url.Action("RptReceipt", "ReportsHome", new { area = "" })'"><i class="fa fa-print"></i> @Resources.PrintReceipt</button>
+        </div>
+        <div class="col-sm-2">
+            <button id="btnDeliveryOrder" class="btn btn-primary" onclick="location.href='@Url.Action("RptReceiptDetailOrther", "ReportsHome", new { area = ""})'"><i class="fa fa-print"></i> @Resources.PrintDatailReceipt</button>
+        </div>
+    </div>
+</div>
+
+<!-- Css Begins Here -->
+
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 6px;
+    }
+
+    #img-upload {
+        width: 100%;
+    }
+
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin-left: 10px;
+        min-width: 0;
+        padding: 10px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 70px;
+    }
+
+    .panel-bodyfielset1 {
+        height: 100px;
+    }
+
+    .panel-bodyfielset2 {
+        height: 50px;
+    }
+
+    .panel-body1 {
+        height: 80px;
+        margin-top: 5px;
+    }
+
+    .panel-body2 {
+        height: 200px;
+        margin-top: 10px;
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+
+    .panel-body3 {
+        height: 125px;
+        margin-top: 5px;
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+
+    .panel-body4 {
+        height: 300px;
+        margin-left: 10px;
+    }
+</style>
+
+<script>
+
+
+    function enablebutton()
+    {
+        $('#btnDeliveryOrder').prop('disabled', false);
+        $('#btnReceipt').prop('disabled', false);
+    }
+    function disablebutton() {
+        $('#btnDeliveryOrder').prop('disabled', true);
+        $('#btnReceipt').prop('disabled', true);
+    }
+    function OnSliceAmountChanged() {
+
+        var BuyType = $('#BuyType').val().trim();
+        var SliceAmount = $('#SliceAmount').val();
+
+        var cashRegisterCode = $('#CashRegisterCode').val();
+
+        onBuyTypeChanged();
+    }
+
+
+    //chargement des commandes a valider
+    function GetAllCommand(test) {
+
+        if (test)
+        {
+            $('#mainTable').dataTable().fnDestroy();
+        }
+        var oTable = $('#mainTable');
+
+        oTable = $('#mainTable').dataTable({
+
+            fixedColumns: true,
+            "paging": true,
+            "pageLength": 3,
+            "lengthMenu": [[3, 5, 10, -1], [3, 5, 10, "All"]],
+            "searching": true,
+            "ordering": true,
+            "pagingType": "full_numbers",
+            // Ajax call
+            "ajax": "@Url.Action("ModelSaleValidate", "ValideDilatation")",
+            "dom": '<"toolbar">frtip',
+            "columns": [
+                { "data": "AuthoriseSaleID", "width": "1%" },
+                { "data": "SaleDate" },
+                { "data": "TotalPriceHT" },
+                { "data": "SaleReceiptNumber" },
+                { "data": "CustomerName" },
+                {// this is Actions Column
+                    mRender: function (data, type, row) {
+                        return '<a href="#" class="editor_remove" onclick="UpdateItem(' + row.AuthoriseSaleID + ')"><span class="glyphicon glyphicon-edit"></span></a>'
+                    }
+                }
+            ]
+        });
+        var brefresh = '<a href="#" class="btn btn-primary" style="margin-left:40%;" onclick="RefreshGrid()"><span class="fa fa-refresh"></span></a>'
+        $("div.toolbar").html(brefresh);
+    }
+
+    function clearInitializeCommandFields()
+    {
+        $('#CustomerName').val('');
+        $('#SaleDate').val('');
+        $('#SaleDeliveryDate').val('');
+        $('#SaleReceiptNumber').val('');
+        $('#ConsultDilPrescID').val('0');
+
+        $('#AuthoriseSaleID').val('');
+        $('#BranchID').val('');
+        $('#CustomerID').val('');
+        $('#Representant').val('');
+        $('#btnSubmit').prop('disabled', false);
+    }
+    function clearApplyExtraPrices()
+    {
+        $('#InitialHT').val('');
+        $('#InitialTTC').val('');
+        $('#Reduction').val('');
+        $('#ReductionAmount').val('');
+        $('#NetCom').val('');
+        $('#Discount').val('');
+        $('#DiscountAmount').val('');
+        $('#TotalPriceHT').val('');
+        $('#Transport').val('');
+        $('#VatRate').val('');
+        $('#TVAAmount').val('');
+        $('#TotalPriceTTC').val('');
+        $('#SliceAmount').val('');
+        $('#RemaingAmount').val('');
+
+        $('#BuyType').val('0');
+        onBuyTypeChanged();
+        GetCommandline(true);
+    }
+
+    function UpdateItem(obj) {
+        var globalID = obj;
+
+        $.get('@Url.Action("InitializeCommandFields", "ValideDilatation")', { ID: parseInt(globalID) }, function (data) {
+            $.each(data, function (key, value) {
+                $('#CustomerName').val(value.CustomerName);
+                $('#SaleDate').val(value.SaleDate);
+                $('#SaleDeliveryDate').val(value.SaleDeliveryDate);
+                $('#SaleReceiptNumber').val(value.SaleReceiptNumber);
+                $('#ConsultDilPrescID').val(value.ConsultDilPrescID);
+
+                $('#AuthoriseSaleID').val(value.AuthoriseSaleID);
+                $('#BranchID').val(value.BranchID);
+                $('#CustomerID').val(value.CustomerID);
+                $('#Representant').val(value.Representant);
+                $('#PostByID').val(value.PostByID)
+                $('#SellerID').val(value.SellerID);
+                $('#BuyType').val('0');
+                onBuyTypeChanged();
+            });
+        }, 'json');
+
+        //chargement detail
+        $.get('@Url.Action("ApplyExtraPrices", "ValideDilatation")', { ID: parseInt(globalID) }, function (data) {
+            $.each(data, function (key, value) {
+                $('#InitialHT').val(value.InitialHT);
+                $('#InitialTTC').val(value.InitialTTC);
+                $('#Reduction').val(value.Reduction);
+                $('#ReductionAmount').val(value.ReductionAmount);
+                $('#NetCom').val(value.NetCom);
+                $('#Discount').val(value.Discount);
+                $('#DiscountAmount').val(value.DiscountAmount);
+                $('#TotalPriceHT').val(value.TotalPriceHT);
+                $('#Transport').val(value.Transport);
+                $('#VatRate').val(value.VatRate);
+                $('#TVAAmount').val(value.TVAAmount);
+                $('#TotalPriceTTC').val(value.TotalPriceTTC);
+                $('#SliceAmount').val(value.SliceAmount);
+                $('#RemaingAmount').val(value.RemaingAmount);
+
+                GetCommandline(true);
+                OnSliceAmountChanged();
+            });
+        }, 'json');
+        disablebutton();
+
+    }
+    //chargement d'une commandes d'un client
+    function GetCommandline(test) {
+
+        if (test)
+        {
+            $('#CommandlineTable').dataTable().fnDestroy();
+        }
+        var oTable = $('#CommandlineTable');
+
+        oTable = $('#CommandlineTable').dataTable({
+            "paging": true,
+            "pageLength": 5,
+            "lengthMenu": [[5, 10, 15, -1], [5, 10, 15, "All"]],
+            "searching": false,
+            "ordering": true,
+            "pagingType": "full_numbers",
+            // Ajax call
+            "ajax": "@Url.Action("CommandOderLines", "ValideDilatation")",
+
+            "columns": [
+                //{ "data": "LineID" },
+                { "data": "ProductLabel","width": "50%" },
+                { "data": "LineUnitPrice" },
+                { "data": "LineQuantity" },
+                { "data": "LineAmount" }
+            ]
+        });
+    }
+
+    // Get the BuyType List
+    function populateBuyType() {
+        $.get('@Url.Action("populateBuyType", "ValideDilatation")', {}, function (data) {
+            $('#BuyType').empty();
+            $('#BuyType').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#BuyType').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+
+    // Get the PaymentMethodID List
+    function populatePaymentMethodID(BuyTypeCode) {
+
+        $.get('@Url.Action("PaymentMethods", "ValideDilatation")', { BuyTypeCode: BuyTypeCode }, function (data) {
+            $('#PaymentMethodID').empty();
+            $('#PaymentMethodID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#PaymentMethodID').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+
+    // Get Digital Payment Method List
+    function populateDigitalPaymentMethods(BuyTypeCode) {
+
+        $.get('@Url.Action("DigitalPaymentMethods", "ValideDilatation")', { BuyTypeCode: BuyTypeCode }, function (data) {
+            $('#DigitalPaymentMethodID').empty();
+            $('#DigitalPaymentMethodID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#DigitalPaymentMethodID').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+
+    function onBuyTypeChanged() {
+        var BuyTypeCode = $('#BuyType').val().trim();
+        console.log("digitalPaymentCode => " + $('#digitalPaymentCode').val());
+        var banCode = $('#banCode').val().trim();
+        var digitalPaymentCode = $('#digitalPaymentCode').val().trim();
+
+
+        if (BuyTypeCode != banCode) {
+            $('#PaymentMethodID').empty();
+            $('#BankInfo').hide();
+        }
+
+        if (BuyTypeCode != digitalPaymentCode) {
+            $('#DigitalPaymentMethodID').empty();
+            $('#DigitalPaymentInfo').hide();
+            $('#TransactionIdentifier').val("");
+        }
+
+        if (BuyTypeCode == banCode) {
+            $('#BankInfo').show();
+            populatePaymentMethodID(BuyTypeCode);
+            return;
+        }
+
+        if (BuyTypeCode == digitalPaymentCode) {
+            $('#DigitalPaymentInfo').show();
+            populateDigitalPaymentMethods();
+            return;
+        }
+
+
+    }
+
+
+    function ValideVente()
+    {
+
+        var isAllValid = true;
+        var d = new Date();
+        var hourPayment = d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds();
+        $('#heureVente').val(hourPayment);
+
+        if ($('#heureVente').val().trim() == '') {
+            isAllValid = false;
+        }
+        if ($('#AuthoriseSaleID').val().trim() == '') {
+            isAllValid = false;
+        }
+        if ($('#BranchID').val().trim() == '') {
+            isAllValid = false;
+        }
+        if ($('#CustomerID').val().trim() == '') {
+            isAllValid = false;
+        }
+        if ($('#CustomerName').val().trim() == '') {
+            isAllValid = false;
+            $("#CustomerName").addClass("invalid-data");
+        }
+        else {
+            $("#CustomerName").addClass("valid-data");
+        }
+
+        if ($('#SaleReceiptNumber').val() == '') {
+            isAllValid = false;
+            $("#SaleReceiptNumber").addClass("invalid-data");
+        }
+        else {
+            $("#SaleReceiptNumber").addClass("valid-data");
+        }
+
+        if ($('#ConsultDilPrescID').val() == '' || $('#ConsultDilPrescID').val() == '0' || $('#ConsultDilPrescID').val() == null) {
+            isAllValid = false;
+            alert('Wrong posting of command dilatation');
+            $("#ConsultDilPrescID").addClass("invalid-data");
+        }
+        else {
+            $("#ConsultDilPrescID").addClass("valid-data");
+        }
+
+
+        if (parseInt($('#TotalPriceTTC').val()) <=0) {
+            isAllValid = false;
+            $("#TotalPriceTTC").addClass("invalid-data");
+        }
+        else {
+            $("#TotalPriceTTC").addClass("valid-data");
+        }
+
+        if ($('#BuyType').val() == "0") {
+            isAllValid = false;
+            $("#BuyType").addClass("invalid-data");
+        }
+        else {
+            $("#BuyType").addClass("valid-data");
+        }
+
+        if ($('#DeviseID').val().trim() == '') {
+            isAllValid = false;
+            $("#DeviseID").addClass("invalid-data");
+        }
+        else {
+            $("#DeviseID").addClass("valid-data");
+        }
+
+        isAllValid = !isAllValid ? false : IsDigitalPaymentValid();
+
+        // Sans ce test, IsBankValid peut retourner true et annuler le resultat de IsDigitalPaymentValid quand il est false
+        isAllValid = !isAllValid ? false : IsBankValid();
+
+        var buyType = $('#BuyType').val();
+        var banCode = $('#banCode').val();
+        var PaymentMethodID = $('#PaymentMethodID').val();
+        var DigitalPaymentMethodID = $('#DigitalPaymentMethodID').val();
+
+        if (isAllValid) {
+
+
+            var data = {
+
+                BuyType: $('#BuyType').val().trim(),
+                heureVente: $('#heureVente').val().trim(),
+                TotalPriceTTC: $('#TotalPriceTTC').val(),
+                SaleDate: $('#SaleDeliveryDate').val(),
+                SliceAmount: $('#SliceAmount').val(),
+                CustomerID: $('#CustomerID').val(),
+                PaymentMethodID: (buyType == banCode) ? PaymentMethodID : DigitalPaymentMethodID,
+
+                StatutSale:$('#StatutSale').val(),
+                OldStatutSale: $('#OldStatutSale').val(),
+                SaleValidate: $('#SaleValidate').val(),
+                SavingSaleID: $('#SavingSaleID').val(),
+                BranchID: $('#BranchID').val(),
+                CustomerName: $('#CustomerName').val().trim(),
+                SaleDeliveryDate: $('#SaleDeliveryDate').val(),
+                SaleReceiptNumber: $('#SaleReceiptNumber').val().trim(),
+                bank: $('#banCode').val().trim(),
+                PaymentDelay: $('#PaymentDelay').val(),
+
+                DeviseID: $('#DeviseID').val(),
+                Representant:$('#Representant').val().trim(),
+                Guaranteed: $('#Guaranteed').val(),
+                AuthoriseSaleID: $('#AuthoriseSaleID').val(),
+                ReceiveAmoungID: $('#ReceiveAmoungID').val(),
+
+                VatRate: $('#VatRate').val(),
+                RateReduction: $('#Reduction').val(),
+                RateDiscount: $('#Discount').val(),
+                Transport: $('#Transport').val(),
+                SaleDeliver: 1,
+                PostByID: $('#PostByID').val(),
+                ConsultDilPrescID: $('#ConsultDilPrescID').val(),
+                SellerID: $('#SellerID').val(),
+                PaymentReference: $('#TransactionIdentifier').val(),
+            }
+            $(this).val('Please wait...');
+            $('#btnSubmit').prop('disabled', true);
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("ValidateSale", "ValideDilatation")',
+                type: "POST",
+                data: JSON.stringify(data), //formData, //formData,//
+                dataType: "JSON",
+                contentType: "application/json",
+                //contentType: false,
+                //processData: false,
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        //reinitialisation des champs
+                        clearApplyExtraPrices();
+                        clearInitializeCommandFields();
+                        GetAllCommand(true);
+                        enablebutton();
+                    }
+                    else {
+                        alert(d.Message);
+                        $('#btnSubmit').prop('disabled', false);
+                    }
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                }
+            });
+        }
+
+    }
+    function RefreshGrid()
+    {
+        clearApplyExtraPrices();
+        clearInitializeCommandFields();
+        GetAllCommand(true);
+        enablebutton();
+    }
+
+    function IsDigitalPaymentValid() {
+        var BuyType = $("#BuyType").val();
+        var digitalPaymentCode = $("#digitalPaymentCode").val();
+
+        if (BuyType != digitalPaymentCode)
+            return true;
+
+        // verification proprement dite commence ici
+        var res = true;
+        if ($('#DigitalPaymentMethodID').val().trim() == 0) {
+            $("#DigitalPaymentMethodID").addClass("invalid-data");
+            res = false;
+        }
+        else {
+            $("#DigitalPaymentMethodID").addClass("valid-data");
+        }
+
+        if ($('#TransactionIdentifier').val().trim() == "") {
+            $("#TransactionIdentifier").addClass("invalid-data");
+            res = false;
+        }
+        else {
+            $("#TransactionIdentifier").addClass("valid-data");
+        }
+
+        return res;
+    }
+
+    function IsBankValid() {
+        var BuyType = $("#BuyType").val();
+        var banCode = $("#banCode").val();
+
+        if (BuyType != banCode)
+            return true;
+        var res = true;
+        // verification proprement dite commence ici
+        if ($('#PaymentMethodID').val().trim() == 0) {
+            $("#PaymentMethodID").addClass("invalid-data");
+            res = false;
+        }
+        else {
+            $("#PaymentMethodID").addClass("valid-data");
+        }
+
+        return res;
+
+    }
+
+    $(document).on('ready', function () {
+        if ($('#DisplayForm').val().trim() == 0) {
+            $("#SaleValideForm").hide();
+        }
+        else {
+            $("#SaleValideForm").show();
+        }
+        $("#discountdiv").hide();
+
+        GetAllCommand(false);
+
+        //chargement des ventes selectionnees
+        GetCommandline(false);
+        //action kd la caisse saisi le montant du avancé par le client
+        $("#SliceAmount").blur(function ()
+        {
+            OnSliceAmountChanged();
+        });
+        //action kd la caisse saisi le montant du avancé par le client
+        $("#SliceAmount").keyup(function () {
+            var TotalPriceTTC=$('#TotalPriceTTC').val().trim();
+            var SliceAmount=$('#SliceAmount').val().trim();
+            var remaingAmount = parseInt(TotalPriceTTC) - parseInt(SliceAmount);
+            $('#RemaingAmount').val(remaingAmount);
+        });
+        populateBuyType();
+        $("#BuyType").change(function () {
+            onBuyTypeChanged();
+        });
+
+        $('#btnCancel').on('click', function () {
+            location.reload(true);
+        });
+        $('#btnSubmit').on('click', function () {
+            ValideVente();
+        });
+    });
+
+
+</script>

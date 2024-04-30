@@ -1,0 +1,5 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<parameters>
+  <setParameter name="IIS Web Application Name" value="FSInventory" />
+  <setParameter name="EFDbContext-Web.config Connection String" value="Data Source=FATSOD-SERVER\FATSODDBMS;Initial Catalog=Inventory;Persist Security Info=True;User ID=sa;Password=Kokodi12" />
+</parameters>

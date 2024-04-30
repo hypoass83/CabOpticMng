@@ -1,0 +1,439 @@
+﻿body {
+    padding: 20px;
+	color: #222222;
+    font-family: 'OpenSansRegular';
+    font-size: 16px;
+    line-height: 1.5;
+    /*padding-top: 50px;
+    padding-bottom: 20px;*/
+}
+.body-content {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+/*.search-item {
+                font: normal 11px tahoma, arial, helvetica, sans-serif;
+                padding: 3px 10px 3px 10px;
+                border: 1px solid #fff;
+                border-bottom: 1px solid #eeeeee;
+                white-space: normal;
+                color: #555;
+            }
+
+    .search-item h3 {
+        display: block;
+        font: inherit;
+        font-weight: bold;
+        color: #222;
+        margin: 0px;
+    }
+            
+    .search-item h3 span {
+        float: right;
+        font-weight: normal;
+        margin: 0 0 5px 5px;
+        width: 100px;
+        display: block;
+        clear: none;
+    }*/
+        
+
+p {
+    width: 650px;
+}
+
+.ext-ie .x-form-text {
+    position: static !important;
+}
+
+.kdms, .btn-info {
+        color: #fff;
+    }
+.menu-icon-cls {
+        min-height: 30px;
+        min-width: 30px;
+    }
+
+    .file-cls {
+        /*color : #ffffff;*/
+        /*background: #000000;*/
+    }
+
+    .file-over-cls {
+        color : #ffffff;
+    }
+
+    .file-base-cls {
+    }
+
+    .default-menu-cls {
+        /*color : #ffffff;*/
+        background :#bfe9f6;
+        color: #000000;
+        height: 14px;
+    }
+    .logo-inventory-cls{
+        /*background-image: url("../../Content/Images/Icons/inventoryLogo.png");*/
+        background-color: #b200ff;
+    }
+    .logo1{
+        /*background-image: url(../../Content/Images/Icons/inventoryLogo.png);*/
+    }
+/* Set width on the form input elements since they're 100% wide by default */
+input,
+select,
+textarea {
+    max-width: 280px;
+}
+
+body {
+    padding: 20px;
+    color: #9503d4;
+    /*//font-family: 'OpenSansRegular';*/
+    font-size: 14px;
+    line-height: 1.5;
+    background-image: url('../Images/bdCenter.png');
+}
+
+/*  Header
+    -----------------------------------------------------------------------------------------------*/
+
+.site-header {
+    background: #24fd35;
+    width: 100%;
+    height: 100px;
+    color: #7d8791;
+    /*//font-family: "Microsoft NeoGothic";*/
+}
+
+.icon-edit {
+    background-image: url('../Images/Icons/pencil.png');
+}
+
+.icon-opt {
+    background-image: url('../Images/Icons/opt.png');
+}
+
+.icon-delete {
+    background-image: url('../Images/Icons/delete.png');
+}
+
+.icon-broom {
+    background-image: url('../Images/Icons/broom.png');
+}
+
+.subMenu {
+    margin-left: 12px;
+}
+
+.icon-delete2 {
+    background-image: url('../Images/Icons/delete.png');
+    position: relative;
+    left: 1em;
+}
+
+.icon-edit2 {
+    background-image: url('../Images/Icons/pencil.png');
+    margin-right: 1em;
+}
+
+.error {
+    color: #ff0000;
+}
+
+
+/*Début des CSS de la page Index de Commande*/
+
+            /* Styling of global error indicator */
+            .form-error-state {
+                font-size: 11px;
+                padding-left: 20px;
+                height: 16px;
+                line-height: 18px;
+                background: no-repeat 0 0;
+                cursor: default;
+            }
+
+            .notification-cls {
+                position: relative;
+                top: -2em;
+            }
+
+            .form-error-state-invalid {
+                color: #C30;
+                /*background-image: url(../../../../icons/exclamation-png/ext.axd);*/
+            }
+
+            .form-error-state-valid {
+                color: #090;
+                /*background-image: url(../../../../icons/accept-png/ext.axd);*/
+            }
+
+            /* Error details tooltip */
+            .errors-tip .error {
+                font-style: italic;
+            }
+
+/*Fin des CSS de la page Index de Commande*/
+
+/*  Header
+    -----------------------------------------------------------------------------------------------*/
+
+.top-navigation {
+    background: #242d35;
+	width: 100%;
+    height: 90px;
+	color: #7d8791;
+	font-family: "TitilliumText25L400wt";
+}
+
+.navigation-bar {
+    background: #242d35;
+    height: 90px;
+    color: #7d8791;
+}
+
+.navigation-bar:before,
+.navigation-bar:after {
+    content: " ";
+    display: table;
+}
+
+.navigation-bar:after {
+    clear: both;
+}
+
+.logo-container {
+    background: #1e262d;
+    width: 250px;
+    height: 90px;
+    float: left;
+    text-align: center;
+    padding: 28px 0;
+}
+
+.nav-title {
+    font-family: "TitilliumText25L1wt";
+    font-size: 18px;
+    float: left;
+    padding: 20px 30px 16px;
+    line-height: 24px;
+}
+
+.nav-title span {
+    color: #0589c7;
+}
+
+/* Dropdown Menu */
+
+.nav-menu {
+    float: right;
+    z-index: 2;
+    position: fixed;
+    top: 0;
+    right: 0;
+}
+
+.nav-menu:before {
+    color: #7d8791;
+    content: "MENU";
+    font-size: 15px;
+    font-weight: bold;
+    display: inline-block;
+    line-height: 90px;
+    width: 90px;
+    text-align: center;
+}
+
+.menu-button {
+    width: 90px;
+    text-align: center;
+}
+
+.menu-button span {
+    font-size: 28px;
+    color: #7d8791;
+    padding: 43px 0 44px;
+}
+
+.nav-menu {
+    display: inline;
+    margin: 0;
+     list-style: none;
+}
+
+.nav-menu li {
+    font-size: 15px;
+    display: inline-block;
+    position: relative;
+    cursor: pointer;
+    -webkit-transition: all 0.2s;
+       -moz-transition: all 0.2s;
+        -ms-transition: all 0.2s;
+         -o-transition: all 0.2s;
+            transition: all 0.2s;
+}
+
+.nav-menu.active .menu-button,
+.menu-button:hover {
+    background: #1e262d;
+}
+
+.nav-menu:hover:before {
+    cursor: pointer;
+}
+
+.nav-menu li ul {
+    background: #1e262d;
+    padding: 10px 0;
+    position: absolute;
+    top: 90px;
+    right: 0;
+    min-width: 260px;
+    display: none;
+    opacity: 0;
+    visibility: hidden;
+    -webkit-transiton: opacity 0.2s;
+      -moz-transition: opacity 0.2s;
+       -ms-transition: opacity 0.2s;
+        -o-transition: opacity 0.2s;
+          -transition: opacity 0.2s;
+}
+
+.nav-menu li ul li {
+    background: #1e262d;
+    display: block;
+}
+
+.nav-menu li ul li a {
+	text-decoration: none;
+	color: #7d8791;
+    display: block;
+    padding: 6px 20px;
+    white-space: nowrap;
+}
+
+.nav-menu.active li ul li:hover {
+	background: #242d35;
+}
+
+.nav-menu.active li ul li:hover a {
+    color: #fff;
+    text-decoration: none;
+}
+
+.nav-menu.active li ul {
+    display: block;
+    opacity: 1;
+    visibility: visible;
+}
+
+.nav-menu .separator,
+.nav-menu .separator:hover {
+    height: 1px;
+    margin: 10px 0;
+    overflow: hidden;
+    background: #2D373F !important;
+}
+
+/* Buttons */
+
+.button {
+    display: inline-block;
+    text-align: center;
+    vertical-align: middle;
+    cursor: pointer;
+    background: #49545e;
+    font-family : 'OpenSansRegular';
+	font-size: 14px;
+    text-decoration: none;
+    color: #fff;
+    padding: 10px 0;
+    width: 140px;
+    margin-left: 10px;
+	-webkit-transition:all 0.2s ease-out;
+	   -moz-transition:all 0.2s ease-out;
+       	    transition:all 0.2s ease-out;
+	-webkit-border-radius: 20px;
+	   -moz-border-radius: 20px;
+	        border-radius: 20px;
+}
+
+.button:hover,
+.button:active,
+.button:focus
+ {
+    background: #3892d3;
+    color: #fff;
+    text-decoration: none;
+}
+
+
+/*  Super Header
+    -----------------------------------------------------------------------------------------------*/
+
+.sup-header {
+    background: none repeat scroll 0 0 #2B2B2B;
+    position: relative;
+    color: #fff;
+    padding: 0.5em 0;
+}
+
+.sup-header strong {
+	font-weight: normal;
+}
+
+.text-danger {
+    padding: 0.25em 0.5em;
+	display: inline-block;
+	background : #D70E28;
+	color: #fff;
+	text-decoration: none;
+	text-align: center;
+	cursor: pointer;
+	-webkit-transition:all 0.2s ease-out;
+	-moz-transition:all 0.2s ease-out;
+	transition:all 0.2s ease-out;
+	-webkit-border-radius : 4px;
+	-moz-border-radius    : 4px;
+	border-radius         : 4px;
+}
+
+.sup-header .notification {
+    padding: 0.1875rem auto;
+    margin-left: 21px;
+}
+
+.sup-header .small {
+    font-size: 0.844rem;
+    line-height: 1.8444;
+}
+
+.sup-header a {
+	padding: 10px 0 0 0;
+	color: #fff;
+	line-height: 20px;
+	text-decoration: none;
+}
+
+.sup-header a:hover {
+	color: #fff;
+	text-decoration: none;
+}
+
+.my-carousel {
+        overflow-x: hidden !important;
+    }
+.form-error-state {
+            font-size: 11px;
+            padding-left: 20px;
+            height: 16px;
+            line-height: 18px;
+            background: no-repeat 0 0;
+            cursor: default;
+        }
+
+        .lenfield {
+            width: 500px;
+            color: green;
+        }

@@ -1,0 +1,384 @@
+﻿
+@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+@using CABOPMANAGEMENT.Tools;
+
+@model IEnumerable<FatSod.Supply.Entities.InventoryDirectory>
+@{
+    ViewBag.Title = "Inventory Reconcilliation";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var profile = (Session["UserProfile"] == null) ? 0 : (int)Session["UserProfile"];
+    var user = (Session["UserID"] == null) ? 0 : (int)Session["UserID"];
+
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+
+}
+
+<div class="box box-primary box-body">
+
+    <div class="row">
+        <div class="col-md-12">
+            <fieldset>
+                <legend>@Resources.GeneralInfoIdentification</legend>
+                <div class="panel panel-default">
+                    <div class="panel-body1">
+
+                        <input type="hidden" id="InventoryCountingId" />
+                        <input type="hidden" id="RegisteredById" value="@user" />
+                        <input type="hidden" id="ReconciliationDate" value="@ViewBag.BusnessDayDate" />
+
+                        <div class="col-md-6">
+                            <div class="row ipt" style="margin-top:2px;">
+                                <div class="col-sm-3">@Resources.Reference</div>
+                                <div class="col-sm-7">
+                                    <input class="form-control input-sm" id="Reference" type="text" value="@ViewBag.Reference" readonly>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="row ipt" style="margin-top:2px;">
+                                <div class="col-sm-3">@Resources.AutorizedBy</div>
+                                <div class="col-sm-7">
+                                    <select class="form-control" id="AuthorizedById" name="AuthorizedById"> </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+
+
+    <div class="row">
+        <div class="col-md-12">
+            <fieldset>
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <table class="table" id="mainTable">
+                            <thead>
+                                <tr class="dataTableHead">
+                                    <th>
+                                        StockId
+                                    </th>
+                                    <th>
+                                        @Resources.BarCode
+                                    </th>
+                                    <th>
+                                        @Resources.Marque
+                                    </th>
+                                    <th>
+                                        @Resources.NumeroSerie
+                                    </th>
+                                    <th>
+                                        @Resources.Designation
+                                    </th>
+                                    <th>
+                                        Stock
+                                    </th>
+                                    <th>
+                                        Counted
+                                    </th>
+                                    <th>
+                                        Shortage
+                                    </th>
+                                    <th>
+                                        Surplus
+                                    </th>
+                                    <th>
+                                        Input
+                                    </th>
+                                    <th>
+                                        Output
+                                    </th>
+                                    <th>
+                                        Reconciliation
+                                    </th>
+                                    <th>
+                                        Justification
+                                    </th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-8">
+        </div>
+        <div class="col-sm-2">
+            <button type="submit" class="btn btn-primary btn-success" id="btnSubmit">@Resources.SaveButton</button>
+        </div>
+        <div class="col-sm-2">
+            <button type="button" id="btnCancel" class="btn btn-primary btn-danger">@Resources.ResetButton</button>
+        </div>
+    </div>
+
+
+
+
+</div>
+
+<style>
+    .ipt {
+        margin-bottom: 3px;
+        /* margin-left: 1px;*/
+    }
+    .not-counted {
+        color: white !important;
+        background-color: #b70909 !important;
+    }
+
+    .excess-counted {
+        color: white !important;
+        background-color: #cc8910 !important;
+    }
+</style>
+
+<script>
+    $(document).on('ready', function () {
+        populateUsers();
+        LoadInventoryCounting($('#Reference').val());
+        $('#btnSubmit').on('click', AddReconciliation)
+    });
+
+    function GetExistingInventoryCountingLines(test) {
+
+	if (test) {
+		$('#mainTable').dataTable().fnDestroy();
+	}
+	var oTable = $('#mainTable');
+	var reference = $('#Reference').val();
+	oTable = $('#mainTable').dataTable({
+		"paging": true,
+		"pageLength": 4,
+		"lengthMenu": [[4, 8, 12, -1], [4, 8, 12, "All"]],
+        "searching": true,
+		"ordering": true,
+		"pagingType": "full_numbers",
+		"ajax": {
+			"url": "@Url.Action("GetExistingInventoryCountingLines", "Reconciliation")",
+			"datatype": "json",
+			"data": { reference: reference }
+        },
+        "columnDefs": [
+            //{
+            //    "targets": [0],
+            //    "visible": false,
+            //    "searchable": false
+            //}
+        ],
+		"columns": [
+			{ "data": "StockId", "width": "8%" },
+			{ "data": "Barcode", "width": "8%" },
+			{ "data": "Marque", "width": "10%" },
+			{ "data": "NumeroSerie", "width": "15%" },
+			{ "data": "ProductLabel", "width": "10%" },
+			{ "data": "StockQuantity", "width": "5%" },
+			{ "data": "CountedQuantity", "width": "5%" },
+			{ "data": "Shortage", "width": "5%" },
+            { "data": "Surplus", "width": "5%" },
+            { "data": "Input", "width": "5%" },
+			{ "data": "Output", "width": "5%" },
+            { "data": "ReconciliationQuantity", "width": "5%"/*, "editable": true*/},
+            { "data": "ReconciliationComment", "width": "20%"/*, "editable": true*/},
+        ],
+        dom: 'Blfrtip',
+        buttons: [
+            'copy', 'csv', 'excel'
+        ],
+        "fnRowCallback": function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+
+            //console.log("Cell ", $(nRow).children("td:nth-child(9)"));
+            //console.log("Cell ", $(nRow).children("td:nth-child(10)"));
+
+            if (aData.Shortage != 0 || aData.Surplus != 0) {
+                $(nRow).children("td:nth-child(12)").addClass('editable');
+                $(nRow).children("td:nth-child(13)").addClass('editable');
+            }
+
+            if (aData.Shortage > 0) {
+                $(nRow).addClass('not-counted');
+            }
+
+            if (aData.Surplus > 0) {
+                $(nRow).addClass('excess-counted');
+            }
+            // colorIndex += 1;
+        }
+	});
+
+    $('#mainTable').on('click', 'tbody td.editable', function () {
+        if ($(this).attr("contentEditable") == true) {
+            $(this).attr("contentEditable", "false");
+        } else {
+            $(this).attr("contentEditable", "true");
+        }
+    });
+}
+
+    function AddReconciliation() {
+        //var table = document.getElementById('mainTable');
+
+        //var inventoryCountingLines = [];
+        //var mainTable = $('#mainTable').dataTable();
+        //$('#mainTable tr').each(function () {
+        //    var rowPosition = mainTable.fnGetPosition(this);
+        //    console.log("Row ", rowPosition);
+        //    if (rowPosition != undefined) { // 0  c est la premiere ligne; dont les titres
+        //        var rowData = mainTable.fnGetData(rowPosition);
+        //        console.log("Row Data", rowData);
+
+        //        inventoryCountingLines.push({
+        //            StockId: rowData.StockId,
+        //            StockQuantity: rowData.StockQuantity,
+        //            ReconciliationQuantity: rowData.ReconciliationQuantity,
+        //            ReconciliationComment: rowData.ReconciliationComment
+        //        });
+        //    }
+        //})
+
+        var table = document.getElementById('mainTable');
+
+        var rowLength = table.rows.length;
+        var inventoryReconciliationLines = [];
+        for (var i = 1; i < rowLength; i += 1) {
+            var row = table.rows[i];
+            console.log("row", row, row.cells.length);
+
+            if (row.cells.length == 1) {
+                alert("Please do counting before reconciliation");
+                return;
+            }
+
+            var Shortage = row.cells[7].innerHTML;
+            var Surplus = row.cells[8].innerHTML;
+
+            var ReconciliationQuantity = row.cells[9].innerHTML;
+            var ReconciliationComment = row.cells[10].innerHTML;
+
+            if ((Shortage > 0 || Surplus > 0) && ReconciliationComment == "") {
+
+                alert("Justification is required for " + row.cells[1].innerHTML);
+                return;
+            }
+            inventoryReconciliationLines.push({
+                StockId: row.cells[0].innerHTML,
+                StockQuantity: row.cells[5].innerHTML,
+                ReconciliationQuantity,
+                ReconciliationComment
+            });
+        }
+
+        if (inventoryReconciliationLines.length == 0) {
+            alert("There is not Inventory Lines");
+            return;
+        }
+
+        var isAllValid = true;
+
+        if ($('#AuthorizedById').val() == '' || $('#AuthorizedById').val() == 0) {
+            isAllValid = false;
+            $("#AuthorizedById").addClass("invalid-data");
+        }
+        else {
+            $("#AuthorizedById").addClass("valid-data");
+        }
+
+        if ($('#RegisteredById').val() == '' || $('#RegisteredById').val() == 0) {
+            isAllValid = false;
+            $("#RegisteredById").addClass("invalid-data");
+        }
+        else {
+            $("#RegisteredById").addClass("valid-data");
+        }
+
+        if ($('#InventoryCountingId').val() == '' || $('#InventoryCountingId').val() == 0) {
+            isAllValid = false;
+            $("#InventoryCountingId").addClass("invalid-data");
+        }
+        else {
+            $("#InventoryCountingId").addClass("valid-data");
+        }
+
+        if ($('#ReconciliationDate').val() == '') {
+            isAllValid = false;
+            $("#ReconciliationDate").addClass("invalid-data");
+        }
+        else {
+            $("#ReconciliationDate").addClass("valid-data");
+        }
+
+        if (isAllValid == true) {
+            var inventoryReconciliation = {
+                InventoryCountingId: $('#InventoryCountingId').val(),
+                AuthorizedById: $('#AuthorizedById').val(),
+                RegisteredById: $('#RegisteredById').val(),
+                ReconciliationDate: $('#ReconciliationDate').val()
+            };
+
+            var data = {
+                inventoryReconciliation,
+                inventoryReconciliationLines
+            }
+
+            $(this).val('Please wait...');
+            //$(this).prop('disabled', true);
+            $('#btnSubmit').prop('disabled', true);
+            console.log("AddReconciliation ", data);
+            $.ajax({
+                url: '@Url.Action("AddReconciliation", "Reconciliation")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    alert(d.Message);
+                    if (d.status == true)
+                        location.reload();
+
+                    $('#btnSubmit').prop('disabled', false);
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').prop('disabled', false);
+                }
+            });
+        }
+
+
+        console.log("Lines ", inventoryCountingLines);
+    }
+
+    function populateUsers() {
+        $.get('@Url.Action("populateUsers", "Directory")', {}, function (data) {
+            $('#AuthorizedById').empty();
+            $('#AuthorizedById').append($("<option value='0'>@Resources.Select</option>"));
+
+            $.each(data, function (key, value) {
+                $('#AuthorizedById').append($("<option></option>").val(value.GlobalPersonID).html(value.UserFullName));
+            });
+        }, 'json');
+    }
+
+    function LoadInventoryCounting(reference) {
+        $.get('@Url.Action("GetInventoryCounting", "Counting")', { reference: reference }, function (inventoryCounting) {
+
+            if (inventoryCounting.Reference == null) {
+                alert("No Inventory Directory is currently created/opened; please create one before proceed !!!");
+            }
+
+            $('#Reference').val(inventoryCounting.Reference);
+            $('#AuthorizedById').val(inventoryCounting.AuthorizedById);
+            $('#InventoryCountingId').val(inventoryCounting.InventoryCountingId);
+
+            GetExistingInventoryCountingLines(false);
+        }, 'json');
+    }
+
+</script>

@@ -1,0 +1,373 @@
+﻿@using FatSod.Ressources;
+@model IEnumerable<FatSod.Security.Entities.Quarter>
+@{
+    ViewBag.Title = Resources.Quarter;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="box box-primary box-body">
+    <!--<form id="FormAccountingSection">-->
+    @****************************@
+    @Html.AntiForgeryToken()
+
+    <h6>@Resources.RequireField<code>(*)</code>.</h6>
+    <hr>
+
+    <div class="row">
+        <!-- Left Side Begins Here -->
+        <div id="right_field" class="col-sm-6">
+            <fieldset>
+                <input type="hidden" name="QuarterID" id="QuarterID">
+                <!-- Quarter Name -->
+                <div class="row">
+                    <div class="col-sm-3">@Resources.PersonName<code>(*)</code></div>
+                    <div class="col-sm-8">
+                        <input type="text" name="QuarterLabel" id="QuarterLabel"><span class="error">@Resources.RequiredField</span>
+                    </div>
+                </div>
+                <div class="row">
+                    <!-- Quarter Code -->
+                    <div class="col-sm-3">@Resources.Code<code>(*)</code></div>
+                    <div class="col-sm-8">
+                        <input type="text" name="QuarterCode" id="QuarterCode" /><span class="error">@Resources.RequiredField</span>
+                    </div>
+                </div>
+        </fieldset>
+        </div>
+        <!-- Right Side Begins Here -->
+        <div id="left_field" class="col-sm-6">
+            <fieldset style="border-left: 2px solid black">
+                <!-- Country Select -->
+                <div class="col-sm-4">@Resources.AdressCountry<code>(*)</code></div>
+                <div class="col-sm-6">
+                    <select id="Country" name="Country" class="form-control"></select><span class="error">@Resources.RequiredField</span>
+                </div>
+                <!-- Region Select -->
+                <div class="col-sm-4">@Resources.AdressRegion<code>(*)</code></div>
+                <div class="col-sm-6">
+                    <select disabled="disabled" id="Region" name="Region" class="form-control"></select><span class="error">@Resources.RequiredField</span>
+                </div>
+                <!-- Town Select -->
+                <div class="col-sm-4">@Resources.AdressTown<code>(*)</code></div>
+                <div class="col-sm-6">
+                    <select disabled="disabled" id="Town" name="Town" class="form-control"></select><span class="error">@Resources.RequiredField</span>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-1">
+        </div>
+        <hr />
+        <div class="col-sm-4">
+            <button type="button" id="btnCancel" class="btn btn-primary">@Resources.ResetButton</button>
+        </div>
+        <div class="col-sm-8">
+            <button type="submit" class="btn btn-primary" id="btnSubmit">@Resources.SaveButton</button>
+        </div>
+    </div>
+</div>
+
+<!-- Ajout de la table contenant les data deja enregistrees-->
+<h2>@Resources.QuarterList</h2>
+<div class="box box-body box-primary">
+
+    <table class="table" id="mainTable">
+        <thead>
+            <tr class="dataTableHead">
+                <th>
+                    Identifiant
+                </th>
+                <th>
+                    Code
+                </th>
+                <th>
+                    @Resources.PersonName
+                </th>
+                <th>
+                    @Resources.AdressCountry
+                </th>
+                <th>
+                    @Resources.AdressRegion
+                </th>
+                <th>
+                    @Resources.AdressTown
+                </th>
+                <th>
+                </th>
+            </tr>
+        </thead>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => item.QuarterID)</td>
+                <td>@Html.DisplayFor(modelItem => item.QuarterCode)</td>
+                <td>@Html.DisplayFor(modelItem => item.QuarterLabel)</td>
+                <td>@Html.DisplayFor(modelItem => item.Town.Region.Country.CountryLabel)</td>
+                <td>@Html.DisplayFor(modelItem => item.Town.Region.RegionLabel)</td>
+                <td>@Html.DisplayFor(modelItem => item.Town.TownLabel)</td>
+                <td>
+                    <a href=# onclick="EditItem(this)"><span class="glyphicon glyphicon-edit"></span></a> |
+                    <a href=# onclick="DeleteItem(this)"><span class="glyphicon glyphicon-trash"></span></a> 
+                </td>
+            </tr>
+        }
+
+    </table>
+</div>
+
+
+<!--********** JavaScripts **********-->
+<script>
+
+    // Get the Country List
+    function populateCountry() {
+        $.get('@Url.Action("populateCountry", "Parameter")', {}, function (data) {
+            $('#Country').empty();
+            $('#Country').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#Country').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+
+    // Get the Region List for the selected Country
+    function populateRegion() {
+
+        $('#Region').append($("<option value='0'>@Resources.Select</option>"));
+
+        $('#Country').change(function () {
+
+            var _countryId = $('#Country').val();
+
+            if ($('#Country').val() == 0) {
+                $('#Region').prop('selectedIndex', 0);
+                $('#Region').prop('disabled', true);
+                $('#Town').prop('selectedIndex', 0);
+                $('#Town').prop('disabled', true);
+            } else {
+                if ($('#Country').prop('disabled') == false) {
+                    $('#Region').prop('disabled', false);
+                    $.get('@Url.Action("populateRegion", "Parameter")', { countryId: _countryId }, function (data) {
+                        $('#Region').empty();
+                        $('#Region').append($("<option value='0'>@Resources.Select</option>"));
+                        $.each(data, function (key, value) {
+                            $('#Region').append($("<option></option>").val(value.ID).html(value.Name));
+                        });
+                    }, 'json');
+                }
+
+            }
+        });
+    }
+
+    // Get the Town List for the selected Region
+    function populateTown() {
+
+        $('#Town').append($("<option value='0'>@Resources.Select</option>"));
+
+        $('#Region').change(function () {
+
+            var _regionId = $('#Region').val();
+
+            if ($('#Region').val() == 0) {
+                $('#Town').prop('selectedIndex', 0);
+                $('#Town').prop('disabled', true);
+            } else {
+                if ($('#Region').val() == 0) {
+                    $('#Town').prop('selectedIndex', 0);
+                    $('#Town').prop('disabled', true);
+                } else {
+                    if ($('#Region').prop('disabled') == false) {
+                        $('#Town').prop('disabled', false);
+                        $.get('@Url.Action("populateTown", "Parameter")', { regionId: _regionId }, function (data) {
+                            $('#Town').empty();
+                            $('#Town').append($("<option value='0'>@Resources.Select</option>"));
+                            $.each(data, function (key, value) {
+                                $('#Town').append($("<option></option>").val(value.ID).html(value.Name));
+                            });
+                        }, 'json');
+                    }
+                }
+            }
+        });
+    }
+
+    function clearForm() {
+        $('#QuarterLabel').val('');
+        $('#QuarterCode').val('');
+        $('#Country').val('');
+        $('#Region').val('');
+        $('#Town').val('');
+        $('#QuarterID').val('');
+    }
+
+
+    $(document).on('ready', function () {
+        populateCountry();
+        populateRegion();
+        populateTown();
+
+        $('#btnCancel').on('click', function () {
+            clearForm();
+        });
+
+        $('#mainTable').DataTable();
+
+        $('#btnSubmit').on('click', function () {
+            var isAllValid = true;
+
+
+            if ($('#Country').val() == "0") {
+                isAllValid = false;
+                $('#Country').siblings('span.error').css('visibility', 'visible');
+            }
+            else {
+                $('#Country').siblings('span.error').css('visibility', 'hidden');
+            }
+            if ($('#Region').val() == "0") {
+                isAllValid = false;
+                $('#Region').siblings('span.error').css('visibility', 'visible');
+            }
+            else {
+                $('#Region').siblings('span.error').css('visibility', 'hidden');
+            }
+            if ($('#Town').val() == "0") {
+                isAllValid = false;
+                $('#Town').siblings('span.error').css('visibility', 'visible');
+            }
+            else {
+                $('#Town').siblings('span.error').css('visibility', 'hidden');
+            }
+            if ($('#QuarterLabel').val().trim() == '') {
+                isAllValid = false;
+                $('#QuarterLabel').siblings('span.error').css('visibility', 'visible');
+            }
+            else {
+                $('#QuarterLabel').siblings('span.error').css('visibility', 'hidden');
+            }
+
+            if ($('#QuarterCode').val() == '') {
+                isAllValid = false;
+                $('#QuarterCode').siblings('span.error').css('visibility', 'visible');
+            }
+            else {
+                $('#QuarterCode').siblings('span.error').css('visibility', 'hidden');
+            }
+
+            if (isAllValid) {
+                var data = {
+                    QuarterLabel: $('#QuarterLabel').val().trim(),
+                    QuarterCode: $('#QuarterCode').val().trim(),
+                    Town: $('#Town').val().trim(),
+                    Region: $('#Region').val().trim(),
+                    Country: $('#Country').val().trim(),
+                    QuarterID: $('#QuarterID').val().trim()
+                }
+                $(this).val('Please wait...');
+
+
+                //post data to server
+                $.ajax({
+                    url: '@Url.Action("AddQuarter", "Parameter")',
+                    type: "POST",
+                    data: JSON.stringify(data),
+                    dataType: "JSON",
+                    contentType: "application/json",
+                    success: function (d) {
+                        //check is successfully save to database
+                        if (d.status == true) {
+                            //will send status from server side
+                            alert(d.Message);
+                            location.reload(true);
+                            //$('#mainTable').DataTable().ajax.reload();
+                            //clear form
+                            clearForm();
+                        }
+                        else {
+                            alert(d.Message);
+                        }
+                        $('#submit').val('@Resources.SaveButton');
+                    },
+                    error: function () {
+                        alert('Error. Please try again.');
+                        $('#btnSubmit').val('@Resources.SaveButton');
+                    }
+                });
+            }
+        });
+    });
+
+
+    function EditItem(obj)
+    {
+
+        var globalID=$(obj).parent().siblings(":first").text();
+
+        $.get('@Url.Action("UpdateQuarter", "Parameter")', { ID: parseInt(globalID) }, function (data) {
+            $.each(data, function (key, value) {
+                $('#QuarterID').val(value.QuarterID);
+                $('#QuarterCode').val(value.QuarterCode);
+                $('#QuarterLabel').val(value.QuarterLabel);
+                $('#Region').val(value.Region);
+                $('#Town').val(value.Town);
+                $('#Country').val(value.Country);
+            });
+        }, 'json');
+
+    }
+    function DeleteItem  (obj)
+    {
+        if (confirm("Do you want to Delete ?"))
+        {
+            var globalID=$(obj).parent().siblings(":first").text();
+            //post to the server
+            $(this).val('Please wait...');
+            var data = {
+                ID: parseInt(globalID)
+            }
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("DeleteQuarter", "Parameter")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        location.reload(true);
+                        //$('#mainTable').DataTable().ajax.reload();
+                        //clear form
+                        clearForm();
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                }
+            });
+        }
+
+    }
+</script>
+
+<style>
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+</style>

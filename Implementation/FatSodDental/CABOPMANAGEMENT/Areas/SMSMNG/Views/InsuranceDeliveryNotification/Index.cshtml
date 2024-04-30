@@ -1,0 +1,450 @@
+﻿@using FatSod.Ressources;
+@using CABOPMANAGEMENT.Tools;
+@using FatSod.DataContext.Initializer;
+
+@{
+    ViewBag.Title = @Resources.InsuranceDeliveryNotification;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+<div class="box box-primary box-body">
+    <div class="col-sm-12" style="padding-bottom: 20px">
+        <div class="panel panel-default">
+            <div class="panel-body" style="height: 100%;">
+                <fieldset>
+                    <legend>
+                        <span style="margin-right: 0px; margin-left: 0px;" class="row">
+                            <span class="col-sm-offset-4 col-sm-6">
+                                @Resources.SearchCriteria
+                            </span>
+                        </span>
+                    </legend>
+
+                    <div style="margin-top: 10px;" class="row ipt">
+
+                        <div class="col-sm-2">@Resources.UIBeginDate</div>
+                        <div class="col-sm-3">
+                            <input class="form-control datepicker checkDateNoGraterThanToday" id="startDate" type="text" placeholder="choose sale date" value="@ViewBag.BusnessDayDate">
+                        </div>
+
+                        <div class="col-sm-2">@Resources.UIEndDate</div>
+                        <div class="col-sm-3">
+                            <input class="form-control datepicker checkDateNoGraterThanToday" id="endDate" type="text" placeholder="choose sale date" value="@ViewBag.BusnessDayDate">
+                        </div>
+
+                        <div class="col-sm-2">
+                            <button type="button" class="btn btn-primary" id="btnSearch">@Resources.Search</button>
+                        </div>
+                        <br />
+                        <div class="col-sm-2" style="margin-top:5px;font-size:1.05em;">
+                            @Resources.DefaultNotificationLanguage
+                        </div>
+                        <div class="col-sm-1">
+                            <input type="radio" id="fr" name="SMSLng" value="0" checked /> @Resources.French
+                        </div>
+                        <div class="col-sm-1">
+                            <input type="radio" id="en" name="SMSLng" value="1" /> @Resources.English
+                        </div>
+                        @*<div class="col-sm-1">
+                            <input type="radio" id="both" name="SMSLng" value="2" /> @Resources.Both
+                         </div>*@
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-4">
+            <div class="panel panel-default">
+                <div class="panel-body1">
+                    <fieldset style="border-left: 2px solid black">
+                        <legend>
+                            <span style="margin-right: 0px; margin-left: 0px;" class="row">
+                                <span class="col-sm-offset-3 col-sm-6">
+                                    @Resources.DescriptifInfo
+                                </span>
+                            </span>
+                        </legend>
+                        <div class="row ipt" style="word-spacing:10px;font-size:1.6em;margin:25px;">
+                            @Resources.MessagebeforesendSms
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+        </div>
+        <!-- Right Side Begins Here -->
+        <div class="col-sm-8">
+            <div class="panel panel-default">
+                <div class="panel-body1">
+                    <fieldset style="border-left: 2px solid black">
+                        <legend>
+                            <span style="margin-right: 0px; margin-left: 0px;" class="row">
+                                <span class="col-sm-offset-4 col-sm-6">
+                                    @Resources.InfoSMS
+                                </span>
+                            </span>
+                        </legend>
+                        <div style="margin-top: 10px" class="row">
+                            <div class="col-sm-6">
+                                <div class="row ipt">
+                                    <div class="col-sm-offset-3 col-sm-6">@Resources.EnglishVersion</div>
+                                    <div class="col-sm-12">
+                                        <textarea style="height:100px;width:800px;" type="text" id="smsEnvoyeEN" class="input-sm form-control" maxlength="160"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="row ipt">
+                                    <div class="col-sm-offset-3 col-sm-6">@Resources.FrenchVersion</div>
+                                    <div class="col-sm-12">
+                                        <textarea style="height:100px;width:800px;" type="text" id="smsEnvoyeFR" class="input-sm form-control" maxlength="160"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div style="margin-top: 5px;" class="row">
+        <div class="col-sm-12">
+            <div class="col-sm-4"></div>
+            <div class="col-sm-2">
+                <button id="btnCancel" class="btn btn-primary btn-danger">@Resources.ResetButton</button>
+            </div>
+
+            <div class="col-sm-2">
+                <button id="btnSubmit" class="btn btn-primary btn-success">@Resources.Send</button>
+            </div>
+        </div>
+        <div class="col-md-12">
+            <fieldset>
+                <div class="panel panel-default">
+                    <div class="panel-body2">
+                        <table class="table" id="mainTable">
+                            <thead>
+                                <tr class="dataTableHead">
+                                    <th>ID</th>
+                                    <th>@Resources.CustomerID</th>
+                                    <th>@Resources.Customer</th>
+                                    <th>@Resources.PhoneNumber</th>
+                                    <th>@Resources.Civility</th>
+                                    <th>@Resources.Value</th>
+                                    <th>@Resources.Insurance</th>
+                                    <th>@Resources.InsuredCompany</th>
+                                    <th>@Resources.Deliverdate</th>
+                                    <th><input type="checkbox" id="selectall" /></th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+
+</div>
+
+<!-- Css Begins Here -->
+
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 6px;
+    }
+
+    #img-upload {
+        width: 100%;
+    }
+
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin-left: 10px;
+        min-width: 0;
+        padding: 0px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 100px;
+        margin-top: -5px;
+    }
+
+    .panel-body1 {
+        height: 120px;
+        margin-top: -15px;
+        margin-bottom: 3%;
+    }
+
+    .panel-body2 {
+        height: 225px;
+        margin-top: 10px;
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+
+    .panel-body3 {
+        height: 75px;
+        margin-top: 5px;
+        /*margin-left: 15%;*/
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+</style>
+
+<script>
+        var selectedSales = [];
+        var defaultDays = 2;
+        var defaultEN = "{civility} {name}, you can collect your purchases from you insurance. Thanks for your loyalty. Chez Valdoz ça dose!!!";
+        var defaultFR = "{civility} {name}, vous pouvez passer recuperer vos produits chez votre assureur. Merci pour votre loyaute.Chez Valdoz ça dose!!!";
+        var smsEnvoyeFR = "";
+        var smsEnvoyeEN = "";
+        $(document).on('ready', function () {
+            setMessages();
+            $(function () {
+                $(".datepicker").datepicker({
+                    format: 'yyyy-mm-dd'
+                });
+            });
+
+            $('#smsEnvoyeFR').val(smsEnvoyeFR);
+            $('#smsEnvoyeEN').val(smsEnvoyeEN);
+
+            getSales(true);
+
+            $('#btnSearch').on('click', function () {
+                getSales(false);
+            });
+
+            $('#btnSubmit').on('click', function () {
+                submit();
+            });
+
+            $('#btnCancel').on('click', function () {
+                clearForm();
+            });
+
+            $("#selectall").click(function () {
+
+                /*var checked = $("#mainTable tbody input:checkbox:checked").length;
+                var unchecked = $("#mainTable tbody input:checkbox:not(:checked)").length;
+                console.log("checked => ", checked, "unchecked => ", unchecked, "this.checked => ", this.checked);
+                if (checked > 0 && unchecked > 0 && this.checked == true) {
+                    $('#mainTable tbody input:checkbox:not(:checked)').trigger('click');
+                }
+                else {
+                    $('#mainTable tbody input:checkbox').trigger('click');
+                }*/
+
+                $('#mainTable tbody input:checkbox').trigger('click');
+
+                if (this.checked == true) {
+                    $('#mainTable tbody input:checkbox:not(:checked)').trigger('click');
+                } else {
+                    $('#mainTable tbody input:checkbox:checked').trigger('click');
+                }
+
+            });
+
+        });
+
+
+        function getSales(isFirstCall) {
+
+            var startDate = $('#startDate').val();
+            var endDate = $('#endDate').val();
+
+            selectedSales = [];
+            var oTable = $('#mainTable');
+            if (oTable != undefined && oTable != null) {
+                $('#mainTable').dataTable().fnDestroy();
+            }
+
+            oTable = $('#mainTable').dataTable({
+                fixedColumns: true,
+                "paging": true,
+                "pageLength": 4,
+                "lengthMenu": [[20, 40, 60, -1], [20, 40, 60, "All"]],
+                "searching": true,
+                "ordering": true,
+                "pagingType": "full_numbers",
+                "order": [[2, 'asc']],
+                // Ajax call
+                "ajax": {
+                    "url": "@Url.Action("getSales", "InsuranceDeliveryNotification")",
+                    "type": "GET",
+                    "datatype": "json",
+                    "data": { startDate: startDate, endDate: endDate },
+                    "dataSrc": ""
+                },
+                "columns": [
+                    { "data": "ID", "width": "1%" },
+                    { "data": "CustomerID", "width": "1%" },
+                    { "data": "CustomerName", "width": "20%" },
+                    { "data": "CustomerPhone", "width": "20%" },
+                    { "data": "CivilityUI", "width": "20%" },
+                    { "data": "CustomerValue", "width": "5%" },
+                    { "data": "Insurance", "width": "20%" },
+                    { "data": "InsuredCompany", "width": "20%" },
+                    // { "data": "CustomerQuater", "width": "20%" },
+                    { "data": "dateRDV", "width": "20%" },
+                    {
+                        mRender: function (data, type, row) {
+                            return '<input type="checkbox" class="editor-active" value=' + row.ID + '>';
+                        },
+                        className: "dt-body-center"
+                    }
+                ],
+                "fnRowCallback": function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                    if (aData.CustomerValue == 'VIP') {
+                        $(nRow).addClass('vip');
+                    }
+                },
+                dom: 'Bfrtip',
+                buttons: [
+                    'copy', 'csv', 'excel'
+                ]
+
+            });
+            $('#mainTable').on('click', 'tbody td.editable', function () {
+                if ($(this).attr("contentEditable") == true) {
+                    $(this).attr("contentEditable", "false");
+                } else {
+                    $(this).attr("contentEditable", "true");
+                }
+            });
+            if (isFirstCall == true) {
+                console.log("Enable Sale Selected Trigger");
+                onSaleSelected(oTable);
+            }
+        }
+
+    function setMessages() {
+        $.get('@Url.Action("getNotificationSetting", "PatientReminder")', { type: 3 }, function (data) {
+            console.log("Selected notif setting ", data);
+            smsEnvoyeFR = data.FrenchMessage;
+            smsEnvoyeEN = data.EnglishMessage;
+
+            if (smsEnvoyeFR == "") {
+                smsEnvoyeFR = defaultFR;
+            }
+
+            if (smsEnvoyeEN == "") {
+                smsEnvoyeEN = defaultEN;
+            }
+
+            $('#smsEnvoyeFR').val(smsEnvoyeFR);
+            $('#smsEnvoyeEN').val(smsEnvoyeEN);
+        });
+    }
+
+
+        function clearForm() {
+            $('#btnSubmit').prop('disabled', false);
+            $('#days').val(defaultDays);
+            $('#smsEnvoyeFR').val(smsEnvoyeFR);
+            $('#smsEnvoyeEN').val(smsEnvoyeEN);
+            selectedSales = [];
+            getSales(false);
+        }
+        // Reference <=> https://www.gyrocode.com/articles/jquery-datatables-how-to-add-a-checkbox-column/
+        function onSaleSelected(oTable) {
+            console.log("Sale Selected");
+
+            $('#mainTable tbody').on('click', 'input[type="checkbox"]', function (e) {
+                console.log('Sale selected ', e, e.target);
+                oTable = $('#mainTable').DataTable();
+                console.log("data Table ", oTable);
+                var $row = $(this).closest('tr');
+                console.log("Selected row", $row);
+                // Get row data
+                var selectedSale = oTable.row($row).data();
+                console.log("Selected row data", selectedSale);
+
+                // Determine whether row ID is in the list of selected row IDs
+                var existingSale = selectedSales.find(p => p.ID == selectedSale.ID);
+                console.log("existing Sale", existingSale);
+
+                // If checkbox is checked and row ID is not in list of selected row IDs
+                if(existingSale == undefined || existingSale == null){
+                    selectedSales.push(selectedSale);
+
+                    // Otherwise, if checkbox is not checked and row ID is in list of selected row IDs
+                } else {
+                    selectedSales = selectedSales.filter(p => p.ID != selectedSale.ID);
+                }
+
+                console.log("Selected sales", selectedSales);
+                e.stopPropagation();
+            });
+        }
+
+        function submit() {
+
+            var data = {
+                smsEnvoyeFR: $("#smsEnvoyeFR").val(),
+                smsEnvoyeEN: $("#smsEnvoyeEN").val(),
+                SMSLng: $('input[name=SMSLng]:checked').val(),
+                selectedSales: selectedSales,
+                TypeSms: "INSURANCE-DELIVERY"
+            };
+            console.log("Submit data ", JSON.stringify(data));
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("EnvoiSMS", "InsuranceDeliveryNotification")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json; charset=utf-8",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        // location.reload(true);
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                }
+            });
+        }
+
+</script>

@@ -1,0 +1,265 @@
+﻿@using FatSod.Ressources;
+@model IEnumerable<FatSod.Security.Entities.Job>
+@{
+    ViewBag.Title = "Job";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link href="~/Scripts/AdminLTE/plugins/iCheck/square/red.css" rel="stylesheet" />
+<link href="~/Scripts/AdminLTE/plugins/iCheck/minimal/minimal.css" rel="stylesheet" />
+<script src="~/Scripts/AdminLTE/plugins/iCheck/icheck.min.js"></script>
+
+@*<h2>@Resources.UIAccountTitle</h2>*@
+
+<div class="box box-primary box-body">
+    <!--<form id="FormAccountingSection">-->
+    @****************************@
+    @Html.AntiForgeryToken()
+    <h4>Manage all Job in our Company</h4>
+    <h6>@Resources.RequireField <code>(*)</code></h6>
+   <hr />
+    <div class="row">
+        <div class="col-sm-1"></div>
+        <div class="col-sm-8">
+            <div class="row">
+                <input class="form-control input-sm" id="JobID" name="JobID" type="hidden">
+                <div class="col-sm-4">@Resources.PersonName<code>(*)</code></div>
+                <div class="col-sm-8">
+                    <input type="text" name="JobLabel" id="JobLabel" class="form-control" /><span class="error">@Resources.RequiredField</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-4">@Resources.Code<code>(*)</code></div>
+                <div class="col-sm-8">
+                    <input type="text" name="JobCode" id="JobCode" class="form-control" /><span class="error">@Resources.RequiredField</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-4">@Resources.Description<code>(*)</code></div>
+                <div class="col-sm-8">
+                    <input type="text" name="JobDescription" id="JobDescription" class="form-control" /><span class="error">@Resources.RequiredField</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-1">
+                </div>
+                <hr />
+                <div class="col-sm-4">
+                    <button type="button" id="btnCancel" class="btn btn-primary">@Resources.ResetButton</button>
+                </div>
+                <div class="col-sm-8">
+                    <button type="submit" class="btn btn-primary" id="btnSubmit">@Resources.SaveButton</button>
+                </div>
+            </div>
+            <!--</form>-->
+        </div>
+    </div>
+</div>
+
+<!-- Ajout de la table contenant les data deja enregistrees-->
+<h2>@Resources.JobList</h2>
+<div class="box box-body box-primary">
+
+    <table class="table" id="mainTable">
+        <thead>
+            <tr class="dataTableHead">
+                <th>
+                    Identifiant
+                </th>
+                <th>
+                    @Resources.Code
+                </th>
+                <th>
+                    @Resources.UINom
+                </th>
+                <th>
+                    Job Description
+                </th>
+                <th>
+
+                </th>
+            </tr>
+        </thead>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.JobID)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.JobCode)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.JobLabel)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.JobDescription)
+                </td>
+                <td>
+                    <a href=# onclick="EditItem(this)"><span class="glyphicon glyphicon-edit"></span></a> |
+                    <a href=# onclick="DeleteItem(this)"><span class="glyphicon glyphicon-trash"></span></a>
+                </td>
+            </tr>
+        }
+
+    </table>
+</div>
+
+
+<!--********** JavaScripts **********-->
+<script>
+    
+    function clearForm() {
+        $('#JobLabel').val('');
+        $('#JobCode').val('');
+        $('#JobDescription').val('');
+        $('#JobID').val('');
+    }
+
+
+    $(document).on('ready', function () {
+        
+        $('#btnCancel').on('click', function () {
+            clearForm();
+        });
+        
+        $('#mainTable').DataTable();
+        
+        $('#btnSubmit').on('click', function () {
+            var isAllValid = true;
+            
+            if ($('#JobCode').val().trim() == '') {
+                isAllValid = false;
+                $('#JobCode').siblings('span.error').css('visibility', 'visible');
+            }
+            else {
+                $('#JobCode').siblings('span.error').css('visibility', 'hidden');
+            }
+
+            if ($('#JobLabel').val().trim() == '') {
+                isAllValid = false;
+                $('#JobLabel').siblings('span.error').css('visibility', 'visible');
+            }
+            else {
+                $('#JobLabel').siblings('span.error').css('visibility', 'hidden');
+            }
+
+            if ($('#JobDescription').val() == '') {
+                isAllValid = false;
+                $('#JobDescription').siblings('span.error').css('visibility', 'visible');
+            }
+            else {
+                $('#JobDescription').siblings('span.error').css('visibility', 'hidden');
+            }
+
+            if (isAllValid) {
+                var data = {
+                    JobCode: $('#JobCode').val().trim(),
+                    JobLabel: $('#JobLabel').val().trim(),
+                    JobDescription: $('#JobDescription').val().trim(),
+                    JobID: $('#JobID').val().trim()
+                }
+                $(this).val('Please wait...');
+
+
+                //post data to server
+                $.ajax({
+                    url: '@Url.Action("AddJob", "Parameter")',
+                    type: "POST",
+                    data: JSON.stringify(data),
+                    dataType: "JSON",
+                    contentType: "application/json",
+                    success: function (d) {
+                        //check is successfully save to database
+                        if (d.status == true) {
+                            //will send status from server side
+                            alert(d.Message);
+                            location.reload(true);
+                            //$('#mainTable').DataTable().ajax.reload();
+                            //clear form
+                            clearForm();
+                        }
+                        else {
+                            alert(d.Message);
+                        }
+                        $('#submit').val('@Resources.SaveButton');
+                    },
+                    error: function () {
+                        alert('Error. Please try again.');
+                        $('#btnSubmit').val('@Resources.SaveButton');
+                    }
+                });
+            }
+        });
+    });
+
+    function EditItem(obj)
+    {
+       
+        var globalID=$(obj).parent().siblings(":first").text();
+         
+        $.get('@Url.Action("InitializeJobsFields", "Parameter")', { id : parseInt(globalID) },  function (data) {
+            $.each(data, function (key, value) {
+                $('#JobCode').val(value.JobCode);
+                $('#JobLabel').val(value.JobLabel);
+                $('#JobDescription').val(value.JobDescription);
+                $('#JobID').val(value.JobID);
+            });
+        }, 'json');
+        
+    }
+    function DeleteItem  (obj)
+    {
+        if (confirm("Do you want to Delete ?"))
+        {
+            var globalID=$(obj).parent().siblings(":first").text();
+            //post to the server
+            $(this).val('Please wait...');
+            var data = {
+                ID: parseInt(globalID)
+            }
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("DeleteJob", "Parameter")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        location.reload(true);
+                        //$('#mainTable').DataTable().ajax.reload();
+                        //clear form
+                        clearForm();
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                }
+            });
+        }
+       
+    }
+</script>
+
+<style>
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+</style>

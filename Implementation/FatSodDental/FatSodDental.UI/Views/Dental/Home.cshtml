@@ -1,0 +1,23 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+    <title>FSInventory 1.0.0</title>
+</head>
+<body class="">
+@Html.X().ResourceManager().Theme(Theme.Default)
+@*.ShowWarningOnAjaxFailure(false).ScriptMode(Ext.Net.ScriptMode.Release)*@
+
+    @(Html.X().Container()
+        .Content(
+            @<text>
+               
+                <div id="welcome-title"> Inventory Made Easy</div>
+                <p class="welcome-text">
+                    FSInventory is a Web software which allow you to easily manage you goods selling company from buying process to incomes and expences. 
+                </p>
+            </text>
+            )
+        )
+    </body>
+    </html>

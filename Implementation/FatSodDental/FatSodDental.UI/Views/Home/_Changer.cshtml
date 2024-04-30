@@ -1,0 +1,117 @@
+﻿@using FatSod.Ressources;
+@{
+    var X = Html.X();   
+}
+
+
+@* Fenêtre de modification de mot de passe *@
+@(
+    X.Window()
+        .ID("WindowPasse")
+        .Title("Resources.Password_change")
+        .TitleAlign(TitleAlign.Left)
+        .Resizable(false)
+        .Closable(true)
+        .Height(210)
+        .Width(280)
+        .DefaultButton("Bt_Modifier")
+        .Icon(Icon.Lock)
+        .Draggable(true)
+        .Layout(LayoutType.Fit)
+        .AutoRender(false)
+        .Modal(true)
+        .DirectEvents(l => {
+            l.Close.Url = Url.Action("Fermeture_WindowPasse", "Session");
+        })
+        .Hidden(true)
+        .Items(
+            X.Panel()
+                .Border(false)
+                .BodyPadding(5)
+                .Layout(LayoutType.Table)
+                .LayoutConfig(new TableLayoutConfig() { Columns = 2 })
+                .BodyStyle("background-color:transparent;")
+                .Items(
+
+                    X.Panel()
+                        .Border(false)
+                        .Layout(LayoutType.VBox)
+                        .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center, Pack = BoxPack.Center })
+                        .BodyStyle("background-color:transparent;")
+                        .Height(120)
+                        .Width(115)
+                        .Items(
+                            X.Image()
+                                .Height(110)
+                                .Width(110)
+                                .ImageUrl("~/Content/Images/png/Mr_Suit_Lock.png")
+                        ),
+
+                    X.FormPanel().ID("Form2")
+                        .Border(false)
+                        .Width(140)
+                        .BodyStyle("background-color:transparent;")
+                        .Layout(LayoutType.VBox)
+                        .Defaults(X.Parameter().Name("margins").Value("0 5 0 0").Mode(ParameterMode.Value))
+                        .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center, Pack = BoxPack.Center })
+                        .Defaults(d =>
+                        {
+                            d.Add(new Parameter("anchor", "100%", ParameterMode.Value));
+                            d.Add(new Parameter("blankText", "Resources.Blank_Text", ParameterMode.Value));
+                            d.Add(new Parameter("allowBlank", "false", ParameterMode.Raw));
+                            d.Add(new Parameter("msgTarget", "side", ParameterMode.Value));
+                        })
+                        .Items(
+                            //X.Label("").Height(10),
+                            
+                            X.TextField().ID("old_motdedasse")
+                                .Width(130)
+                                .Name("old_motdedasse")
+                                .EmptyText("...")
+                                .LabelAlign(LabelAlign.Top)
+                                .FieldLabel("Resources.Old_password")
+                                .InputType(Ext.Net.InputType.Password),
+                            X.TextField().ID("M1")
+                                .Width(130)
+                                .Name("motdedasse1")
+                                .EmptyText("...")
+                                .LabelAlign(LabelAlign.Top)
+                                .FieldLabel("Resources.New" + " " + "Resources.Password")
+                                .InputType(Ext.Net.InputType.Password),
+                            X.TextField().ID("M2")
+                                .Width(130)
+                                .Name("motdedasse")
+                                .EmptyText("...")
+                                .Validator(l => l.Fn = "Validation2")
+                                .ValidatorText("Resources.Password_is_not_same") 
+                                .LabelAlign(LabelAlign.Top)
+                                .FieldLabel("Resources.Confirm")
+                                .InputType(Ext.Net.InputType.Password)
+                            )
+                    )
+            )
+            .BottomBarItem(
+                X.ToolbarFill(),
+                X.Button()
+                    .Text("Resources.Quit")
+                    .Icon(Icon.BinClosed)
+                    .ID("Bt_Quit")
+                    .DirectEvents(l => {
+                        l.Click.Url = Url.Action("Fermeture_WindowPasse", "Session");
+                    }),
+                X.ToolbarSeparator(),
+                X.Button()
+                    .Text("Resources.To_Connect")
+                    .Icon(Icon.Accept)
+                    .ID("Bt_Modifier")
+                    .DirectEvents(de =>
+                    {
+                        de.Click.FormID = "Form2";
+                        de.Click.Url = Url.Action("Authentification_modification_mot_de_passe", "Session");
+                        de.Click.Before = @"if (!#{Form2}.getForm().isValid()) { return false; }";
+                        de.Click.ExtraParams.Add(new Parameter("Old", "#{old_motdedasse}.getValue()", ParameterMode.Raw));
+                        de.Click.EventMask.ShowMask = true;
+                        de.Click.EventMask.Msg = "Resources.Connexion_Load" + "...";
+                    })
+            )
+)

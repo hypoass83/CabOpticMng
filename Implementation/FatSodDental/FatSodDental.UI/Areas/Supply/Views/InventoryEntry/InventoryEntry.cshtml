@@ -1,0 +1,662 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+
+@model System.Collections.IEnumerable
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    string labelSeparator = "  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :";
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+    /*String activateValidatePurchase1 = @"if( (App.IventoryEntryGeneralInformation.isValid()) && (App.IsCadyEmpty.getValue() == 0) && App.AutorizedByID.isValid() )
+                                            {
+                                                App.SaveReturn.setDisabled(false);
+                                            }else{
+                                                App.SaveReturn.setDisabled(true);
+                                            }";*/
+    String activateInitialInventoryDirectoryLines = @"if(App.AutorizedByID.isValid())
+                                            {
+                                                App.InitialInventoryDirectoryLines.setDisabled(false);
+                                            }else{
+                                                App.InitialInventoryDirectoryLines.setDisabled(true);
+                                            }";
+    var com = new ComboBox();
+
+}
+
+@section content
+{
+@* Tableau contenant la liste des achats *@
+@(Html.X().GridPanel()
+        .Title(Resources.inventoryDirectoryList)
+        .ID("inventoryDirectoryList")
+        .Layout(LayoutType.Fit)
+        .MarginSpec("10 10 10 10")
+        .Margin(5)
+        .Frame(true)
+        .Collapsible(false)
+        .Store(X.Store()
+            .GroupField("Light")
+            .ID("InventoryDirectoryListStore")
+            .RemotePaging(true)
+            .AutoLoad(true)
+            .PageSize(5)
+            .Model(
+                X.Model()
+                    .IDProperty("InventoryDirectoryListModel")
+                    .Fields(
+                        new ModelField("InventoryDirectoryID", ModelFieldType.Int),
+                        new ModelField("InventoryDirectoryReference", ModelFieldType.String),
+                        new ModelField("InventoryDirectoryCreationDate", ModelFieldType.Date),
+                        new ModelField("Branch", ModelFieldType.String),
+                        new ModelField("InventoryDirectoryDescription", ModelFieldType.String)
+
+                    )
+            )
+            .DataSource(Model)
+            .ServerProxy(
+                X.AjaxProxy()
+                .Url(Url.Action("GetAllInventoryDirectories"))
+                .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                .Reader(X.JsonReader().RootProperty("data"))
+            )
+            
+            .Sorters(
+                    X.DataSorter()
+                    .Property("Branch")
+                    .Direction(Ext.Net.SortDirection.ASC)
+            )
+        )
+
+        .ColumnModel(
+
+                X.RowNumbererColumn()
+                ,
+             X.ImageCommandColumn()
+                .Width(30)
+                .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, profile, CodeValue.Supply.InventoryEntry_SM.CODE, db))
+                .Commands(
+                X.ImageCommand()
+                        .CommandName("Edit")
+                        .IconCls("icon-edit")
+                        .ToolTip(tt => tt.Text = "Modifier ?")
+                )
+
+                .DirectEvents(de =>
+                {
+                    de.Command.Action = "InitializeFields";
+                    de.Command.Method = HttpMethod.POST;
+                    de.Command.ExtraParams.Add(new Parameter("InventoryDirectoryID", "record.data.InventoryDirectoryID", ParameterMode.Raw));
+                    de.Command.EventMask.ShowMask = true;
+                    de.Command.EventMask.Msg = Resources.EventMaskUpdate;
+                })
+                ,
+
+            Html.X().Column()
+                .Text(Resources.Branches)
+                .DataIndex("Branch")
+                .Flex(1),
+
+            Html.X().Column()
+                .Text(Resources.Reference)
+                .DataIndex("InventoryDirectoryReference")
+                .Flex(1)
+                ,
+            Html.X().DateColumn()
+                .Text(Resources.CreationDate)
+                .DataIndex("InventoryDirectoryCreationDate")
+                .Flex(1),
+            Html.X().Column()
+                .Text(Resources.Description)
+                .DataIndex("InventoryDirectoryDescription")
+                .Flex(1)
+
+            )
+            .Plugins(
+                X.FilterHeader()
+            )
+                .BottomBar(
+                        X.PagingToolbar()
+                )
+)
+
+   @********************************** Purchase return properties *************************************@
+@(
+ X.FormPanel()
+        .MarginSpec("1 0 10 5")
+        //.Title("Current Purchase to return")
+        .Buttons(
+                X.Button()
+                .Text(Resources.SaveButton)
+                .AlignTarget("left")
+                .ID("SaveReturn")
+                .Disabled(true)
+                .DirectEvents(de =>
+                {
+                    de.Click.Url = Url.Action("CloseInventoryDirectory");
+                    de.Click.EventMask.ShowMask = true;
+                    de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                })
+                .Icon(Icon.Add)
+                , 
+                X.Button()
+                .ID("btnPrint")
+                .Text(Resources.UIPrint)
+                .Icon(Icon.Printer)
+                .OnClientClick("App.Pdf.setHidden(false)")
+                .DirectEvents(de =>
+                {
+                    de.Click.Url = Url.Action("PrintInventoryEntry");
+                    de.Click.EventMask.ShowMask = true;
+                    de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                })
+                ,
+                X.Button()
+                .Text("Reset")
+                .MarginSpec("0 10 50 0")
+        //.OnClientClick("this.up('form').reset();")
+                .DirectEvents(de =>
+                {
+                    de.Click.Url = Url.Action("ResetReturn");
+                })
+                .Icon(Icon.ArrowRefresh)
+        )
+             .Items(
+        //Informations non modifiables sur la vente
+                X.FormPanel()
+                 .ID("IventoryEntryGeneralInformation")
+                 //.Listeners(ls => ls.FieldChange.Handler = activateValidatePurchase1)
+                 .Layout(LayoutType.HBox)
+                 .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                 .Items(
+                    X.TextField().Name("InventoryDirectoryID").ID("InventoryDirectoryID").Hidden(true),
+                    X.Container()
+                        .Layout(LayoutType.Column)
+                        .MarginSpec("10 10 0 10")
+                        .Items(//Informations liées à la vente
+                                X.ComboBox()
+                                .FieldLabel(Resources.Branches)
+                                .Name("BranchID")
+                                .MarginSpec("5 0 3 3")
+                                .AllowBlank(false)
+                                .ID("BranchID")
+                                .ReadOnly(true)
+                                .Items(LoadComponent.getAllBranches()),
+                                X.TextField()
+                                .FieldLabel(Resources.Reference)
+                                .Name("InventoryDirectoryReference")
+                                .MarginSpec("5 0 3 3")
+                                .AllowBlank(false)
+                                .ID("InventoryDirectoryReference")
+                                .ReadOnly(true)
+                                .MinLength(2),
+
+                                X.ComboBox()
+                                        .ID("AutorizedByID")
+                                        .Name("AutorizedByID")
+                                        .FieldLabel(Resources.AutorizedBy)
+                                        .Items(LoadComponent.Users)
+                                        .AllowBlank(false).ForceSelection(true)
+                                        .BlankText(Resources.AutorizedBy + " " + Resources.RequiredField)
+                                        .LabelSeparator(labelSeparator)
+                                        .EmptyText(Resources.Select)
+                                        .ReadOnly(false)
+                                        .Listeners(ls => ls.Change.Handler = activateInitialInventoryDirectoryLines),
+
+                            X.TextField()
+                                .ID("RegisteredByID")
+                                .Name("RegisteredByID")
+                                .FieldLabel(Resources.RegisteredBy)
+                                //.Items(LoadComponent.Users)
+                                //.Value(user)
+                                .AllowBlank(false)//.ForceSelection(true)
+                                .BlankText(Resources.RegisteredBy + " " + Resources.RequiredField)
+                                .LabelSeparator(labelSeparator)
+                                .EmptyText(Resources.Select)
+                                .ReadOnly(true)
+                                .Hidden(true),
+
+                            X.DateField().FieldLabel(Resources.CreationDate).MarginSpec("0 0 5 0")
+                                .AllowBlank(false).Name("InventoryDirectoryCreationDate")
+                                .ID("InventoryDirectoryCreationDate")
+                                .MarginSpec("5 0 3 3")
+                                .ReadOnly(true)
+                                .InputType(Ext.Net.InputType.DateTime),
+                            X.DateField().FieldLabel(Resources.UIDateOperation)
+                                .AllowBlank(true)
+                                .Name("InventoryDirectoryDate")
+                                .ID("InventoryDirectoryDate")
+                                .ReadOnly(true)
+                                .MarginSpec("5 0 3 3")
+                                .InputType(Ext.Net.InputType.DateTime),
+                            X.TextArea()
+                                .ID("InventoryDirectoryDescription").ReadOnly(true)
+                                .Name("InventoryDirectoryDescription")
+                                .FieldLabel(FatSod.Ressources.Resources.Description)
+                                .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"></span> :")
+                                .MarginSpec("5 0 40 3")
+
+                        )
+
+
+                 )
+                 ,
+        //Fin des informations sur la vente
+                X.Container()
+                    .ID("PurchaseReturnInformation")
+                    .Frame(false)
+                    .MarginSpec("0 0 0 0")
+                    .Layout(LayoutType.HBox)
+        //.LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+                    .Items(
+
+                        X.GridPanel()
+                            .ID("InitialInventoryDirectoryLines")
+                            .Flex(1)
+                            .Height(280)
+                            .Frame(false)
+                            .Disabled(true)
+                            .Title("Inventory Directory Content")
+                            .Store(
+                                X.Store()
+                                    .RemotePaging(true)
+                                    .GroupField("Light")
+                                    .PageSize(10)
+                                    .AutoLoad(false)
+                                    .ID("InitialInventoryDirectoryLineStore")
+                                    .Model(
+                                        X.Model()
+                                            .Fields(
+                                                new ModelField() { Name = "TMPID", Type = ModelFieldType.Int },
+                                                new ModelField() { Name = "InventoryDirectoryLineID", Type = ModelFieldType.Int },
+                                                new ModelField() { Name = "LocalizationLabel", Type = ModelFieldType.String },
+                                                new ModelField() { Name = "ProductLabel", Type = ModelFieldType.String },
+                                                new ModelField() { Name = "OldStockQuantity", Type = ModelFieldType.Float },
+                                                new ModelField() { Name = "OldSafetyStockQuantity", Type = ModelFieldType.Float },
+                                                new ModelField() { Name = "AveragePurchasePrice", Type = ModelFieldType.Float },
+                                                new ModelField() { Name = "ProductID", Type = ModelFieldType.Int },
+                                                new ModelField() { Name = "LocalizationID", Type = ModelFieldType.Int }
+                                            )
+                                    )
+                                    .ServerProxy(
+                                        X.AjaxProxy()
+                                        .Url(Url.Action("InitialInventoryDirectoryLines"))
+                                        .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                                        .Reader(X.JsonReader().RootProperty("data"))
+                                    )
+                             )
+                            .ColumnModel(
+
+                                X.Column()
+                                    .Text(Resources.Designation)
+                                    .DataIndex("ProductLabel")
+                                    .Flex(1),
+                                X.Column()
+                                    .Text(Resources.Localization)
+                                    .DataIndex("LocalizationLabel")
+                                    .Flex(1)
+                                    ,
+                                X.Column()
+                                    .Text(Resources.Quantity + " En Stock")
+                                    .DataIndex("OldStockQuantity")
+                                    .Flex(1),
+                                /*X.Column()
+                                    .Text(Resources.StockSecure)
+                                    .DataIndex("OldSafetyStockQuantity")
+                                    .Flex(1),
+                                X.Column()
+                                    .Text("Price")
+                                    .DataIndex("AveragePurchasePrice")
+                                    .Flex(1),*/
+                                X.ImageCommandColumn()
+                                    .Width(30)
+        //.Hidden(LoadAction.Utilisateur(MenuAction.DELETE, profile))
+                                    .Commands(
+                                        X.ImageCommand()
+                                            .CommandName("Delete")
+                                            .IconCls("icon-delete")
+                                    )
+                                    .DirectEvents(de =>
+                                    {
+                                        de.Command.Action = "InitializeIDLineFieldsByIIDL";
+                                        de.Command.Confirmation.ConfirmRequest = false;
+                                        de.Command.Confirmation.Message = Resources.ConfirmModifMessage;
+                                        de.Command.Confirmation.Title = Resources.ConfirmDeleteTitle;
+                                        de.Command.ExtraParams.Add(new Parameter("InventoryDirectoryLineID", "record.data.InventoryDirectoryLineID", ParameterMode.Raw));
+                                        de.Command.EventMask.ShowMask = true;
+                                        de.Command.EventMask.Msg = Resources.EventMaskMsg;
+                                    })
+                                )
+                                //.SelectionModel(Html.X().CellSelectionModel())
+                                //    .Plugins(Html.X().CellEditing().Listeners(ls => ls.Edit.Fn = "edit")
+                                //)
+                                .BottomBar(
+                                    X.PagingToolbar()
+                                )
+        ////Formpanel for update InitialInventoryDirectoryLines
+                            ,
+
+                        X.FormPanel()
+                            .ID("FormAddFinalInventoryDirectoryLine")
+                            .Border(false)
+                            .DefaultAnchor("95%")
+                            .FieldDefaults(fd => { fd.LabelWidth = 150; fd.LabelStyle = "color:#0094ff;"; fd.LabelSeparator = labelSeparator; })
+                            .Width(250)
+                            .Height(300)
+                            .MarginSpec("0 0 0 0")
+                            .Listeners(ls => ls.FieldChange.Handler = "if(this.isValid()){App.ReduceBtn.setDisabled(false);}else{App.ReduceBtn.setDisabled(true);}")
+                            .Buttons(
+                            X.Button()
+                                .Icon(Icon.ApplicationEdit)
+                                .Text("Validate")
+                                .Disabled(true)
+                                .ID("ReduceBtn")
+                                .DirectEvents(de =>
+                                {
+                                    de.Click.Url = Url.Action("AddFinalInventoryDirectoryLine");
+                                    de.Click.EventMask.ShowMask = true;
+                                    de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                                }),
+                                 X.Button()
+                                    .ID("Cancel2")
+                                    .Text(Resources.Cancel)
+                                    .OnClientClick("this.up('form').reset();")
+                            )
+                                .Items(
+                                    X.NumberField().ID("TMPID").Hidden(true).Name("TMPID"),
+                                    X.NumberField().ID("InventoryDirectoryLineID").Hidden(true).Name("InventoryDirectoryLineID"),
+                                    X.TextField().Name("IsCadyEmpty").ID("IsCadyEmpty").Hidden(true).Value(1),
+                                    //X.ComboBox().FieldLabel(Resources.Designation).ID("ProductID").ReadOnly(true).Name("ProductID").AllowBlank(false).Items(LoadComponent.Products),
+                                    //X.ComboBox().FieldLabel("Store").ID("LocalizationID").ReadOnly(true).Name("LocalizationID").AllowBlank(false).Items(LoadComponent.Localizations)//,
+
+                                    X.TextField().ID("ProductID").ReadOnly(true).Name("ProductID").AllowBlank(false).Hidden(true),
+                                    X.TextField().ID("LocalizationID").ReadOnly(true).Name("LocalizationID").AllowBlank(false).Hidden(true),
+
+                                    X.TextField().ID("ProductLabelID").ReadOnly(true).Name("ProductLabelID").AllowBlank(false),
+                                    X.TextField().ID("LocalizationLabelID").ReadOnly(true).Name("LocalizationLabelID").AllowBlank(false),
+                                        
+                                    X.NumberField().FieldLabel("Old Stock Quantity").ID("OldStockQuantity").Name("OldStockQuantity").AllowBlank(false).ReadOnly(true).MarginSpec("5 0 0 5"),
+                                        X.NumberField().FieldLabel("Stock Quantity").ID("NewStockQuantity").Name("NewStockQuantity").MinValue(0).AllowBlank(false).ReadOnly(false).MarginSpec("5 0 0 5")
+                                            .Listeners(ls => ls.Change.Handler = "App.StockDifference.setValue(App.NewStockQuantity.getValue() + App.OldStockQuantity.getValue())"),
+                                        X.NumberField().FieldLabel("New Stock Quantity").ID("StockDifference").Name("StockDifference").AllowBlank(false).ReadOnly(true).MarginSpec("5 0 0 5"),
+                                
+                                    /*
+                                    X.NumberField().FieldLabel("New Stock Quantity").ID("NewStockQuantity").Name("NewStockQuantity").MinValue(0).AllowBlank(false).ReadOnly(false)
+                                            .Listeners(ls => ls.Change.Handler = "if (App.OldStockQuantity.getValue()<0) {App.StockDifference.setValue(App.NewStockQuantity.getValue() + App.OldStockQuantity.getValue())} else {App.StockDifference.setValue(App.NewStockQuantity.getValue() - App.OldStockQuantity.getValue())}"),
+                                    X.NumberField().FieldLabel("Stock Difference").ID("StockDifference").Name("StockDifference").AllowBlank(false).ReadOnly(true),
+                                    */
+
+                                        X.NumberField().FieldLabel("Old Safety Stock Quantity").ID("OldSafetyStockQuantity").Name("OldSafetyStockQuantity").MinValue(0).AllowBlank(false).ReadOnly(true).MarginSpec("5 0 0 5"),
+                                    X.NumberField().FieldLabel("New Safety Stock Quantity").ID("NewSafetyStockQuantity").Name("NewSafetyStockQuantity").MinValue(0).AllowBlank(false).ReadOnly(false)
+                                        .Listeners(ls => ls.Change.Handler = "App.StockSecurityDifference.setValue(App.NewSafetyStockQuantity.getValue() - App.OldSafetyStockQuantity.getValue())").MarginSpec("5 0 0 5"),
+                                        X.NumberField().FieldLabel("Stock Security Difference").ID("StockSecurityDifference").Name("StockSecurityDifference").AllowBlank(false).ReadOnly(true).MarginSpec("5 0 0 5"),
+                                        X.NumberField().FieldLabel("Average Purchase Price").ID("AveragePurchasePrice").Name("AveragePurchasePrice").AllowBlank(false).MinValue(0).Hidden(true).MarginSpec("5 0 0 5")
+
+                                )
+                                ,
+
+                            X.GridPanel()
+                                .ID("FinalInventoryDirectoryLines")
+                                .Flex(1)
+                                .Height(280)
+                                .Title("Inventory Directory Final Situation")
+                                .Store(
+                                    X.Store()
+                                        .GroupField("Light")
+                                        .PageSize(10)
+                                        .AutoLoad(false)
+                                        .ID("FinalInventoryDirectoryLineStore")
+                                        .Model(
+                                            X.Model()
+                                                .Fields(
+                                                    new ModelField() { Name = "TMPID", Type = ModelFieldType.Int },
+                                                    new ModelField() { Name = "InventoryDirectoryLineID", Type = ModelFieldType.Int },
+                                                    new ModelField() { Name = "ProductLabel", Type = ModelFieldType.String },
+                                                    new ModelField() { Name = "LineUnitPrice", Type = ModelFieldType.Int },
+                                                    new ModelField() { Name = "LocalizationLabel", Type = ModelFieldType.String },
+                                                    new ModelField() { Name = "OldStockQuantity", Type = ModelFieldType.Float },
+                                                    new ModelField() { Name = "OldSafetyStockQuantity", Type = ModelFieldType.Float },
+                                                    new ModelField() { Name = "NewStockQuantity", Type = ModelFieldType.Float },
+                                                    new ModelField() { Name = "NewSafetyStockQuantity", Type = ModelFieldType.Float },
+                                                    new ModelField() { Name = "Difference", Type = ModelFieldType.Float },
+                                                    new ModelField() { Name = "StockDifference", Type = ModelFieldType.Float },
+                                                    new ModelField() { Name = "StockSecurityDifference", Type = ModelFieldType.Float },
+                                                    new ModelField() { Name = "AveragePurchasePrice", Type = ModelFieldType.Float },
+                                                    new ModelField() { Name = "ProductID", Type = ModelFieldType.Int },
+                                                    new ModelField() { Name = "LocalizationID", Type = ModelFieldType.Int }
+                                                )
+                                        )
+                                        .ServerProxy(
+                                            X.AjaxProxy()
+                                            .Url(Url.Action("FinalInventoryDirectoryLines"))
+                                            .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                                            .Reader(X.JsonReader().RootProperty("data"))
+                                        )
+
+                                 )
+                                .ColumnModel(
+
+                                        X.Column()
+                                            .Text(Resources.Designation)
+                                            .DataIndex("ProductLabel")
+                                            .Flex(1),
+                                        X.Column()
+                                            .Text(Resources.Localization)
+                                            .DataIndex("LocalizationLabel")
+                                            .Flex(1)
+                                            ,
+                                        X.Column()
+                                        .Text("Old Stock")
+                                        .DataIndex("OldStockQuantity")
+                                        .Flex(1),
+                                        X.Column()
+                                            .Text("Added Stock")
+                                            .DataIndex("NewStockQuantity")
+                                            .Flex(1),
+                                        X.Column()
+                                            .Text("New Qty")
+                                            .DataIndex("StockDifference")
+                                            .Flex(1)
+                                            ,
+                                        
+                                            /*
+                                        X.Column()
+                                            .Text("Difference")
+                                            .DataIndex("StockSecurityDifference")
+                                            .Flex(1),
+                                        X.Column()
+                                            .Text("Price")
+                                            .DataIndex("AveragePurchasePrice")
+                                            .Flex(1),*/
+                                    X.ImageCommandColumn()
+                                        .Width(30)
+        //.Hidden(LoadAction.Utilisateur(MenuAction.DELETE, profile))
+                                        .Commands(
+                                            X.ImageCommand()
+                                                .CommandName("Delete")
+                                                .IconCls("icon-delete")
+                                        )
+                                        .DirectEvents(de =>
+                                        {
+                                            de.Command.Action = "RemoveSRLine";
+                                            de.Command.Confirmation.ConfirmRequest = true;
+                                            de.Command.Confirmation.Message = Resources.ConfirmDeleteMessage;
+                                            de.Command.Confirmation.Title = Resources.ConfirmDeleteTitle;
+                                            de.Command.ExtraParams.Add(new Parameter("TMPID", "record.data.TMPID", ParameterMode.Raw));
+                                            de.Command.EventMask.ShowMask = true;
+                                            de.Command.EventMask.Msg = Resources.EventMaskMsg;
+                                        }),
+                                    X.ImageCommandColumn()
+                                        .Width(30)
+        //.Hidden(LoadAction.Utilisateur(MenuAction.UPDATE, profile))
+                                        .Commands(
+                                        X.ImageCommand()
+                                                .CommandName("Edit")
+                                                .IconCls("icon-edit")
+                                                .ToolTip(tt => tt.Text = "Modifier ?")
+                                        )
+
+                                        .DirectEvents(de =>
+                                        {
+                                            de.Command.Action = "UpdateSRLine";
+                                            de.Command.ExtraParams.Add(new Parameter("TMPID", "record.data.TMPID", ParameterMode.Raw));
+                                            de.Command.EventMask.ShowMask = true;
+                                            de.Command.EventMask.Msg = Resources.EventMaskUpdate;
+                                        })
+
+
+                                    )
+                                    .BottomBar(
+                                        X.PagingToolbar()
+                                    )
+                    )
+             )
+)
+
+@(
+ X.FormPanel()
+    .ID("PostSupForm")
+    .Frame(true)
+    .MarginSpec("0 20 0 20")
+    .BodyPadding(10)
+        .Title("Choose Operation Date")
+    .Items(
+        X.DateField().FieldLabel(Resources.UIDateOperation)
+        .AllowBlank(false).Name("InventoryEntryDate")
+        .ID("InventoryEntryDate")
+        .Format("dd/MM/yyyy")
+        .Value((DateTime)ViewBag.BusnessDayDate)
+        .MarginSpec("25 0 10 0")
+        .InputType(Ext.Net.InputType.DateTime)
+        .DirectEvents(de =>
+        {
+            de.Change.Action = "ReloadInventoryDirectoryListStore";
+            de.Change.Method = HttpMethod.POST;
+            de.Change.EventMask.ShowMask = true;
+            de.Change.EventMask.Msg = Resources.EventMaskUpdate;
+        })
+
+        )
+
+)
+@(
+ X.GridPanel()
+            .Title("List of Stock Directory")
+            .ID("StockEntryGrid")
+            .Layout(LayoutType.Fit)
+            .MarginSpec("0 20 20 20")
+            .Frame(true)
+            .Collapsible(true)
+            .Store(Html.X().Store().AutoLoad(true)
+        //.GroupField("Light")
+                .PageSize(10)
+                .ID("StockEntryGridStoreID")
+                .Model(Html.X().Model()
+                    .Fields(
+                            new ModelField("InventoryDirectoryID", ModelFieldType.Int),
+                            new ModelField("InventoryDirectoryReference", ModelFieldType.String),
+                            new ModelField("InventoryDirectoryCreationDate", ModelFieldType.Date),
+                            new ModelField("Branch", ModelFieldType.String),
+                            new ModelField("InventoryDirectoryDescription", ModelFieldType.String)
+                    )
+                )
+                .DataSource(Model)
+                .ServerProxy(
+                    X.AjaxProxy()
+                    .Url(Url.Action("GetAllStockDirectory"))
+                    .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                    .Reader(X.JsonReader().RootProperty("data"))
+                )
+                .Parameters(ps =>
+                    {
+                        ps.Add(new StoreParameter("InventoryEntryDate", "App.InventoryEntryDate.getValue()", ParameterMode.Raw));
+                    }
+
+                )
+            )
+
+            .ColumnModel(
+                Html.X().Column()
+                    .Text(Resources.Branches)
+                    .DataIndex("Branch")
+                    .Flex(1),
+
+                Html.X().Column()
+                    .Text(Resources.Reference)
+                    .DataIndex("InventoryDirectoryReference")
+                    .Flex(1)
+                    ,
+                Html.X().DateColumn()
+                    .Text(Resources.CreationDate)
+                    .DataIndex("InventoryDirectoryCreationDate")
+                    .Flex(1),
+                Html.X().Column()
+                    .Text(Resources.Description)
+                    .DataIndex("InventoryDirectoryDescription")
+                    .Flex(1)
+                    ,
+                Html.X().ImageCommandColumn()
+                .Width(30)
+                .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, profile, CodeValue.Supply.InventoryEntry_SM.CODE, db))
+                .Commands(
+                Html.X().ImageCommand()
+                        .CommandName("Edit")
+                        .IconCls("icon-edit")
+                        .ToolTip(tt => tt.Text = "Modifier ?")
+                )
+
+                .DirectEvents(de =>
+                {
+                    de.Command.Action = "UpdateInventoryEntry";
+                    de.Command.Method = HttpMethod.GET;
+                    de.Command.ExtraParams.Add(new Parameter("InventoryDirectoryID", "record.data.InventoryDirectoryID", ParameterMode.Raw));
+                    de.Command.EventMask.ShowMask = true;
+                    de.Command.EventMask.Msg = FatSod.Ressources.Resources.EventMaskUpdate;
+                })
+            )
+       
+                .Plugins(
+                    X.FilterHeader()
+                )
+                    .BottomBar(
+                                X.PagingToolbar()
+                        )
+)@*fin du bloc pour le grid panel*@
+@(
+ X.Container()
+        //Panel for print
+            .Items(
+            X.Panel()
+                                .ID("Pdf")
+                                .Title(Resources.panelprintvalreceip)
+                                .Hidden(true)
+                                .Layout(LayoutType.HBox)
+                                .Flex(1)
+                                .Collapsible(true)
+                                .Padding(1)
+                                .AutoScroll(false)
+                                .Hidden(true)
+                                .MinHeight(500)
+                                .MinWidth(500)
+                                .Loader(
+                                   X.ComponentLoader()
+                                    .AutoLoad(false)
+                                    .Mode(LoadMode.Frame)
+                                    .LoadMask(lm =>
+                                        {
+                                            lm.ShowMask = true;
+                                            lm.Msg = Resources.MsgGenerateState;
+                                            lm.UseMsg = true;
+
+                                        })
+                                    )
+        )
+
+)
+}

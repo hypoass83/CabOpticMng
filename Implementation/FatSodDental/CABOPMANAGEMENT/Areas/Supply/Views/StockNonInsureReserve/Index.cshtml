@@ -1,0 +1,710 @@
+﻿@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+@using CABOPMANAGEMENT.Tools;
+@using FatSod.Supply.Entities;
+
+@{
+    ViewBag.Title = Resources.StockNonInsureReserve;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+
+
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+@if (TempData["Message"] != null)
+{
+    @Html.Raw(TempData["Message"])
+}
+<div class="box box-primary box-body" id="SaleValideForm">
+    <div class="row" id="headerform">
+    <div class="col-md-12">
+        <fieldset>
+            <input class="form-control input-sm" id="DisplayForm" type="hidden" value="@ViewBag.DisplayForm">
+
+            <div class="panel panel-default">
+                <div class="panel-body1">
+                    <input type="hidden" id="StatutSale" value="@SalePurchaseStatut.Delivered" />
+                    <input type="hidden" id="OldStatutSale" value="@SalePurchaseStatut.Ordered" />
+
+                    <input type="hidden" id="SaleValidate" value="true" />
+
+                    <input type="hidden" id="MedecinTraitant" />
+                    <input type="hidden" id="SalesProductsType" />
+
+                    <input type="hidden" id="ProductLocalizationID" />
+
+                    <input type="hidden" id="LocalizationID" />
+                    <input type="hidden" id="SaleID" />
+
+                    <input type="hidden" id="heureVente" />
+
+                    <input type="hidden" id="TypeLens" />
+
+
+                    <input class="form-control" id="DeviseID" name="DeviseID" value="@ViewBag.DefaultDeviseID" type="hidden" />
+
+                    <div class="col-md-6">
+                        <div class="row ipt" style="margin-top:2px;">
+                            <div class="col-sm-3">@Resources.Branches<code>(*)</code></div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <input type="hidden" id="DefaultBranchID" value="@ViewBag.CurrentBranch" />
+                                    <select id="BranchID" class="form-control"></select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-3">@Resources.Customer<code>(*)</code></div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <input type="text" id="CustomerName" placeholder="@Resources.Select" class="input-sm form-control">
+                                    <input type="hidden" id="CustomerID" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-3">@Resources.UIDateOperation</div>
+                            <div class="col-sm-6">
+                                <input type="text" id="SaleDate" class="input-sm form-control" readonly />
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-3">@Resources.SaleReference <code>(*)</code></div>
+                            <div class="col-sm-6">
+                                <input type="text" id="SaleReceiptNumber" class="input-sm form-control" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="row ipt">
+                            <div class="col-sm-3">@Resources.chooseFrameProduct <code>(*)</code></div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <select id="ProductID" class="input-sm form-control"></select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-3">@Resources.BillAmount</div>
+                            <div class="col-sm-6">
+                                <input class="form-control input-sm" id="LineUnitPrice" type="number">
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-3">@Resources.AdvancedAmount</div>
+                            <div class="col-sm-6">
+                                <input class="form-control input-sm" id="SliceAmount" type="number">
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-3">@Resources.RemainingAmount</div>
+                            <div class="col-sm-6">
+                                <input class="form-control input-sm" id="RemainingAmount" type="number">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </fieldset>
+    </div>
+    <!-- Save and Reset Buttons -->
+    <div class="row" style="margin-top:-15px;">
+        <div class="col-sm-3">
+        </div>
+        <div class="col-sm-2">
+            <button type="submit" class="btn btn-primary btn-success" id="btnSubmit">@Resources.SaveButton</button>
+        </div>
+        <div class="col-sm-3">
+        </div>
+        <div class="col-sm-2">
+            <button type="button" id="btnCancel" class="btn btn-primary btn-danger">@Resources.ResetButton</button>
+        </div>
+    </div>
+</div>
+    <div class="row ipt">
+        <div class="col-sm-2" style="margin-left:25px;">@Resources.UIBeginDate</div>
+        <div class="col-sm-3" style="margin-left:-100px;">
+            <input class="form-control datepicker" id="BeginDate" type="text" placeholder="choose Begin date" value="@ViewBag.BusnessDayDate">
+        </div>
+        <div class="col-sm-2" style="margin-left:25px;">@Resources.UIEndDate</div>
+        <div class="col-sm-3" style="margin-left:-100px;">
+            <input class="form-control datepicker checkDateNoGraterThanToday" id="EndDate" type="text" placeholder="choose End date">
+        </div>
+        <div class="col-sm-2" style="margin-left:25px;">
+            <button id="btnPrint" class="btn btn-primary btn-success">@Resources.ViewState</button>
+        </div>
+    </div>
+
+</div>
+
+<!-- Ajout de la table contenant les data deja enregistrees-->
+<h2>@Resources.AllReserveStock</h2>
+<div class="box box-body box-primary">
+    <table class="table" id="mainTable">
+        <thead>
+            <tr class="dataTableHead">
+                <th>
+                    ID
+                </th>
+                <th>
+                    @Resources.Customer
+                </th>
+                <th>
+                    @Resources.UIDateOperation 
+                </th>
+                <th>
+                    @Resources.Commandref
+                </th>
+                <th>
+                    @Resources.BillAmount
+                </th>
+                <th>
+                    @Resources.AdvancedAmount
+                </th>
+                <th>
+                    @Resources.RemainingAmount
+                </th>
+                <th>
+                    Action
+                </th>
+            </tr>
+        </thead>
+    </table>
+</div>
+
+<!-- Css Begins Here -->
+
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 3px;
+        margin-left: -5px;
+    }
+
+    #img-upload {
+        width: 100%;
+    }
+
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin: 0;
+        min-width: 0;
+        padding: 10px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 395px;
+        margin-bottom: 1%;
+    }
+
+    .panel-body1 {
+        height: 100px;
+        margin-bottom: 2%;
+    }
+
+    .panel-body3 {
+        height: 60px;
+        margin-top: 3px;
+        margin-bottom: 1%;
+    }
+
+    .panel-bodyFrame {
+        height: 110px;
+        margin-bottom: 1%;
+    }
+
+    .panel-bodyLens {
+        height: 150px;
+        margin-bottom: 2%;
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+</style>
+
+<!--********** JavaScripts **********-->
+<script>
+
+    // Get the Frame List
+    function populateGetFrameProducts(DepartureLocalizationID) {
+        $.get('@Url.Action("GetAllProducts", "StockNonInsureReserve")', { DepartureLocalizationID: DepartureLocalizationID }, function (data) {
+            $('#ProductID').empty();
+            $('#ProductID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#ProductID').append($("<option></option>").val(value.ProductID).html(value.ProductCode));
+            });
+        }, 'json');
+    }
+    // Get the Customer List
+    function populateCustomer() {
+
+        $("#CustomerName").autocomplete({
+            minLength: 1, // set minimum of 1 characters before search executes.
+            delay: 100, // wait 0.1 second after keystroke before search executes.
+            source: function (request, response) {
+                $.ajax({
+                    url: '@Url.Action("LoadCustomers", "StockNonInsureReserve")',
+                    type: "POST",
+                    dataType: "json",
+                    //cache: false,
+                    data: { filter: request.term },
+                    success: function (data) {
+                        response($.map(data, function (item) {
+                            return { label: item.Name, value: item.Name, id: item.ID };
+                        }))
+                    }
+                })
+            },
+            messages: {
+                noResults: "No results",
+                results: function (count) {
+                    return count + (count == 0 ? ' result' : ' results');
+                }
+            },
+            select: function (event, ui) {
+                $("#CustomerID").val(ui.item.id);
+                var _CustomerID = $('#CustomerID').val();
+            }
+        });
+    }
+
+    // Get the Branch List
+    function populateBranch() {
+        $.get('@Url.Action("GetOpenedBranches", "StockNonInsureReserve")', {}, function (data) {
+            $('#BranchID').empty();
+            $('#BranchID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#BranchID').append($("<option></option>").val(value.BranchID).html(value.BranchName));
+            });
+            var _DefaultId = $('#DefaultBranchID').val();
+            $('#BranchID').val(_DefaultId);
+            InitDate(_DefaultId);
+        }, 'json');
+    }
+    function InitDate(Branch) {
+        $.get('@Url.Action("InitDate", "StockNonInsureReserve")', { BranchID: Branch }, function (data) {
+            $('#SaleDate').empty();
+            $('#MedecinTraitant').empty();
+            $('#LocalizationID').empty();
+            $('#SalesProductsType').empty();
+
+            $.each(data, function (key, value) {
+                $('#SaleDate').val(value.SaleDate);
+                $('#MedecinTraitant').val(value.MedecinTraitant);
+                $('#LocalizationID').val(value.LocalizationID);
+                $('#SalesProductsType').val(value.SalesProductsType);
+            });
+            //chargement des frames
+            var LocalizationID = $("#LocalizationID").val();
+            populateGetFrameProducts(LocalizationID);
+        }, 'json');
+    }
+
+    //chargement des commandes a valider
+    function GetAllCommand(test, BeginDate,EndDate) {
+
+        if (test)
+        {
+            $('#mainTable').dataTable().fnDestroy();
+        }
+        var oTable = $('#mainTable');
+
+        oTable = $('#mainTable').dataTable({
+
+            fixedColumns: true,
+            "paging": true,
+            "pageLength": 20,
+            "lengthMenu": [[20, 40, 60, -1], [20, 40, 60, "All"]],
+            "searching": true,
+            "ordering": true,
+            "pagingType": "full_numbers",
+            // Ajax call
+            @*"ajax": "@Url.Action("ModelCommand", "StockNonInsureReserve")",*@
+            //"dom": '<"toolbar">frtip',
+
+            // Ajax call
+            "ajax": {
+                "url": "@Url.Action("ModelCommand", "StockNonInsureReserve")",
+                //"type": "GET",
+                "datatype": "json",
+                "data": { BeginDate: BeginDate, EndDate: EndDate }
+            },
+
+            "columns": [
+                { "data": "SaleID", "width": "1%" },
+                { "data": "CustomerFullName" },
+                { "data": "SaleDate" },
+                { "data": "SaleReceiptNumber" },
+                { "data": "SaleTotalPrice" },
+                { "data": "Advanced" },
+                { "data": "Remainder" },
+                {// this is Actions Column
+                    mRender: function (data, type, row) {
+
+                        var deleteOption = '@LoadAction.IsSubMenuActionAble(MenuAction.DELETE, @profile, CodeValue.Supply.StockNonInsureReserve, db)';
+                        var T_deleteOption = (deleteOption == 'False') ? '<a href=# class="editor_remove" onclick="DeleteItem(' + row.SaleID + ')"><span class="glyphicon glyphicon-trash"></span></a>' : '';
+
+                        @*var updateOption = '@LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, @profile, CodeValue.Supply.StockNonInsureReserve, db)';
+                        var T_updateOption = (updateOption == 'False') ? '<a href="#" class="editor_remove" onclick="UpdateItem(' + row.SaleID + ')"><span class="glyphicon glyphicon-edit"></a>' : '';*@
+
+                        return @*T_updateOption + " | " +*@ T_deleteOption;
+                    }
+                }
+            ],
+        dom: 'Bfrtip',
+        buttons: [
+            'copy', 'csv', 'excel'
+        ]
+    });
+
+    }
+
+    function DeleteItem(obj) {
+
+        if (confirm("Do you want to Delete this Data ?")) {
+            var globalID = obj;
+            //post to the server
+            $(this).val('Please wait...');
+            var data = {
+                SaleID: parseInt(globalID)
+            }
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("DeleteStockInsureReserve", "StockNonInsureReserve")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        InitialiseHeader();
+                        var BeginDate = $("#BeginDate").val();
+                        var EndDate = $("#EndDate").val();
+                        GetAllCommand(true, BeginDate, EndDate);
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                    $('#btnSubmit').val('@Resources.Send');
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').val('@Resources.Send');
+                }
+            });
+        }
+    }
+    function InitialiseHeader() {
+        //header
+        $("#SaleID").val('');
+        $('#CustomerName').val('');
+        $('#CustomerID').val('');
+        $('#SaleReceiptNumber').val('');
+        //amount detail
+        $('#SliceAmount').val('0');
+        $('#LineUnitPrice').val('0');
+        $('#RemainingAmount').val('0');
+
+
+        var _DefaultId = $('#DefaultBranchID').val();
+        $('#BranchID').val(_DefaultId);
+        InitDate(_DefaultId);
+    }
+
+    $(document).on('ready', function () {
+        //if ($('#DisplayForm').val().trim() == 0) {
+        //    $("#SaleValideForm").hide();
+        //}
+        //else {
+        //    $("#SaleValideForm").show();
+        //}
+        $("#headerform").hide();
+        $(function () {
+            $(".datepicker").datepicker({
+                format: 'yyyy-mm-dd'
+            });
+        });
+
+        var BeginDate = $("#BeginDate").val();
+        var d = new Date();
+        if ($("#BeginDate").val() == "") {
+            BeginDate = d.getFullYear() + "/" + d.getMonth() + "/" + d.getDay();
+        }
+
+        InitialiseHeader();
+        //chargement des agence
+        populateBranch();
+        //chargement des clients
+        populateCustomer();
+
+        //action kd la caisse saisi le montant du avancé par le client
+        $("#SliceAmount").blur(function () {
+            OnAmountChanged();
+        });
+        //action kd la caisse saisi le montant du avancé par le client
+        $("#SliceAmount").keyup(function () {
+            var TotalPriceTTC = $('#LineUnitPrice').val().trim();
+            var Amount = $('#SliceAmount').val().trim();
+            var RemainingAmount = parseInt(TotalPriceTTC) - parseInt(Amount);
+            $('#RemainingAmount').val(RemainingAmount);
+        });
+
+        
+        var EndDate = '1900-01-01';
+        GetAllCommand(false, BeginDate, EndDate);
+        $("#btnPrint").on('click', function () {
+            BeginDate = $("#BeginDate").val();
+            EndDate = $("#EndDate").val();
+            GetAllCommand(true, BeginDate, EndDate);
+        });
+
+        $('#btnCancel').on('click', function () {
+            location.reload(true);
+        });
+        $('#btnSubmit').on('click', function () {
+            ValideStockReserve();
+        });
+    });
+
+    //validation d'une commande
+    function ValideStockReserve() {
+
+        var isAllValid = true;
+        var d = new Date();
+        var hourPayment = d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds();
+        $('#heureVente').val(hourPayment);
+
+        if ($('#heureVente').val().trim() == '') {
+            isAllValid = false;
+        }
+
+        //entete
+        if ($('#MedecinTraitant').val().trim() == '') {
+            isAllValid = false;
+            $("#MedecinTraitant").addClass("invalid-data");
+        }
+        else {
+            $("#MedecinTraitant").addClass("valid-data");
+        }
+        if ($('#SalesProductsType').val() == "0") {
+            isAllValid = false;
+            $("#SalesProductsType").addClass("invalid-data");
+        }
+        else {
+            $("#SalesProductsType").addClass("valid-data");
+        }
+        if ($('#CustomerName').val() == '') {
+            isAllValid = false;
+            $("#CustomerName").addClass("invalid-data");
+        }
+        else {
+            $("#CustomerName").addClass("valid-data");
+        }
+
+        if ($('#SaleDate').val() == '') {
+            isAllValid = false;
+            $("#SaleDate").addClass("invalid-data");
+        }
+        else {
+            $("#SaleDate").addClass("valid-data");
+        }
+
+        if ($('#LocalizationID').val() == "0") {
+            isAllValid = false;
+            $("#LocalizationID").addClass("invalid-data");
+        }
+        else {
+            $("#LocalizationID").addClass("valid-data");
+        }
+
+        //footer
+
+        if (parseFloat($('#LineUnitPrice').val()) <= 0) {
+            isAllValid = false;
+            $("#LineUnitPrice").addClass("invalid-data");
+        }
+        else {
+            $("#LineUnitPrice").addClass("valid-data");
+        }
+
+
+        if ($('#DeviseID').val().trim() == '') {
+            isAllValid = false;
+            $("#DeviseID").addClass("invalid-data");
+        }
+        else {
+            $("#DeviseID").addClass("valid-data");
+        }
+
+        if ($('#BranchID').val().trim() == '') {
+            isAllValid = false;
+            $("#BranchID").addClass("invalid-data");
+        }
+        else {
+            $("#BranchID").addClass("valid-data");
+        }
+
+        if ($('#SaleReceiptNumber').val().trim() == '') {
+            isAllValid = false;
+            $("#SaleReceiptNumber").addClass("invalid-data");
+        }
+        else {
+            $("#SaleReceiptNumber").addClass("valid-data");
+        }
+
+
+        if (parseFloat($('#SliceAmount').val()) <= 0) {
+            isAllValid = false;
+            $("#SliceAmount").addClass("invalid-data");
+        }
+        else {
+            $("#SliceAmount").addClass("valid-data");
+        }
+
+
+
+        if (isAllValid) {
+
+
+            var data = {
+                heureVente: $('#heureVente').val().trim(),
+                BuyType: '',
+                PaymentMethodID: 0,
+                SaleDate: $('#SaleDate').val(),
+                SaleDeliveryDate: $('#SaleDate').val(),
+                Remarque: 'OK',
+                MedecinTraitant: $('#MedecinTraitant').val().trim(),
+                CustomerName: $('#CustomerName').val(),
+                CustomerID: $('#CustomerID').val(),
+                DeviseID: $('#DeviseID').val(),
+                BranchID: $('#BranchID').val(),
+                SalesProductsType: $.trim($('#SalesProductsType').val()),
+                LocalizationID: $.trim($('#LocalizationID').val()),
+                SaleDeliver: 0,
+                SaleID: $("#SaleID").val(),
+
+                //frame details
+                FrameLineQuantity: 1,
+                FramePrice: $.trim($('#LineUnitPrice').val()),
+                FrameProductID: $('#ProductID').val(),
+                marque: 'RESERVSTOCK',
+                reference: $('#SaleReceiptNumber').val(),
+                NumeroSerie: $('#SaleReceiptNumber').val(),
+                SaleReceiptNumber: $('#SaleReceiptNumber').val(),
+                FRLineID: 0,
+                //lens details
+                LensCategoryCode: '',
+                SupplyingName: '',
+                LEAddition: '',
+                LEAxis: '',
+                LEIndex: '',
+                LECylinder: '',
+                LESphere: '',
+                LELineID: 0,
+
+                REAddition: '',
+                REAxis: '',
+                REIndex: '',
+                RECylinder: '',
+                RESphere: '',
+                RELineID: 0,
+
+                LensLineQuantity: 1,
+                LensPrice: 0,
+                //price detail
+                TotalPriceTTC: $.trim($('#LineUnitPrice').val()),
+                SliceAmount: $.trim($('#SliceAmount').val()),
+                //
+                spray: 0,
+                boitier: 0,
+                PostByID: 0
+            }
+            $(this).val('Please wait...');
+            $('#btnSubmit').prop('disabled', true);
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("AddSale", "StockNonInsureReserve")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        InitialiseHeader();
+                        var BeginDate = $("#BeginDate").val();
+                        var EndDate = $("#EndDate").val();
+                        GetAllCommand(true, BeginDate, EndDate);
+                        $('#btnSubmit').prop('disabled', false);
+                    }
+                    else {
+                        alert(d.Message);
+                        disablebutton();
+                        $('#btnSubmit').prop('disabled', false);
+                    }
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                    disablebutton();
+                    $('#btnSubmit').prop('disabled', false);
+                }
+            });
+        }
+
+    }
+
+    function enablebutton() {
+        $('#btnDeliveryOrder').prop('disabled', false);
+        $('#btnReceipt').prop('disabled', false);
+    }
+    function disablebutton() {
+        $('#btnDeliveryOrder').prop('disabled', true);
+        $('#btnReceipt').prop('disabled', true);
+    }
+    function OnAmountChanged() {
+        var Amount = $('#SliceAmount').val();
+        var TotalPriceTTC = $('#LineUnitPrice').val();
+        var RemainingAmount = parseInt(TotalPriceTTC) - parseInt(Amount);
+        $('#RemainingAmount').val(RemainingAmount);
+    }
+</script>

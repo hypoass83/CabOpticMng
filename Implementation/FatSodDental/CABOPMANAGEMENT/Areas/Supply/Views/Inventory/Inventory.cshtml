@@ -1,0 +1,837 @@
+﻿@using FatSod.Ressources;
+@using CABOPMANAGEMENT.Tools;
+@using FatSod.DataContext.Initializer;
+
+@model IEnumerable<FatSod.Supply.Entities.ProductLocalization>
+
+@{
+    ViewBag.Title = @Resources.d_Inventory;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var profile = (Session["UserProfile"] == null) ? 0 : (int)Session["UserProfile"];
+    var user = (Session["UserID"] == null) ? 0 : (int)Session["UserID"];
+
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+
+
+}
+
+@*<script src="~/Scripts/jquery-csv/jquery.min.js"></script>*@
+<script src="~/Scripts/jquery-csv/jquery.csv-0.71.min.js"></script>
+
+<div class="box box-primary box-body">
+    <!--<form id="FormAccountingSection">-->
+    @****************************@
+    @Html.AntiForgeryToken()
+
+    <div class="box box-primary box-body">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <fieldset>
+                            <legend>@Resources.SearchCriteria</legend>
+
+                            <div class="row ipt">
+                                <!-- Categories -->
+                                <div class="col-sm-3" style="margin-left:-10px;">@Resources.Categories<code>(*)</code></div>
+                                <div class="col-sm-3" style="margin-left:-35px;">
+                                    <select id="CategoryID" class="input-sm form-control"></select>
+                                </div>
+
+                                <div class="col-sm-2" style="margin-left:-15px;">@Resources.Stores<code>(*)</code></div>
+                                <div class="col-sm-3" style="margin-left:-35px;">
+                                    <select id="Stores" class="input-sm form-control"></select>
+                                </div>
+                                <div class="col-sm-2">
+                                    <button type="button" class="btn btn-primary" id="btnSearch">@Resources.Search</button>
+                                </div>
+                            </div>
+
+
+                        </fieldset>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <!-- Left Side Begins Here -->
+            <div class="col-sm-6">
+                <div class="panel panel-default">
+                    <div class="panel-body1">
+                        <fieldset>
+                            <legend>@Resources.InventoryInfo</legend>
+                            <input type="hidden" id="OldQuantityID" />
+                            <input type="hidden" id="ProductLocalizationID" />
+                            <input type="hidden" id="ProductID" />
+                            <input type="hidden" id="LocalizationID" />
+
+                            <div class="row ipt">
+                                <!-- LocalizationCode -->
+                                <div class="col-sm-4">@Resources.Branches</div>
+                                <div class="col-sm-8">
+                                    <input type="text" id="BranchID" class="input-sm form-control" readonly />
+                                </div>
+                            </div>
+                            <div class="row ipt">
+                                <!-- Date Operation -->
+                                <div class="col-sm-4">@Resources.UIDateOperation</div>
+                                <div class="col-sm-8">
+                                    <input type="text" id="ProductLocalizationDate" class="input-sm form-control" readonly />
+                                </div>
+                            </div>
+
+                            <div class="row ipt">
+                                <!-- LocalizationDescription -->
+                                <div class="col-sm-4">@Resources.Product</div>
+                                <div class="col-sm-8">
+                                    <input type="text" id="Product" class="input-sm form-control" readonly />
+                                </div>
+                            </div>
+                            <div class="row ipt">
+                                <!-- Branch -->
+                                <div class="col-sm-4">@Resources.a_Location</div>
+                                <div class="col-sm-8">
+                                    <input type="text" id="Localization" class="input-sm form-control" readonly />
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+            </div>
+            <!-- Right Side Begins Here -->
+            <div class="col-sm-6">
+                <div class="panel panel-default">
+                    <div class="panel-body1">
+                        <fieldset style="border-left: 2px solid black">
+                            <legend>Quantity Information</legend>
+                            <div class="row ipt">
+                                <!-- Quantity -->
+                                <div class="col-sm-4">@Resources.Quantity</div>
+                                <div class="col-sm-8">
+                                    <input type="text" id="ProductLocalizationStockQuantity" class="input-sm form-control" />
+                                </div>
+                            </div>
+                            <div class="row ipt">
+                                <!-- SaleUnitPrice -->
+                                <div class="col-sm-4">@Resources.SaleUnitPrice</div>
+                                <div class="col-sm-8">
+                                    <input type="text" id="ProductLocalizationStockSellingPrice" class="input-sm form-control" readonly />
+                                </div>
+                            </div>
+
+                            <div class="row ipt">
+                                <div class="col-sm-4">@Resources.PurchaseUnitPrice</div>
+                                <div class="row ipt">
+                                    <div class="col-sm-8">
+                                        <input type="text" id="AveragePurchasePrice" class="input-sm form-control" readonly />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row ipt">
+                                <div class="col-sm-4">@Resources.StockSecure</div>
+                                <div class="row ipt">
+                                    <div class="col-sm-8">
+                                        <input type="text" id="ProductLocalizationSafetyStockQuantity" class="input-sm form-control" />
+                                    </div>
+                                </div>
+                            </div>
+
+                        </fieldset>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row ipt">
+            <div class="col-sm-8">
+                <div id="dvImportSegments" class="fileupload ">
+                    <fieldset>
+                        <legend>Upload your CSV File</legend>
+                        <div class="row ipt">
+                            <div class="col-sm-8">
+                                <input type="file" name="File Upload" id="txtFileUpload" accept=".csv" />
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <button type="button" id="btnCancel" class="btn btn-primary">@Resources.ResetButton</button>
+            </div>
+            <div class="col-sm-2">
+                <button type="button" id="btnUpdate" class="btn btn-primary">@Resources.SaveButton</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Ajout de la table contenant les data deja enregistrees-->
+<div class="row ipt">
+    <div class="col-sm-4">
+        <h4>@Resources.inventoryList</h4>
+    </div>
+    <div class="col-sm-4">
+        <button type="button" id="btnInitialiseStock" class="btn btn-primary btn-danger">@Resources.stockINitialise</button>
+    </div>
+    <div class="col-sm-4">
+        <button type="button" id="btnValide" class="btn btn-primary btn-success">@Resources.ValidateButton</button>
+    </div>
+</div>
+
+<div class="box box-body box-primary">
+
+    <table class="table" id="mainTable">
+        <thead>
+            <tr class="dataTableHead">
+                <th>
+                    ID
+                </th>
+                <th>
+                    @Resources.Branches
+                </th>
+                <th>
+                    @Resources.Localization
+                </th>
+                <th>
+                    @Resources.Product
+                </th>
+                <th>
+                    @Resources.Marque
+                </th>
+                <th>
+                    @Resources.NumeroSerie
+                </th>
+                
+                <th>
+                    @Resources.Quantity
+                </th>
+                <th>
+                    @Resources.Category
+                </th>
+                <th>Action</th>
+            </tr>
+        </thead>
+
+
+    </table>
+</div>
+
+
+<!--********** JavaScripts **********-->
+<script>
+
+    function populateCategory() {
+        $.get('@Url.Action("GetCategories", "Inventory")', {}, function (data) {
+            $('#CategoryID').empty();
+            $('#CategoryID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#CategoryID').append($("<option></option>").val(value.CategoryID).html(value.Name));
+            });
+        }, 'json');
+    }
+
+    function populateStores() {
+        $.get('@Url.Action("GetStores", "Inventory")', {}, function (data) {
+            $('#Stores').empty();
+            $('#Stores').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#Stores').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+
+        }, 'json');
+    }
+
+    function UpdateItem(obj) {
+        var globalID = obj;//$(obj).parent().siblings(":first").text();
+        clearFormSansReload();
+
+        $.get('@Url.Action("InitializePurchaseFields", "Inventory")', { ID: globalID }, function (data) {
+            $.each(data, function (key, value) {
+                $('#OldQuantityID').val(value.OldQuantityID);
+                $('#ProductLocalizationID').val(value.ProductLocalizationID);
+                $('#ProductID').val(value.ProductID);
+                $('#LocalizationID').val(value.LocalizationID);
+                $('#BranchID').val(value.BranchID);
+                $('#ProductLocalizationDate').val(value.ProductLocalizationDate);
+
+                $('#Product').val(value.Product);
+                $('#Localization').val(value.Localization);
+                $('#ProductLocalizationStockQuantity').val(value.ProductLocalizationStockQuantity);
+                $('#ProductLocalizationStockSellingPrice').val(value.ProductLocalizationStockSellingPrice);
+
+                $('#AveragePurchasePrice').val(value.AveragePurchasePrice);
+                $('#ProductLocalizationSafetyStockQuantity').val(value.ProductLocalizationSafetyStockQuantity);
+            });
+
+        }, 'json');
+
+    }
+    function clearFormSansReload() {
+        $('#OldQuantityID').val('');
+        $('#ProductLocalizationID').val('');
+        $('#ProductID').val('');
+        $('#LocalizationID').val('');
+        $('#BranchID').val('');
+        $('#ProductLocalizationDate').val('');
+        $('#Product').val('');
+        $('#Localization').val('');
+        $('#ProductLocalizationStockQuantity').val('');
+        $('#ProductLocalizationStockSellingPrice').val('');
+        $('#AveragePurchasePrice').val('');
+        $('#ProductLocalizationSafetyStockQuantity').val('');
+    }
+
+    function clearForm() {
+        $('#OldQuantityID').val('');
+        $('#ProductLocalizationID').val('');
+        $('#ProductID').val('');
+        $('#LocalizationID').val('');
+        $('#BranchID').val('');
+        $('#ProductLocalizationDate').val('');
+        $('#Product').val('');
+        $('#Localization').val('');
+        $('#ProductLocalizationStockQuantity').val('');
+        $('#ProductLocalizationStockSellingPrice').val('');
+        $('#AveragePurchasePrice').val('');
+        $('#ProductLocalizationSafetyStockQuantity').val('');
+
+        var CategoryID = $("#CategoryID").val();
+        var Stores = $("#Stores").val();
+        LoadInventory(true, CategoryID, Stores);
+    }
+
+    function CustomSearch() {
+        var table = $("#mainTable").DataTable();
+
+        $.fn.dataTable.ext.search.push(
+            function (settings, data, dataIndex) {
+                var term = $('#mainTable_filter input')
+                        .val()
+                        .toLowerCase();
+
+                for (var i = 0; i < data.length; i++) {
+                    value = data[i]
+                        .toString()
+                        .toLowerCase();
+
+                    if (value.indexOf(term) == 0) {
+                        return true;
+                    }
+                };
+                return false;
+            }
+        );
+
+    }
+
+    function LoadInventory(test, CategoryID, Stores) {
+        if (test) {
+            $('#mainTable').dataTable().fnDestroy();
+        }
+        var oTable = $('#mainTable');
+        oTable = $('#mainTable').dataTable({
+            fixedColumns: true,
+            "paging": true,
+            "pageLength": 20,
+            "lengthMenu": [[20, 40, 60, -1], [20, 40, 60, "All"]],
+            "searching": true,
+            "ordering": true,
+            "pagingType": "full_numbers",
+            /*"columnDefs": [
+                    { "visible": false, "targets": 0 }
+            ],*/
+            "order": [[3, 'asc']],
+            // Ajax call
+            "ajax": {
+                "url": "@Url.Action("GetAllProductLocalizations", "Inventory")",
+                "type": "GET",
+                "datatype": "json",
+                "data": { CategoryID: CategoryID, Stores: Stores }
+            },
+            "columns": [
+                { "data": "ProductLocalizationID", "width": "1%" },
+                { "data": "BranchName", "width": "15%" },
+                { "data": "LocalizationLabel", "width": "15%" },
+                { "data": "ProductCode", "width": "28%" },
+                { "data": "Marque", "width": "10%" },
+                { "data": "NumeroSerie", "width": "10%" },
+                { "data": "ProductLocalizationStockQuantity", "width": "10%", "className": "editable" },
+                { "data": "Category", "width": "28%" },
+                {// this is Actions Column
+                    mRender: function (data, type, row) {
+
+                        var updateOption = '@LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, @profile, CodeValue.Supply.Inventory_SM.CODE, db)';
+                        var T_updateOption = (updateOption == 'False') ? '<a href="#" class="editor_remove" onclick="UpdateItem(' + row.ProductLocalizationID + ')"><span class="glyphicon glyphicon-edit"></a>' : '';
+
+                        return T_updateOption;
+                    }
+                }
+            ],
+            dom: 'Bfrtip',
+            buttons: [
+                'copy', 'csv', 'excel'
+            ]
+
+        });
+        $('#mainTable').on('click', 'tbody td.editable', function () {
+            if ($(this).attr("contentEditable") == true) {
+                $(this).attr("contentEditable", "false");
+            } else {
+                $(this).attr("contentEditable", "true");
+            }
+        });
+        CustomSearch();
+    }
+
+    function getDataTableElt() {
+        var table = document.getElementById('mainTable');
+
+        var rowLength = table.rows.length;
+        var InventoryItems = [];
+        for (var i = 1; i < rowLength; i += 1) {
+            var row = table.rows[i];
+            var ID = row.cells[0].innerHTML;
+            var ProductCode = row.cells[3].innerHTML;
+            var StockQty = row.cells[6].innerHTML;
+
+            InventoryItems.push({
+                ID: ID,
+                ProductCode: ProductCode,
+                StockQty: StockQty
+            });
+
+        }
+        if (InventoryItems.length > 0) {
+            EditInventoryLine(InventoryItems);
+        }
+    }
+
+    function EditInventoryLine(input) {
+        var isAllValid = true;
+
+        var formData = new FormData();
+
+        $.each(input, function (key, input) {
+
+            if (input.StockQty == '') {
+                isAllValid = false;
+                alert('@Resources.msgSelectLine');
+            }
+            input.StockQty = input.StockQty.replace(/[^0-9]/g, '');
+            if (!isNaN(parseFloat(input.StockQty)) && isFinite(input.StockQty)) {
+            }
+            else {
+                isAllValid = false;
+                alert('@Resources.msgNumericQty');
+            }
+
+            if (isAllValid) {
+                    formData.append("InventoryLines[" + key + "].ProductLocalizationSafetyStockQuantity", 1);
+                    formData.append("InventoryLines[" + key + "].ProductLocalizationID", input.ID);
+                    formData.append("InventoryLines[" + key + "].ProductLocalizationStockQuantity", input.StockQty);
+                }
+        });
+        $(this).val('Please wait...');
+
+        //post data to server
+        $.ajax({
+            url: '@Url.Action("EditLineSaisi", "Inventory")',
+            type: "POST",
+            data: formData,//JSON.stringify(data),
+            dataType: "JSON",
+            contentType: false,
+            processData: false,
+            //contentType: "application/json",
+            success: function (d) {
+                //check is successfully save to database
+                if (d.status == true) {
+                    //will send status from server side
+                    alert(d.Message);
+                    //location.reload(true);
+                    //clear form
+                    clearFormSansReload();
+                }
+                else {
+                    alert(d.Message);
+                }
+                //
+            },
+            error: function () {
+                alert('Error. Please try again.');
+                $('#btnValide').val('@Resources.ValidateButton');
+            }
+        });
+
+    }
+
+    $(document).on('ready', function () {
+
+        populateCategory();
+        populateStores();
+
+        var addOption = '@LoadAction.IsSubMenuActionAble(MenuAction.ADD, @profile, CodeValue.Supply.Inventory_SM.CODE, db)';
+        if (addOption == 'False') {
+            $('#dvImportSegments').show();
+        }
+        else {
+            $('#dvImportSegments').hide();
+        }
+
+        //update button
+        var updateOption = '@LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, @profile, CodeValue.Supply.Inventory_SM.CODE, db)';
+        if (updateOption == 'False') {
+            $('#btnUpdate').show();
+            $('#btnValide').show();
+            $('#btnInitialiseStock').show();
+            $('#ProductLocalizationStockQuantity').prop('disabled', false);
+            $('#ProductLocalizationSafetyStockQuantity').prop('disabled', false);
+        }
+        else {
+            $('#btnUpdate').hide();
+            $('#btnValide').hide();
+            $('#btnInitialiseStock').hide();
+            $('#ProductLocalizationStockQuantity').prop('disabled', true);
+            $('#ProductLocalizationSafetyStockQuantity').prop('disabled', true);
+        }
+
+        $('#btnInitialiseStock').on('click', function () {
+            if (confirm("Stock quantity Initialise ? This process it is irreversible !!! Do you want to continue ????")) {
+                CategoryID = $("#CategoryID").val();
+                Stores = $("#Stores").val();
+                InitialiseStock(CategoryID, Stores);
+            }
+        });
+
+        $('#btnUpdate').on('click', function () {
+            UpdateQuanty();
+        });
+
+        $('#btnValide').on('click', function () {
+            getDataTableElt();
+        });
+
+        $('#btnCancel').on('click', function () {
+            clearForm();
+        });
+
+        var CategoryID = '0';
+        var Stores = '0';
+        LoadInventory(false, CategoryID, Stores);
+        $("#btnSearch").on('click', function () {
+            CategoryID = $("#CategoryID").val();
+            Stores = $("#Stores").val();
+            LoadInventory(true, CategoryID, Stores);
+        });
+
+
+        // The event listener for the file upload
+        document.getElementById('txtFileUpload').addEventListener('change', upload, false);
+
+        //$("#btnImport").on('click', function () {
+        //    upload();
+        //});
+
+        // Method that checks that the browser supports the HTML5 File API
+        function browserSupportFileUpload() {
+            var isCompatible = false;
+            if (window.File && window.FileReader && window.FileList && window.Blob) {
+                isCompatible = true;
+            }
+            return isCompatible;
+        }
+
+        // Method that reads and processes the selected file
+        function upload(evt) {
+            if (!browserSupportFileUpload()) {
+                alert('The File APIs are not fully supported in this browser!');
+            } else {
+                var data = null;
+                var file = evt.target.files[0];
+                var reader = new FileReader();
+                reader.readAsText(file);
+                reader.onload = function (event) {
+                    var csvData = event.target.result;
+                    data = $.csv.toArrays(csvData);
+                    /*for (var i = 0 ; i < data.length ; i++) {
+                        var line = data[i];
+                        EditInfoLine(line);
+                    }*/
+                    if (data && data.length > 0) {
+                        //$.each(data, function (key, value) {
+                        //    var line = value[0];
+                        EditInfoLine(data);
+                        //});
+                        //alert('Imported -' + data.length + '- rows successfully!');
+                        //location.reload(true);
+                    } else {
+                        alert('No data to import!');
+                    }
+                };
+                reader.onerror = function () {
+                    alert('Unable to read ' + file.fileName);
+                };
+            }
+        }
+    });
+
+
+
+
+    function InitialiseStock(CategoryID, Stores) {
+        var isAllValid = true;
+
+
+        if (CategoryID.trim() == '') {
+            isAllValid = false;
+        }
+
+        if (Stores.trim() == '') {
+            isAllValid = false;
+        }
+
+
+        if (isAllValid) {
+            var data = {
+                CategoryID: CategoryID,
+                Stores: Stores
+            }
+            $(this).val('Please wait...');
+            $('#btnInitialiseStock').prop('disabled', true);
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("InitialiseStock", "Inventory")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        LoadInventory(true, CategoryID, Stores);
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                    $('#btnInitialiseStock').prop('disabled', false);
+                },
+                error: function () {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                    $('#btnInitialiseStock').prop('disabled', false);
+                }
+            });
+        }
+    }
+    function UpdateQuanty() {
+        var isAllValid = true;
+
+
+        if ($('#ProductLocalizationID').val().trim() == '') {
+            isAllValid = false;
+        }
+
+        /*if ($('#ProductID').val().trim() == '') {
+            isAllValid = false;
+            $('#Product').addClass("invalid-data");
+        }
+        else {
+            $('#Product').addClass("valid-data");
+        }
+
+
+        if ($('#LocalizationID').val().trim() == '') {
+            isAllValid = false;
+            $('#Localization').addClass("invalid-data");
+        }
+        else {
+            $('#Localization').addClass("valid-data");
+        }
+
+
+        if ($('#BranchID').val().trim() == '') {
+            isAllValid = false;
+            $('#BranchID').addClass("invalid-data");
+        }
+        else {
+            $('#BranchID').addClass("valid-data");
+        }*/
+        if ($('#ProductLocalizationDate').val().trim() == '') {
+            isAllValid = false;
+            $('#ProductLocalizationDate').addClass("invalid-data");
+        }
+        else {
+            $('#ProductLocalizationDate').addClass("valid-data");
+        }
+
+        if ($('#ProductLocalizationStockQuantity').val().trim() == '') {
+            isAllValid = false;
+            $('#ProductLocalizationStockQuantity').addClass("invalid-data");
+        }
+        else {
+            $('#ProductLocalizationStockQuantity').addClass("valid-data");
+        }
+
+        if ($('#ProductLocalizationSafetyStockQuantity').val() == '') {
+            isAllValid = false;
+            $('#ProductLocalizationSafetyStockQuantity').addClass("invalid-data");
+        }
+        else {
+            $('#ProductLocalizationSafetyStockQuantity').addClass("valid-data");
+        }
+
+
+        if (isAllValid) {
+            var data = {
+                ProductLocalizationID: $('#ProductLocalizationID').val(),
+                /*ProductID: $('#ProductID').val(),
+                LocalizationID: $('#LocalizationID').val(),
+                BranchID: $('#BranchID').val(),
+                ProductLocalizationDate: $('#ProductLocalizationDate').val(),*/
+                ProductLocalizationStockQuantity: $('#ProductLocalizationStockQuantity').val(),
+                ProductLocalizationSafetyStockQuantity: $('#ProductLocalizationSafetyStockQuantity').val()
+            }
+            $(this).val('Please wait...');
+
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("EditLine", "Inventory")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        //location.reload(true);
+                        //clear form
+                        clearForm();
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                },
+                error: function () {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                }
+            });
+        }
+    }
+    function EditInfoLine(line) {
+        //post to the server
+        $(this).val('Please wait...');
+        /*var data = {
+            line: line
+        }*/
+        var formData = new FormData();
+        //formData.append("line", line);
+        $.each(line, function (key, input) {
+            formData.append("line", input[0]);
+            //formData.append("line[" + key + "].StockQty", input[5]);
+            //formData.append("line[" + key + "].SeuilQty", input[4]);
+        });
+        //post data to server
+        $.ajax({
+            url: '@Url.Action("Edit", "Inventory")',
+            type: "POST",
+            data: formData,//JSON.stringify(data),
+            dataType: "JSON",
+            //contentType: "application/json",
+            contentType: false,
+            processData: false,
+            success: function (d) {
+                //check is successfully save to database
+                if (d.status == true) {
+                    //will send status from server side
+                    alert(d.Message);
+
+
+                }
+                else {
+                    alert(d.Message);
+                }
+                //location.reload(true);
+                clearForm();
+                $('#btnSubmit').val('@Resources.SaveButton');
+            },
+            error: function (response) {
+                alert('Error. Please try again.');
+                $('#btnSubmit').val('@Resources.SaveButton');
+            }
+        });
+    }
+
+
+</script>
+
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 3px;
+        margin-left: 1px;
+    }
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin: 0;
+        min-width: 0;
+        padding: 10px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 100px;
+    }
+
+    .panel-body1 {
+        height: 180px;
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+</style>

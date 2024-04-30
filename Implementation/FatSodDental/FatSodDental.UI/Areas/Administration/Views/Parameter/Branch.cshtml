@@ -1,0 +1,397 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+
+@model System.Collections.IEnumerable
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+@section content
+{
+    @(X.FormPanel()
+        .ID("Unknow")
+        .Items(
+             X.PanelTitle()
+              .ID("PanelTitl555e")
+              .Border(true)
+              .Padding(2)
+              .Content(
+            @<header>
+                <h4>@Resources.Branch</h4>
+                <h6>@Resources.RequireField <code>(*)</code>.</h6>
+            </header>
+            )
+        )
+        .Frame(true)
+        .MarginSpec("-50 20 20 20")
+        .BodyPadding(10)
+    )
+    @(
+
+   X.FormPanel()
+    .ID("BranchForm")
+    .Title(Resources.Branch)
+    .Frame(false)
+    .Layout(LayoutType.HBox)
+    .MarginSpec("-32 20 20 20")
+    .LayoutConfig(new HBoxLayoutConfig { Align = HBoxAlign.Stretch })
+    .BodyPadding(10)
+    .FieldDefaults(fd => { fd.LabelWidth = 120; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+    .Buttons(
+        X.Button()
+            .ID("btnSave")
+            .Text(Resources.SaveButton)
+            .Disabled(true)
+            .Icon(Icon.Disk)
+            .Margin(5)
+            .DirectEvents(de =>
+            {
+                de.Click.Url = Url.Action("AddBranch", "Parameter");
+                de.Click.EventMask.ShowMask = true;
+                de.Click.EventMask.Msg = Resources.EventMaskMsg;
+            }),
+
+        X.Button()
+            .Text(Resources.ResetButton)
+            .MarginSpec("0 20 10 10")
+            .OnClientClick("this.up('form').reset();")
+    )
+    .Listeners(
+        ls =>
+        {
+            ls.FieldChange.Handler = "if(App.BranchForm.isValid()){App.btnSave.setDisabled(false);}else{App.btnSave.setDisabled(true);}";
+        }
+    )
+    .Items(
+        X.Component().Width(10),
+        X.FieldSet()
+            //.Flex(1)
+            .Title("Agence identification")
+            .Layout(LayoutType.Form)
+            .Height(200)
+            //.Weight(100)
+            .Width(600)
+            .DefaultAnchor("80%")
+            .Items(
+                X.TextField().Name("BranchID").ID("BranchID").Hidden(true),
+                X.TextField().FieldLabel(Resources.PersonName)
+                    .Name("BranchName")
+                    .MsgTarget(MessageTarget.Side)
+                    .LabelSeparator("<span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                    .ID("BranchName")
+                    .BlankText(Resources.PersonName + " " + Resources.RequiredField)
+                    .AllowBlank(false).MinLength(4)
+                ,
+                X.TextField().FieldLabel("Code")
+                    .Name("BranchCode")
+                    .ID("BranchCode")
+                    .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                    .BlankText("Code " + Resources.RequiredField)
+                    .AllowBlank(false)
+                ,
+                X.TextArea().FieldLabel("Description")
+                    .Name("BranchDescription")
+                    .ID("BranchDescription")
+                    .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                    .BlankText("Vous devez renseigner une description")
+                    .AllowBlank(false).Height(80),
+                X.TextField().FieldLabel(Resources.Abbreviation)
+                    .Name("BranchAbbreviation")
+                    .MsgTarget(MessageTarget.Side)
+                    .LabelSeparator("<span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                    .ID("BranchAbbreviation")
+                    .BlankText(Resources.Abbreviation + " " + Resources.RequiredField)
+                    .AllowBlank(false).MinLength(2)
+            ),
+
+        X.Component().Width(10)
+        //Adress part
+        ,
+        X.FieldSet()
+            .Title(Resources.PersonAdressForm)
+            .Layout(LayoutType.Form)
+            .DefaultAnchor("80%")
+            //.MarginSpec("0 0 50 0")
+            .Width(600)
+            .Height(350)
+            .Items(
+                X.TextField().Name("AdressID").ID("AdressID").Hidden(true),
+                X.TextField().FieldLabel(Resources.PersonMobile).Name("AdressPhoneNumber").ID("AdressPhoneNumber"),
+                X.TextField().FieldLabel(Resources.AdressCellNumber).Name("AdressCellNumber").ID("AdressCellNumber"),
+                X.TextField().FieldLabel("Email")
+                    .InputType(Ext.Net.InputType.Email)
+                    .Name("AdressEmail").ID("AdressEmail")
+                    .AllowBlank(false)
+                    .BlankText("Email " + Resources.RequiredField)
+                    .ErrorMsgCls("has-error")
+                    .MsgTarget(MessageTarget.Side)
+                    .VtypeText(Resources.NotValide + " : \"inventory-support@fatsodgroup.com\"")
+                    .Vtype("email")
+                                ,
+                X.TextField().FieldLabel(Resources.PersonBox).Name("AdressPOBox").ID("AdressPOBox"),
+                X.TextArea().FieldLabel(Resources.AdressFullName).Name("AdressFullName").ID("AdressFullName"),                
+                X.TextField().FieldLabel("Fax").Name("AdressFax").ID("AdressFax"),
+                X.ComboBox().Name("Country").FieldLabel(Resources.AdressCountry)
+                    .Items(LoadComponent.Countries)
+                    .AllowBlank(false)
+                    .ForceSelection(true)
+                    .BlankText(Resources.AdressCountry + " " + Resources.RequiredField)
+                    .ID("Country")
+                    .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                    .EmptyText(Resources.Select)
+                    .Listeners(ls =>
+                            ls.Select.Handler = "App.Region.setDisabled(false);App.Town.setDisabled(true);App.Quarter.setDisabled(true);App.Region.clearValue();App.Town.clearValue(); App.Quarter.clearValue(); App.Region.getStore().load()"
+                    )
+                            ,
+                X.ComboBox().Name("Region").ID("Region")
+                    .FieldLabel(Resources.AdressRegion)
+                    .AutoSelect(false)
+                    .EmptyText(Resources.Select)
+                    .ForceSelection(true)
+                    .AllowBlank(false)
+                    .BlankText(Resources.AdressRegion + " " + Resources.RequiredField)
+                    .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                    .Disabled(true)
+                    .Listeners(ls =>
+                    {
+                        ls.Change.Handler = "App.Town.setDisabled(false);";
+                        ls.Select.Handler = "App.Town.setDisabled(false);App.Town.clearValue(); App.Quarter.clearValue(); App.Town.getStore().load()";
+                    }
+                    )
+                    .ValueField("RegionID").ValueNotFoundText("Aucune région trouvée")//.EmptyText("Chargement...")
+                    .DisplayField("RegionLabel")
+                    .Store(
+                        X.Store()
+                            .AutoLoad(false)
+                            .Model(
+                            X.Model()
+                                .IDProperty("RegionID")
+                                .Fields(
+                                    new ModelField("RegionID", ModelFieldType.String) { Mapping = "RegionID" },
+                                    new ModelField("RegionLabel", ModelFieldType.String) { Mapping = "RegionLabel" }
+                                )
+                            )
+                        .Proxy(
+                            X.AjaxProxy()
+                                .Url(Url.Action("Regions","User"))
+                                .Reader(X.JsonReader().RootProperty("data"))
+                            )
+                        .Parameters(ps =>
+                                ps.Add(new StoreParameter("countryID", "App.Country.getValue()", ParameterMode.Raw))
+                        )
+//                                            .Listeners(ls =>
+//                                                ls.Load.Handler = @"var combo = App.Region;
+//                                                            combo.setValue(records[0].get(combo.valueField));"
+//                                            )
+
+                    )
+                            ,
+                X.ComboBox().Name("Town").FieldLabel(Resources.AdressTown)
+                    .Listeners(ls =>
+                    {
+                        ls.Change.Handler = "App.Quarter.setDisabled(false);";
+                        ls.Select.Handler = "App.Quarter.setDisabled(false);App.Quarter.clearValue(); App.Quarter.getStore().load()";
+                    }
+                        )
+                    .ID("Town")
+                    .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                    .Disabled(true)
+                    .AutoSelect(false)
+                    .ForceSelection(true)
+                    .EmptyText(Resources.Select)
+                    .AllowBlank(false)
+                    .BlankText(Resources.AdressTown + " " + Resources.RequiredField)
+                    .DisplayField("TownLabel")
+                    .ValueField("TownID")
+                    .ValueNotFoundText("Aucune ville trouvée")//.EmptyText("Chargement...")
+                    .Store(
+                            X.Store()
+                                .AutoLoad(false)
+                                .Model(
+                                    X.Model()
+                                    .IDProperty("TownID")
+                                    .Fields(
+                                        new ModelField("TownID", ModelFieldType.String) { Mapping = "TownID" },
+                                        new ModelField("TownLabel", ModelFieldType.String) { Mapping = "TownLabel" }
+                                    )
+                                )
+                                .Proxy(
+                                    X.AjaxProxy()
+                                    .Url(Url.Action("Towns","User"))
+                                    .Reader(X.JsonReader().RootProperty("data"))
+                                )
+                                .Parameters(ps =>
+                                    ps.Add(new StoreParameter("regionID", "App.Region.getValue()", ParameterMode.Raw))
+                                )
+//                                                  .Listeners(ls =>
+//                                                      ls.Load.Handler = @"var combo = App.Town;
+//                                                            combo.setValue(records[0].get(combo.valueField));"
+//                                                  )
+
+                        )
+                            ,
+                X.ComboBox().Name("QuarterID")
+                    .FieldLabel(Resources.AdressQuarter)
+                    .Disabled(true)
+                    .EmptyText(Resources.Select)
+                    .AutoSelect(false)
+                    .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                    .AllowBlank(false)
+                    .ForceSelection(true)
+                    .BlankText(Resources.AdressQuarter + " " + Resources.RequiredField)
+                    .ID("Quarter")
+                    .DisplayField("QuarterLabel")
+                    .ValueField("QuarterID")
+                    .ValueNotFoundText("Aucun quartier trouvé")//.EmptyText("Chargement...")
+                    .Store(
+                            X.Store()
+                            .AutoLoad(false)
+                            .Model(
+                                X.Model()
+                                .IDProperty("QuarterID")
+                                    .Fields(
+                                        new ModelField("QuarterID", ModelFieldType.String) { Mapping = "QuarterID" },
+                                        new ModelField("QuarterLabel", ModelFieldType.String) { Mapping = "QuarterLabel" }
+                                    )
+                            )
+                            .Proxy(
+                                X.AjaxProxy()
+                                    .Url(Url.Action("Quarters","User"))
+                                    .Reader(X.JsonReader().RootProperty("data"))
+                            )
+                            .Parameters(ps =>
+                                ps.Add(new StoreParameter("townID", "App.Town.getValue()", ParameterMode.Raw))
+                            )
+//                                                .Listeners(ls =>
+//                                                    ls.Load.Handler = @"var combo = App.Quarter;
+//                                                            combo.setValue(records[0].get(combo.valueField));"
+//                                                )
+
+                        )
+                        ,
+                      X.Component().Width(100)
+
+            )        
+    )
+)
+@(
+       X.GridPanel()
+        .Title(Resources.BranchList)
+        .ID("BranchList")
+        .Layout(LayoutType.Fit)
+        .Frame(true)
+        .Collapsible(true)
+        .Store(X.Store()
+            .GroupField("Light")
+            .ID("BranchesList")
+                .NextPage("BranchesList")
+                .PreviousPage("BranchesList")
+                .PageSize(10)
+                .SetPageSize(10)
+            .Model(X.Model()
+                .Fields(
+                    new ModelField() { Name = "BranchID", Type = ModelFieldType.Int },
+                    new ModelField() { Name = "BranchCode", Type = ModelFieldType.String },
+                    new ModelField() { Name = "BranchName", Type = ModelFieldType.String },
+                    new ModelField() { Name = "BranchDescription", Type = ModelFieldType.String },
+                    new ModelField("AdressPhoneNumber",ModelFieldType.String),
+                    new ModelField("AdressPOBox",ModelFieldType.String), 
+                    new ModelField("AdressEmail",ModelFieldType.String)
+
+
+                )
+            ).DataSource(Model)
+            .Proxy(
+                X.AjaxProxy()
+                    .Url(Url.Action("GetBranchList"))
+                    .ActionMethods(am => am.Read = HttpMethod.POST)
+                    .Reader(X.JsonReader().RootProperty("data"))
+            )
+        )
+
+        .ColumnModel(
+            X.Column()
+                    .Text("Identifiant")
+                    .DataIndex("BranchID")
+                    .Flex(1)
+                    ,
+            X.Column()
+                .Text("Code")
+                .DataIndex("BranchCode")
+                .Flex(1)
+                ,
+            X.Column()
+                .Text("Nom de l'agence")
+                .DataIndex("BranchName")
+                .Flex(1),
+            X.Column()
+                .Text("Decription de l'agence")
+                .DataIndex("BranchDescription")
+                .Flex(2),
+            X.Column()
+                .Text(Resources.PersonMobile)
+                .DataIndex("AdressPhoneNumber")
+                .Flex(1),
+            X.Column()
+                .Text("Email")
+                .DataIndex("AdressEmail")
+                .Flex(1),  
+            X.Column()
+                .Text(Resources.PersonBox)
+                .DataIndex("AdressPOBox")
+                .Flex(1),                              
+            X.ImageCommandColumn()
+                .Width(30)
+                .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.DELETE, profile, CodeValue.Parameter.Branch.MenuCODE,db))
+                .Commands(
+                    X.ImageCommand()
+                        .CommandName("Delete")
+                        .IconCls("icon-delete")
+                        .ToolTip(tt =>
+                            {
+                                tt.Text = "Voulez-vous supprimer ?";
+                                tt.Title = "Supression";
+                            }
+                            )
+                )
+                .DirectEvents(de =>
+                {
+                    de.Command.Action = "DeleteBranch";
+                    de.Command.Confirmation.ConfirmRequest = true;
+                    de.Command.Confirmation.Message = "Voulez vous supprimer ?";
+                    de.Command.Confirmation.Title = "Opération de suppression";
+                    de.Command.ExtraParams.Add(new Parameter("ID", "record.data.BranchID", ParameterMode.Raw));
+                    de.Command.EventMask.ShowMask = true;
+                    de.Command.EventMask.Msg = "Opération en cours...";
+                }),
+            X.ImageCommandColumn()
+                .Width(30)
+                .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, profile, CodeValue.Parameter.Branch.MenuCODE,db))
+                .Commands(
+                X.ImageCommand()
+                        .CommandName("Edit")
+                        .IconCls("icon-edit")
+                        .ToolTip(tt => tt.Text = "Modifier ?")
+                )
+
+                .DirectEvents(de =>
+                {
+                    de.Command.Action = "UpdateBranch";
+                    de.Command.ExtraParams.Add(new Parameter("ID", "record.data.BranchID", ParameterMode.Raw));
+                    de.Command.EventMask.ShowMask = true;
+                    de.Command.EventMask.Msg = "Chargement des paramètres de modification en cours...";
+                })
+            )
+            .BottomBar(
+                X.PagingToolbar()
+            )
+)
+}

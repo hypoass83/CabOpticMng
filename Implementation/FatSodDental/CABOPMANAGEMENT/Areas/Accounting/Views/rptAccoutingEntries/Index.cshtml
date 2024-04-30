@@ -1,0 +1,419 @@
+﻿@using FatSod.Ressources;
+@using CABOPMANAGEMENT.Tools;
+@using FatSod.DataContext.Initializer;
+
+
+@{
+    ViewBag.Title = @Resources.submnuAcct7rpt1;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var profile = (Session["UserProfile"] == null) ? 0 : (int)Session["UserProfile"];
+    var user = (Session["UserID"] == null) ? 0 : (int)Session["UserID"];
+
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+<div class="box box-primary box-body">
+    <!--<form id="FormAccountingSection">-->
+    @****************************@
+    @Html.AntiForgeryToken()
+
+    <h6>@Resources.RequireField<code>(*)</code>.</h6>
+
+    <div class="box box-primary box-body">
+        <div class="row">
+            
+            <div class="col-sm-12">
+                @*<div class="panel panel-default">*@
+                <div class="panel-body">
+                    <fieldset>
+                        <input type="hidden" id="RptEtatsJournalID" />
+                        <div class="row ipt">
+                            <!-- Branche -->
+                            <div class="col-sm-2">@Resources.Branches<code>(*)</code></div>
+                            <div class="col-sm-3" style="margin-left:-5%;" >
+                                <input type="hidden" id="DefaultBranchID" value="@ViewBag.CurrentBranch" />
+                                <select id="BranchID" class="input-sm form-control"></select>
+                            </div>
+                            <!--DeviseID -->
+                            <div class="col-sm-2">@Resources.UIDevise<code>(*)</code></div>
+                            <div class="col-sm-2" style="margin-left:-5%;">
+                                <input type="hidden" id="DeviseID" value="@ViewBag.DefaultDeviseID" />
+                                <input type="text" id="DefaultDevise" value="@ViewBag.DefaultDevise" readonly />
+                            </div>
+                            
+                            <!-- OperationID -->
+                            <div class="col-sm-2">@Resources.Journal<code>(*)</code></div>
+                            <div class="col-sm-2" style="margin-left:-5%;" >
+                                <select id="OperationID" class="input-sm form-control"></select>
+                            </div>
+                        </div>
+                        
+                        <div class="row ipt">
+                            <div class="col-sm-2">@Resources.UIBeginDate<code>(*)</code></div>
+                            <div class="col-sm-3" style="margin-left:-5%;">
+                                <input class="form-control datepicker" id="Bdate" type="text" placeholder="choose Begin date" value="@ViewBag.BusnessDayDate">
+                            </div>
+                            <div class="col-sm-2">@Resources.UIEndDate<code>(*)</code></div>
+                            <div class="col-sm-3"  style="margin-left:-5%;">
+                                <input class="form-control datepicker checkDateNoGraterThanToday" id="Edate" type="text" placeholder="choose End date">
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-2">@Resources.TotalDebit</div>
+                            <div class="col-sm-2" style="margin-left:-5%;">
+                                <input type="number" id="TotalDebit" class="input-sm form-control" readonly />
+                            </div>
+                            <div class="col-sm-2">@Resources.TotalCredit</div>
+
+                            <div class="col-sm-2" style="margin-left:-5%;">
+                                <input type="number" id="TotalCredit" class="input-sm form-control" readonly />
+                            </div>
+                            <div class="col-sm-2">@Resources.Solde</div>
+                            <div class="col-sm-2" style="margin-left:-5%;">
+                                <input type="number" id="Solde" class="input-sm form-control" readonly />
+                            </div>
+                        </div>
+                      </fieldset>
+                </div>
+            </div>
+        </div>
+       
+    </div>
+    <div class="box box-primary box-body">
+        <div class="row">
+            
+            <div class="col-sm-8">
+                    <div class="row ipt">
+                        <div class="col-sm-2"></div>
+                        <div class="col-sm-3">
+                            <button type="button" id="AddToGrid" class="btn btn-bitbucket">@Resources.UIDisplayEntries</button>
+                        </div>
+                        <div class="col-sm-3">
+                            <button type="button" id="btnCancel" class="btn btn-primary">@Resources.ResetButton</button>
+                        </div>
+
+                    </div>
+                 
+                </div>
+            </div>
+    </div>
+    <div class="box box-primary box-body">
+        <div class="row">
+            <div class="col-sm-12">
+                <fieldset>
+                    <legend>@Resources.submnuAcct7rpt1</legend>
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <table class="table" id="mainTable">
+                                <thead>
+                                    <tr class="dataTableHead">
+                                        <th>
+                                            ID
+                                        </th>
+                                        <th>
+                                            @Resources.UserBranch
+                                        </th>
+                                        <th>
+                                            @Resources.Journal
+                                        </th>
+                                        <th>
+                                            @Resources.UIDateOperation
+                                        </th>
+                                        <th>
+                                            @Resources.Reference
+                                        </th>
+                                        <th>
+                                            @Resources.Description
+                                        </th>
+                                        <th>
+                                            @Resources.CodeTransaction
+                                        </th>
+                                        <th>
+                                            @Resources.UIAccount
+                                        </th>
+                                        <th>
+                                            @Resources.UIAccountName
+                                        </th>
+
+                                        <th>
+                                            @Resources.UIdebit
+                                        </th>
+                                        <th>
+                                            @Resources.UIcredit
+                                        </th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+    </div>
+    
+</div>
+
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 3px;
+        margin-left: 1px;
+    }
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin: 0;
+        min-width: 0;
+        padding: 10px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #F1F1F1; /*#99bce8; */
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 100px;
+        margin-bottom: 2%;
+    }
+
+    .panel-body1 {
+        height: 50px;
+        margin-bottom: 2%;
+        margin-top: 2%;
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+</style>
+
+<!--********** JavaScripts **********-->
+<script>
+    // Get the Branch List
+    function populateBranch() {
+        $.get('@Url.Action("GetOpenedBranches", "rptAccoutingEntries")', {}, function (data) {
+            $('#BranchID').empty();
+            $('#BranchID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#BranchID').append($("<option></option>").val(value.BranchID).html(value.BranchName));
+            });
+
+            var _DefaultId = $('#DefaultBranchID').val();
+            $('#BranchID').val(_DefaultId);
+            //LoadServerdate(_DefaultId);
+
+        }, 'json');
+    }
+
+    // Get the Journal List
+    function populateJournal() {
+        $.get('@Url.Action("GetJournal", "rptAccoutingEntries")', {}, function (data) {
+            $('#OperationID').empty();
+            $('#OperationID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#OperationID').append($("<option></option>").val(value.OperationID).html(value.Journal));
+            });
+        }, 'json');
+    }
+
+
+    function InitTotaux() {
+        $('#TotalDebit').val('0');
+        $('#TotalCredit').val('0');
+        $('#Solde').val('0');
+    }
+    //chargement des elemts de totaux apres le click sur afficher
+    function loadTotaux(OperationID, BranchID, DeviseID, Bdate, Edate) {
+        //chargement detail
+        $.get('@Url.Action("chargeSolde", "rptAccoutingEntries")', { OperationID: OperationID, BranchID: BranchID, DeviseID: DeviseID, Bdate: Bdate, Edate: Edate }, function (data) {
+            $.each(data, function (key, value) {
+                $('#TotalDebit').val(value.TotalDebit);
+                $('#TotalCredit').val(value.TotalCredit);
+                $('#Solde').val(value.Solde);
+            });
+        }, 'json');
+    }
+
+    //chargement du tableau apres le click sur le bouton afficher
+    function LoadGrid(test, OperationID, BranchID, DeviseID, Bdate, Edate) {
+        if (test) {
+            $('#mainTable').dataTable().fnDestroy();
+        }
+        var oTable = $('#mainTable');
+        oTable = $('#mainTable').dataTable({
+            "paging": true,
+            "pageLength": 20,
+            "lengthMenu": [[20, 40, 80, -1], [20, 40, 80, "All"]],
+            "searching": true,
+            "ordering": true,
+            "pagingType": "full_numbers",
+            "columnDefs": [
+                    { "visible": false, "targets": 0 }
+            ],
+            //"order": [[0, 'asc']],
+            // Ajax call
+            "ajax": {
+                "url": "@Url.Action("GetList", "rptAccoutingEntries")",
+                "type": "GET",
+                "datatype": "json",
+                "data": { OperationID: OperationID, BranchID: BranchID, DeviseID: DeviseID, Bdate: Bdate, Edate: Edate }
+            },
+
+            "columns": [
+                { "data": "RptEtatsJournalID" },
+                { "data": "Agence", "width": "10%" },
+                //{ "data": "Devise" },
+                { "data": "Journal", "width": "10%" },
+                { "data": "DateOperation", "width": "6%" },
+                { "data": "Reference", "width": "9%" },
+                { "data": "Description", "width": "21%" },
+                { "data": "CodeTransaction", "width": "8%" },
+                { "data": "CompteCle", "width": "7%" },
+                { "data": "LibelleCpte", "width": "17%" },
+                { "data": "MontantDB", "width": "6%" },
+                { "data": "MontantCR", "width": "6%" },
+            ],
+
+            dom: 'Bfrtip',
+            buttons: [
+                'copy', 'csv', 'excel'
+            ]
+
+        });
+    }
+
+    $(document).on('ready', function () {
+        $(function () {
+            $(".datepicker").datepicker({
+                format: 'yyyy-mm-dd'
+            });
+        });
+        InitTotaux();
+        populateBranch();
+
+        //chargement des cptes
+        populateJournal();
+
+
+        var BranchID = '0';
+        var DeviseID = '0';
+        var OperationID = '0';
+        var Bdate = '1900-01-01';
+        var Edate = '1900-01-01';
+        LoadGrid(false, OperationID, BranchID, DeviseID, Bdate, Edate);
+        loadTotaux(OperationID, BranchID, DeviseID, Bdate, Edate);
+        $("#AddToGrid").on('click', function () {
+            AddToGrid();
+        });
+
+        $('#btnCancel').on('click', function () {
+            location.reload(true);
+        });
+
+
+    });
+
+
+    function AddToGrid() {
+        var isAllValid = true;
+        if ($('#BranchID').val() == "0") {
+            isAllValid = false;
+            $("#BranchID").addClass("invalid-data");
+        }
+        else {
+            $("#BranchID").addClass("valid-data");
+        }
+
+        if ($('#DeviseID').val() == "0") {
+            isAllValid = false;
+            $("#DeviseID").addClass("invalid-data");
+        }
+        else {
+            $("#DeviseID").addClass("valid-data");
+        }
+
+        if ($('#OperationID').val().trim() == '') {
+            isAllValid = false;
+            $("#OperationID").addClass("invalid-data");
+        }
+        else {
+            $("#OperationID").addClass("valid-data");
+        }
+
+        if ($('#Bdate').val().trim() == '') {
+            isAllValid = false;
+            $("#Bdate").addClass("invalid-data");
+        }
+        else {
+            $("#Bdate").addClass("valid-data");
+        }
+
+        if ($('#Edate').val().trim() == '') {
+            isAllValid = false;
+            $("#Edate").addClass("invalid-data");
+        }
+        else {
+            $("#Edate").addClass("valid-data");
+        }
+        if (isAllValid)
+        {
+            var BranchID = $("#BranchID").val();
+            var DeviseID = $("#DeviseID").val();
+            var OperationID = $("#OperationID").val();
+
+            var Bdate = $("#Bdate").val();
+            var Edate = $("#Edate").val();
+
+            LoadGrid(true, OperationID, BranchID, DeviseID, Bdate, Edate);
+            loadTotaux(OperationID, BranchID, DeviseID, Bdate, Edate);
+
+        }
+       
+        
+
+    }
+
+
+    function clearAcctForm() {
+        $('#OperationID').val('');
+        $('#Bdate').val('');
+        $('#Edate').val('');
+        InitTotaux();
+    }
+</script>

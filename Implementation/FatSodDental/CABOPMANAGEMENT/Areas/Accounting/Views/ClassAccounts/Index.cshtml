@@ -1,0 +1,45 @@
+﻿@model IEnumerable<FatSod.Supply.Entities.ClassAccount>
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Index</h2>
+
+<p>
+    @Html.ActionLink("Create New", "Create")
+</p>
+<table class="table">
+    <tr>
+        <th class="dataTableHead">
+            @Html.DisplayNameFor(model => model.ClassAccountNumber)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.ClassAccountCode)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.ClassAccountLabel)
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.ClassAccountNumber)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.ClassAccountCode)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.ClassAccountLabel)
+        </td>
+        <td>
+            @Html.ActionLink("Edit", "Edit", new { id=item.ClassAccountID }) |
+            @Html.ActionLink("Details", "Details", new { id=item.ClassAccountID }) |
+            @Html.ActionLink("Delete", "Delete", new { id=item.ClassAccountID })
+        </td>
+    </tr>
+}
+
+</table>

@@ -1,0 +1,191 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.Ressources;
+@using System.Web;
+@using System.Web.Mvc;
+@model System.Collections.IEnumerable
+@{
+    ViewBag.Title = "Utilisateur";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+}
+@Html.X().ResourceManager().Theme(Theme.Default)
+@*.ShowWarningOnAjaxFailure(false).ScriptMode(Ext.Net.ScriptMode.Release)*@
+    @(X.FormPanel()
+        .ID("Unknow")
+            //.Title(Resources.FormUserAddTitle)
+        .Items(
+             X.PanelTitle()
+              .ID("PanelTitl555e")
+              .Border(true)
+              .Padding(2)
+              .Content(
+                    @<header>
+                        <h4>@Resources.CashRegHist</h4>
+                    </header>
+                    )
+                )
+                .Frame(true)
+                .MarginSpec("-50 0 0 0")
+                .BodyPadding(10)
+    )
+    @**********All cash operations of this day********@
+@(
+ X.Container()
+    .Layout(LayoutType.HBox)
+    .Flex(1)
+    .MarginSpec("-10 0 0 0")
+    .Items(
+        X.GridPanel()
+            .Flex(1)
+            .ID("SalePanel")
+            .Layout(LayoutType.Anchor)
+            .Border(false)
+            .Title(Resources.Allsalesopto+" "+ViewBag.BusnessBeginDate+" "+Resources.at+" "+ViewBag.BusnessEndDate)
+            .DefaultAnchor("100%")
+            .Store(
+               X.Store()
+                .GroupField("SaleOperation")
+                .ID("SalesListStore")
+                .RemotePaging(true)
+                .AutoLoad(true)
+                .PageSize(10)
+                .Model(
+                    X.Model()
+                        .IDProperty("SaleID")
+                        .Fields(
+                            new ModelField("SaleDate", ModelFieldType.Date),
+                            //new ModelField("SaleID", ModelFieldType.Int),
+                            new ModelField("SaleTotalPrice", ModelFieldType.Float),
+                            new ModelField("CashReceived", ModelFieldType.Float),
+                            new ModelField("SaleReceiptNumber", ModelFieldType.String),
+                            new ModelField("SaleOperation", ModelFieldType.String),
+                            new ModelField("PersonName", ModelFieldType.String)
+
+                        )
+                )
+                .DataSource(ViewBag.ListSalesDay)
+                .Sorters(
+                    X.DataSorter()
+                        .Property("SaleDate")
+                        .Direction(Ext.Net.SortDirection.ASC)
+                )                
+                .ServerProxy(
+                    X.AjaxProxy()
+                    .Url(Url.Action("GetSalesDayList","CashRegister"))
+                    .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                    .Reader(X.JsonReader().RootProperty("data"))
+                )
+            )
+            .ColumnModel(
+                X.RowNumbererColumn()
+                ,
+                //X.Column()
+                //    .Text("ID")
+                //    .DataIndex("SaleID")
+                //    .Flex(1)
+                //        ,
+                X.Column()
+                    .Text(Resources.SaleRef)
+                    .DataIndex("SaleReceiptNumber")
+                    .Flex(1)
+                    ,
+                    X.DateColumn()
+                    .Text(Resources.UIDateOperation)
+                    .DataIndex("SaleDate")
+                    .Flex(1),
+                X.Column()
+                    .Text(Resources.Customer)
+                    .DataIndex("PersonName")
+                    .Flex(1),
+                X.Column()
+                    .Text(Resources.SaleAmount)
+                    .DataIndex("SaleTotalPrice")
+                    .Flex(1),
+                X.Column()
+                    .Text(Resources.CashReceived)
+                    .DataIndex("CashReceived")
+                    .Flex(1),
+                X.Column()
+                    .Text(Resources.SaleOperation)
+                    .DataIndex("SaleOperation")
+                    .Flex(1)
+
+                )
+                    .BottomBar(
+                        X.PagingToolbar()
+                )
+        ,
+        X.Component().Width(5)
+        ,    
+        //Lis of purchase of day   
+        X.GridPanel()
+         .Flex(1)
+         .ID("PurchasePanel")
+         .Layout(LayoutType.Anchor)
+         .Border(false)
+         .Title(Resources.AllPurchopto+" "+ViewBag.BusnessBeginDate+" "+Resources.at+" "+ViewBag.BusnessEndDate)
+         .Store(Html.X().Store()
+            .GroupField("SupplierOperation")
+            .ID("SupplierListStore")
+            .RemotePaging(true)
+            .AutoLoad(true)
+            .PageSize(10)            
+            .Model(Html.X().Model()
+                .Fields(
+                        //new ModelField("PurchaseID", ModelFieldType.Int),
+                        new ModelField("PurchaseReference", ModelFieldType.String),
+                        new ModelField("SupplierFullName", ModelFieldType.String),
+                        //new ModelField("SupplierEmail", ModelFieldType.String),
+                        new ModelField("SupplierOperation", ModelFieldType.String),
+                        new ModelField("PurchaseBringerFullName", ModelFieldType.String),
+                        new ModelField("CashReceivedOupted", ModelFieldType.Float),
+                        new ModelField("PurchaseTotalAmount", ModelFieldType.Float)
+                        //new ModelField("PersonName", ModelFieldType.String)
+
+                )
+            ).DataSource(ViewBag.ListPurchasseDay)
+            .ServerProxy(
+                X.AjaxProxy()
+                .Url(Url.Action("GetAllPurchaseDayList"))
+                .ActionMethods(ac => ac.Read = HttpMethod.GET)
+                .Reader(X.JsonReader().RootProperty("data"))
+            )
+         )
+         .ColumnModel(
+            Html.X().Column()
+                .Text(Resources.PurchaseReference)
+                .DataIndex("PurchaseReference")
+                .Flex(1)
+                ,
+            Html.X().Column()
+                .Text(Resources.SupplierNane)
+                    .DataIndex("SupplierFullName")
+                    .Flex(1),
+            Html.X().Column()
+            .Text(Resources.SupplierOperation)
+                .DataIndex("SupplierOperation")
+                .Flex(1),
+            Html.X().Column()
+                .Text(Resources.PurchaseBringer)
+                .DataIndex("PurchaseBringerFullName")
+                .Flex(1),
+            Html.X().Column()
+                .Text(Resources.PurchaseAmount)
+                .DataIndex("PurchaseTotalAmount")
+                .Flex(1),
+            Html.X().Column()
+                .Text(Resources.CashOutput)
+                .DataIndex("CashReceivedOupted")
+                .Flex(1)                    
+            )
+                .BottomBar(
+                        X.PagingToolbar()
+                )
+     )
+)
+

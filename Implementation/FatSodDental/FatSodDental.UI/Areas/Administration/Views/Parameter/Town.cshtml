@@ -1,0 +1,246 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+@model System.Collections.IEnumerable
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+
+@section content
+{
+    @(X.FormPanel()
+        .ID("TownForm")
+        .Title(Resources.Town)
+        .Items(
+            X.PanelTitle()
+             .ID("PanelTitl555e")
+             .Border(true)
+             .Padding(2)
+             .Content(
+            @<header>
+                <h4>@Resources.Town</h4>
+                <h6>@Resources.RequireField <code>(*)</code></h6>
+            </header>
+                                )
+                             )
+                            .Frame(true)
+                            .MarginSpec("-20 20 20 20")
+                            .BodyPadding(10)
+                            .FieldDefaults(fd => { fd.LabelWidth = 120; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+                            .Buttons(
+                                X.Button()
+                                    .ID("btnSave")
+                                    .Text(Resources.SaveButton)
+                                    .Disabled(true)
+                                    .Icon(Icon.Add)
+                                    .Margin(10)
+                                    .DirectEvents(de =>
+                                    {
+                                        de.Click.Url = Url.Action("AddTown", "Parameter");
+                                        de.Click.EventMask.ShowMask = true;
+                                        de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                                        //de.Click.Before = @"if (!#{User}.getForm().isValid()) { return false; }";
+                                    }),
+
+                                X.Button()
+                                    .Text(Resources.ResetButton)
+            //.Margin(10)
+                                    .MarginSpec("0 20 10 10")
+                                    .OnClientClick("this.up('form').reset();")
+                            )
+                            .Listeners(
+                                ls =>
+                                {
+                                    ls.FieldChange.Handler = "if(App.TownForm.isValid()){App.btnSave.setDisabled(false);}else{App.btnSave.setDisabled(true);}";
+                                }
+                            )
+                            .Items(
+                                X.Container()
+                                    .Layout(LayoutType.HBox)
+                                    .MarginSpec("0 0 10")
+                                    .Items(
+                                        X.FieldSet()
+                                            .Flex(1)
+                                            .Title("Identification")
+                                            .Layout(LayoutType.Anchor)
+                                            .Height(140)
+                                            .DefaultAnchor("80%")
+                                            .Items(
+                                                X.TextField().Name("TownID").ID("TownID").Hidden(true),
+                                                X.TextField().FieldLabel(Resources.PersonName)
+                                                             .Name("TownLabel")
+                                                             .MsgTarget(MessageTarget.Side)
+                                                             .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                                             .ID("TownLabel")
+                                                             .BlankText(Resources.PersonName + " " + Resources.RequiredField)
+                                                             .AllowBlank(false).MinLength(4)
+                                                ,
+                                                X.TextField().FieldLabel("Code")
+                                                    .Name("TownCode")
+                                                    .ID("TownCode")
+                                                    .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                                    .BlankText("Vous devez renseigner un code")
+                                                    .AllowBlank(false)
+                                            )
+                                       ,
+                                       X.Component().Width(20)
+                                       ,//
+                                       X.FieldSet()
+                                            .Flex(1)
+                                            .Title("Situation")
+                                            .Layout(LayoutType.Anchor)
+                                            .Height(140)
+                                            .DefaultAnchor("80%")
+                                            .Items(
+                                                X.ComboBox().Name("Country").FieldLabel("Pays")
+                                                            .Items(LoadComponent.Countries)
+                                                            .AllowBlank(false).ForceSelection(true)
+                                                            .ID("Country")
+                                                            .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                                            .EmptyText("Selectionner un pays")
+                                                            .Listeners(ls =>
+                                                                    ls.Select.Handler = "App.Region.setDisabled(false);App.Region.clearValue(); App.Region.getStore().load()"
+                                                            )
+                                                            ,
+                                                X.ComboBox().Name("Region").ID("Region")
+                                                            .FieldLabel("Région")
+                                                            .AutoSelect(false).ForceSelection(true)
+                                                            .EmptyText("Selectionner une région")
+                                                            .AllowBlank(false)
+                                                            .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                                            .Disabled(true)
+                                                            .ValueField("RegionID").ValueNotFoundText("Aucune région trouvée")//.EmptyText("Chargement...")
+                                                            .DisplayField("RegionLabel")
+                                                            .Store(
+                                                                X.Store()
+                                                                 .AutoLoad(false)
+                                                                 .Model(
+                                                                    X.Model()
+                                                                     .IDProperty("RegionID")
+                                                                     .Fields(
+                                                                           new ModelField("RegionID", ModelFieldType.String) { Mapping = "RegionID" },
+                                                                           new ModelField("RegionLabel", ModelFieldType.String) { Mapping = "RegionLabel" }
+                                                                     )
+                                                                 )
+                                                                .Proxy(
+                                                                    X.AjaxProxy()
+                                                                     .Url(Url.Action("Regions", "User"))
+                                                                     .Reader(X.JsonReader().RootProperty("data"))
+                                                                 )
+                                                                .Parameters(ps =>
+                                                                     ps.Add(new StoreParameter("countryID", "App.Country.getValue()", ParameterMode.Raw))
+                                                                )
+                                                                .Listeners(ls =>
+                                                                    ls.Load.Handler = @"var combo = App.Region;
+                                                            combo.setValue(records[0].get(combo.valueField));"
+                                                                )
+
+                                                            )
+                                            ),
+
+                                       X.Component().Width(20)
+                                    )
+                            )
+    )
+
+    @(Html.X().GridPanel()
+        .Title(Resources.TownList)
+        .ID("UserList")
+        .Layout(LayoutType.Fit)
+        .MarginSpec("0 20 20 20")
+        .Frame(true)
+        .Collapsible(true)
+        .Store(Html.X().Store()
+            .GroupField("Light")
+            .ID("TownStore")
+            .Proxy(
+               X.AjaxProxy()
+                .Url(Url.Action("GetTownsList"))
+                .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                .Reader(X.JsonReader().RootProperty("data"))
+            )
+            .AutoLoad(true)
+            .Model(Html.X().Model()
+                .Fields(
+                    new ModelField() { Name = "TownID", Type = ModelFieldType.Int },
+                    new ModelField() { Name = "TownCode", Type = ModelFieldType.String },
+                    new ModelField() { Name = "TownLabel", Type = ModelFieldType.String }
+
+
+                )
+            ).DataSource(Model)
+        )
+
+        .ColumnModel(
+            Html.X().Column()
+                    .Text("Identifiant")
+                    .DataIndex("TownID")
+                    .Flex(1)
+            ,
+            Html.X().Column()
+                .Text("Code")
+                .DataIndex("TownCode")
+                .Flex(1)
+                ,
+            Html.X().Column()
+                .Text("Nom de la ville")
+                .DataIndex("TownLabel")
+                .Flex(1)
+                ,
+            Html.X().ImageCommandColumn()
+                        .Width(30)
+						.Hidden(LoadAction.IsSubMenuActionAble(MenuAction.DELETE, profile, CodeValue.Parameter.TOWNCode,db))
+                        .Commands(
+                            Html.X().ImageCommand()
+                                .CommandName("Delete")
+                                .IconCls("icon-delete")
+                                .ToolTip(tt =>
+                                    {
+                                        tt.Text = "Voulez-vous supprimer ?";
+                                        tt.Title = "Supression";
+                                    }
+                                 )
+                        )
+                        .DirectEvents(de =>
+                        {
+                            de.Command.Action = "DeleteTown";
+                            de.Command.Confirmation.ConfirmRequest = true;
+                            de.Command.Confirmation.Message = "Voulez vous supprimer ?";
+                            de.Command.Confirmation.Title = "Opération de suppression";
+                            de.Command.ExtraParams.Add(new Parameter("ID", "record.data.TownID", ParameterMode.Raw));
+                            de.Command.EventMask.ShowMask = true;
+                            de.Command.EventMask.Msg = "Opération en cours...";
+                        }),
+            Html.X().ImageCommandColumn()
+                    .Width(30)
+					.Hidden(LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, profile,CodeValue.Parameter.TOWNCode,db))
+                    .Commands(
+                    Html.X().ImageCommand()
+                            .CommandName("Edit")
+                            .IconCls("icon-edit")
+                            .ToolTip(tt => tt.Text = "Modifier ?")
+                    )
+
+                    .DirectEvents(de =>
+                    {
+                        de.Command.Action = "UpdateTown";
+                        de.Command.ExtraParams.Add(new Parameter("ID", "record.data.TownID", ParameterMode.Raw));
+                        de.Command.EventMask.ShowMask = true;
+                        de.Command.EventMask.Msg = "Chargement des paramètres de modification en cours...";
+                    })
+
+
+            )
+            .BottomBar(
+                 Html.X().PagingToolbar()
+            )
+    )
+}

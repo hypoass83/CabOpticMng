@@ -1,0 +1,245 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+@model System.Collections.IEnumerable
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+@section content
+{
+    @(X.FormPanel()
+        .ID("Unknow")
+            //.Title(Resources.FormUserAddTitle)
+        .Items(
+             X.PanelTitle()
+              .ID("PanelTitl555e")
+              .Border(true)
+              .Padding(2)
+              .Content(
+                @<header>
+                    <h4>Defines your Fiscal Year here</h4>
+                    <h6>You must choice the budget line that you want consume and price.</h6>
+                </header>
+                    )
+                )
+                .Frame(true)
+                .MarginSpec("-20 20 20 20")
+                .BodyPadding(10)
+    )
+    @(
+ X.Container()
+             .Layout(LayoutType.HBox)
+             .MarginSpec("-40 10 10 10")
+             .Items(
+                X.FieldSet()
+                 .Flex(1)
+                 .Layout(LayoutType.Anchor)
+                 .Border(false)
+                 .DefaultAnchor("100%")
+                 .Items(
+                X.FormPanel()
+                        .ID("FiscalForm")
+                        .Title("Fiscal Year")
+                        .Frame(true)
+                        .Width(350)
+                        .Height(320)
+                        .BodyPadding(10)
+                        .FieldDefaults(fd => { fd.LabelWidth = 120; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+                        .Buttons(
+                            X.Button()
+                                .ID("btnSave")
+                                .Text(Resources.SaveButton)
+                                .Disabled(true)
+                                .Icon(Icon.Eye)
+                                .Margin(5)
+                                .DirectEvents(de =>
+                                {
+                                    de.Click.Url = Url.Action("AddFiscalYear", "FiscalYear");
+                                    de.Click.EventMask.ShowMask = true;
+                                    de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                                }),
+
+                            X.Button()
+                                .Text(Resources.ResetButton)
+                                .MarginSpec("0 20 10 10")
+                                .OnClientClick("this.up('form').reset();")
+                        )
+                        .Listeners(
+                            ls =>
+                            {
+                                ls.FieldChange.Handler = "if(App.FiscalForm.isValid()){App.btnSave.setDisabled(false);}else{App.btnSave.setDisabled(true);}";
+                            }
+                        )
+                        .Items(
+                            X.Container()
+                                .Layout(LayoutType.HBox)
+                                .Items(
+                                    X.FieldSet()
+                                        .Flex(1)
+                                        .Title("Identification")
+                                        .Layout(LayoutType.Anchor)
+                                        .Frame(false)
+                                        .Height(290)
+                                        .Width(120)
+                                        .DefaultAnchor("80%")
+                                        .Items(
+                                            X.NumberField().ID("FiscalYearID").Name("FiscalYearID").Hidden(true),
+                                            X.NumberField().FieldLabel("Number")
+                                                .Name("FiscalYearNumber")
+                                                .MsgTarget(MessageTarget.Side)
+                                                .ID("FiscalYearNumber")
+                                                .AllowBlank(false)
+                                                //.ReadOnly(true)
+                                                ,
+                                                X.Radio().BoxLabel(Resources.Yess).Name("isOpen").ID("isOpen").InputValue("1").FieldLabel(Resources.UIisOpen),
+                                                X.Radio().BoxLabel(Resources.No).Name("isOpen").ID("isOpenNO").InputValue("0").Checked(true)
+                                                .InputType(Ext.Net.InputType.Radio)
+                                                .LabelWidth(120).FieldLabel("    ").LabelSeparator("")
+                                            /*X.TextField().FieldLabel("Status")
+                                                .Name("FiscalYearStatus")
+                                                .MsgTarget(MessageTarget.Side)
+                                                .ID("FiscalYearStatus")
+                                                .AllowBlank(false)*/
+                                                //.MinLength(3)                                                
+                                                , 
+                                            X.TextField().FieldLabel("Label")
+                                                .Name("FiscalYearLabel")
+                                                .MsgTarget(MessageTarget.Side)
+                                                .AllowBlank(false)
+                                                .MinLength(3)
+                                                .ID("FiscalYearLabel")
+                                                ,                                                                                                                                                                                           
+                                            X.DateField().FieldLabel("Start From")
+                                                .Name("StartFrom")
+                                                .MsgTarget(MessageTarget.Side)
+                                                .ID("StartFrom")
+                                                .AllowBlank(false)
+                                                .InputType(Ext.Net.InputType.DateTime)
+                                                .Value(ViewBag.BusnessDayDate)
+                                                , 
+                                            X.DateField().FieldLabel("End From")
+                                                .Name("EndFrom")
+                                                .MsgTarget(MessageTarget.Side)
+                                                .ID("EndFrom")
+                                                .AllowBlank(false)                                                
+                                                .InputType(Ext.Net.InputType.DateTime)
+                                        ),
+
+                                    X.Component().Width(5)
+                                )
+                        )
+                 )
+
+             ,
+        ////
+             X.FieldSet()
+              .Flex(1)
+              .Layout(LayoutType.Anchor)
+              .Border(false)
+              .DefaultAnchor("100%")
+              .Items(
+                    Html.X().GridPanel()
+                            .Title("Fiscal Year historique")
+                            .ID("FiscalYearList")
+                            .Layout(LayoutType.Fit)
+                            .Frame(true)
+                            .Collapsible(true)
+                            .Store(Html.X().Store()
+                                .GroupField("Hystorique")
+                                .ID("FiscalYearListStore")
+                                .Proxy(
+                                   X.AjaxProxy()
+                                    .Url(Url.Action("GetFiscalYearList"))
+                                    .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                                    .Reader(X.JsonReader().RootProperty("data"))
+                                )
+                                .AutoLoad(true)
+                                .Model(Html.X().Model()
+                                    .Fields(
+                                        new ModelField() { Name = "FiscalYearID", Type = ModelFieldType.Int },
+                                        new ModelField() { Name = "StartFrom", Type = ModelFieldType.Date },
+                                        new ModelField() { Name = "EndFrom", Type = ModelFieldType.Date },
+                                        new ModelField() { Name = "FiscalYearStatus", Type = ModelFieldType.String },
+                                        new ModelField() { Name = "FiscalYearLabel", Type = ModelFieldType.String },
+                                        new ModelField() { Name = "FiscalYearNumber", Type = ModelFieldType.Int }
+
+
+                                    )
+                                ).DataSource(Model)
+                            )
+
+                            .ColumnModel(
+                                Html.X().Column()
+                                    .Text("Label")
+                                    .DataIndex("FiscalYearLabel")
+                                    .Flex(1)
+                                    ,
+                                Html.X().Column()
+                                    .Text("Number")
+                                    .DataIndex("FiscalYearNumber")
+                                    .Flex(1),
+                                Html.X().Column()
+                                    .Text("Start From")
+                                    .DataIndex("StartFrom")
+                                    .Flex(1),
+                                Html.X().Column()
+                                    .Text("End From")
+                                    .DataIndex("EndFrom")
+                                    .Flex(1),                                    
+                                Html.X().Column()
+                                    .Text("Status")
+                                    .DataIndex("FiscalYearStatus")
+                                    .Flex(1)
+                                    ,
+                                Html.X().ImageCommandColumn()
+                                            .Width(30)
+											.Hidden(LoadAction.IsSubMenuActionAble(MenuAction.DELETE, profile, CodeValue.Parameter.MoneyManagement.TillCODE,db))
+                                            .Commands(
+                                                Html.X().ImageCommand()
+                                                    .CommandName("Delete")
+                                                    .IconCls("icon-delete")
+                                            )
+                                            .DirectEvents(de =>
+                                            {
+                                                de.Command.Action = "DeleteFiscalYear";
+                                                de.Command.Confirmation.ConfirmRequest = true;
+                                                de.Command.Confirmation.Message = "Voulez vous supprimer ?";
+                                                de.Command.Confirmation.Title = "Opération de suppression";
+                                                de.Command.ExtraParams.Add(new Parameter("ID", "record.data.FiscalYearID", ParameterMode.Raw));
+                                                de.Command.EventMask.ShowMask = true;
+                                                de.Command.EventMask.Msg = "Opération en cours...";
+                                            }),
+                                Html.X().ImageCommandColumn()
+                                        .Width(30)
+										.Hidden(LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, profile, CodeValue.Parameter.MoneyManagement.TillCODE,db))
+                                        .Commands(
+                                        Html.X().ImageCommand()
+                                                .CommandName("Edit")
+                                                .IconCls("icon-edit")
+                                                .ToolTip(tt => tt.Text = "Modifier ?")
+                                        )
+
+                                        .DirectEvents(de =>
+                                        {
+                                            de.Command.Action = "InitializeFieldsFiscalYear";
+                                            de.Command.ExtraParams.Add(new Parameter("ID", "record.data.FiscalYearID", ParameterMode.Raw));
+                                            de.Command.EventMask.ShowMask = true;
+                                            de.Command.EventMask.Msg = "Chargement des paramètres de modification en cours...";
+                                        })                                    
+                                )
+                                .BottomBar(
+                                     Html.X().PagingToolbar()
+                                )
+                       )
+                 )
+    )
+}

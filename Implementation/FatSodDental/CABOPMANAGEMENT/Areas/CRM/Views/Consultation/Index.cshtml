@@ -1,0 +1,2734 @@
+﻿
+@using FatSod.Ressources;
+@using FatSod.Supply.Entities;
+@using FatSod.DataContext.Initializer;
+@using CABOPMANAGEMENT.Tools;
+
+@{
+    ViewBag.Title = @Resources.MenuConsultation;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var profile = (Session["UserProfile"] == null) ? 0 : (int)Session["UserProfile"];
+    var user = (Session["UserID"] == null) ? 0 : (int)Session["UserID"];
+    //Session["CustomerID"] = 0;
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+
+<div class="box box-primary box-body" id="SaleValideForm">
+    <form id="example-advanced-form" action="#">
+        <h3>@Resources.CustomerIdentification</h3>
+        <fieldset>
+            <legend style="text-align:center">@Resources.CustomerIdentification</legend>
+            <input class="form-control input-sm" id="DisplayForm" type="hidden" value="@ViewBag.DisplayForm">
+            <div class="panel panel-default">
+                <div class="panel-body2">
+
+                    <table class="table" id="mainTable">
+                        <thead>
+                            <tr class="dataTableHead">
+                                <th>ID</th>
+                                <th>@Resources.CustoID</th>
+                                <th>@Resources.UIDateOperation</th>
+                                <th>@Resources.DateOfBirth</th>
+                                <th>@Resources.Customer</th>
+                                <th>@Resources.PersonSurname</th>
+                                <th>@Resources.CustomerNumber</th>
+                                <th>@Resources.Quater</th>
+                                <th>@Resources.Value</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+
+                    </table>
+                </div>
+            </div>
+            <div class="row" style="margin-top:-20px">
+
+                <div class="col-md-12">
+                    <div class="panel panel-default">
+                        <div class="panel-body1">
+                            <input class="form-control" id="GlobalPersonID" name="GlobalPersonID" type="hidden">
+                            <input class="form-control" id="heureVente" name="heureVente" type="hidden">
+                            <input class="form-control" id="DeviseID" name="DeviseID" value="@ViewBag.DefaultDeviseID" type="hidden" />
+                            <input class="form-control" id="BranchID" name="BranchID" value="@ViewBag.CurrentBranch" type="hidden">
+
+                            <input type="hidden" id="PrescriptionLStepID" />
+                            <input type="hidden" id="ConsultOldPrescrID" />
+                            <input type="hidden" id="ConsultPersonalMedHistoID" />
+                            <input type="hidden" id="ConsultDilPrescID" />
+                            <input type="hidden" id="ConsultDilatationID" />
+                            <input type="hidden" id="ConsultLensPrescriptionID" />
+                            
+                            <input type="hidden" id="ConsultationID" />
+
+                            
+                            <input type="hidden" id="fielsetprescripActivate" value="false" />
+                            <input type="hidden" id="fieldactivePrescriptionLens" value="false" />
+
+                            <input type="hidden" id="TypeLens" />
+                            <input type="hidden" id="OldTypeLens" />
+                            
+
+                            <div class="col-md-4">
+                                <div class="row ipt">
+                                    <div class="col-sm-2">@Resources.Customer</div>
+                                    <div class="col-sm-10">
+                                        <input class="form-control required" id="CustomerName" type="text">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="row ipt">
+                                    <div class="col-sm-4">@Resources.CustomerNumber</div>
+                                    <div class="col-sm-6">
+                                        <input class="form-control required" id="CustomerNumber" type="text" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="row ipt">
+                                    <div class="col-sm-4">@Resources.DateOfBirth</div>
+                                    <div class="col-sm-4">
+                                        <input class="form-control datepicker" id="DateOfBirth" type="text" required>
+                                    </div>
+                                    <div class="col-sm-1" style="margin-left:-15px">Age</div>
+                                    <div class="col-sm-3">
+                                        <input type="text" id="CustomerAge" class="input-sm form-control" readonly />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </fieldset>
+
+        <h3>@Resources.AnciennePrescription / @Resources.Plainte</h3>
+        <fieldset>
+            <legend style="text-align:center">@Resources.AnciennePrescription / @Resources.Plainte</legend>
+            <div class="col-md-12" id="DivOldPresandPlainte">
+                <div class="panel panel-default" style="margin-top: -27px;">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="panel-bodypres1" id="DivOldPrescription">
+                                <div class="col-md-12" style="margin-left:10%">
+                                    <div class="row ipt">
+                                        <div class="col-sm-3">@Resources.Categories</div>
+                                        <div class="col-sm-9" style="margin-left:-5%; width:80%">
+                                            <select id="OldProductCat" class="form-control"></select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-12" id="oldLenscarac" style="margin-left:5%">
+                                    <div class="row ipt">
+                                        <div class="col-sm-2" style="margin-right:2px;">
+                                            @Resources.EyeSide
+                                        </div>
+                                        <div class="col-sm-2" style="margin-left:-55px;">
+                                            Sphere
+                                        </div>
+                                        <div class="col-sm-2" style="margin-left:-25px;">
+                                            Cylinder
+                                        </div>
+                                        <div class="col-sm-2" style="margin-left:-25px;">
+                                            Axis
+                                        </div>
+                                        <div class="col-sm-2" style="margin-left:-25px;">
+                                            Addition
+                                        </div>
+
+                                    </div>
+                                    <div class="row ipt">
+                                        <div class="col-sm-2">
+                                            <span>@Resources.RightSide</span>
+                                        </div>
+                                        <div class="col-sm-2" style="margin-left:-55px;">
+                                            <input type="text" id="OldRESphere" class="input-sm form-control">
+                                        </div>
+                                        <div class="col-sm-2" style="margin-left:-25px;">
+                                            <input type="text" id="OldRECylinder" class="input-sm form-control">
+                                        </div>
+                                        <div class="col-sm-2" style="margin-left:-25px;">
+                                            <input type="text" id="OldREAxis" class="input-sm form-control NumbersAndDecimal">
+                                        </div>
+                                        <div class="col-sm-2" style="margin-left:-25px;">
+                                            <input type="text" id="OldREAddition" class="input-sm form-control">
+                                        </div>
+
+                                        <input type="hidden" id="OldREIndex" class="input-sm form-control NumbersAndDecimal">
+
+                                    </div>
+
+                                    <div class="row ipt">
+                                        <div class="col-sm-2">
+                                            <span>@Resources.LeftSide</span>
+                                        </div>
+                                        <div class="col-sm-2" style="margin-left:-55px;">
+                                            <input type="text" id="OldLESphere" class="input-sm form-control">
+                                        </div>
+                                        <div class="col-sm-2" style="margin-left:-25px;">
+                                            <input type="text" id="OldLECylinder" class="input-sm form-control">
+                                        </div>
+                                        <div class="col-sm-2" style="margin-left:-25px;">
+                                            <input type="text" id="OldLEAxis" class="input-sm form-control NumbersAndDecimal">
+                                        </div>
+                                        <div class="col-sm-2" style="margin-left:-25px;">
+                                            <input type="text" id="OldLEAddition" class="input-sm form-control">
+                                        </div>
+
+                                        <input type="hidden" id="OldLEIndex" class="input-sm form-control NumbersAndDecimal">
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4" style="/*margin-left: 10%*/" >
+                            <div class="row ipt">
+                                <div class="col-md-12" id="oldAVL" style="margin-left:2%">
+                                <div class="row ipt">
+                                    <div class="col-sm-3" style="margin-right:2px;">
+                                        @Resources.EyeSide
+                                    </div>
+                                    <div class="col-sm-3" style="margin-left:-35px;">
+                                        AVP
+                                    </div>
+                                    <div class="col-sm-3" style="margin-left:-25px;">
+                                        AVL
+                                    </div>
+                                    @*<div class="col-sm-3" style="margin-left:-25px;">
+                                        TS
+                                    </div>*@
+                                </div>
+                                <div class="row ipt">
+                                    <div class="col-sm-3">
+                                        <span>@Resources.RightSide</span>
+                                    </div>
+                                    <div class="col-sm-3" style="margin-left:-35px;">
+                                        <input type="text" id="OldRAVPName" placeholder="@Resources.Select" class="input-sm form-control" />
+                                        <input type="hidden" id="OldRAcuiteVisuelPID" class="form-control" />
+                                    </div>
+                                    <div class="col-sm-3" style="margin-left:-25px;">
+                                        <input type="text" id="OldRAVLName" placeholder="@Resources.Select" class="input-sm form-control" />
+                                        <input type="hidden" id="OldRAcuiteVisuelLID" class="form-control" />
+                                    </div>
+                                    @*<div class="col-sm-3" style="margin-left:-25px;">
+                                        <input type="text" id="OldRAVLTSName" readonly class="input-sm form-control" />
+                                        <input type="hidden" id="OldRAVLTSID" class="form-control" />
+                                    </div>*@
+
+                                </div>
+                                <div class="row ipt">
+                                    <div class="col-sm-3">
+                                        <span>@Resources.LeftSide</span>
+                                    </div>
+                                    <div class="col-sm-3" style="margin-left:-35px;">
+                                        <input type="text" id="OldLAVPName" placeholder="@Resources.Select" class="input-sm form-control" />
+                                        <input type="hidden" id="OldLAcuiteVisuelPID" class="form-control" />
+                                    </div>
+                                    <div class="col-sm-3" style="margin-left:-25px;">
+                                        <input type="text" id="OldLAVLName" placeholder="@Resources.Select" class="input-sm form-control" />
+                                        <input type="hidden" id="OldLAcuiteVisuelLID" class="form-control" />
+                                    </div>
+                                    @*<div class="col-sm-3" style="margin-left:-25px;">
+                                        <input type="text" id="OldLAVLTSName" readonly class="input-sm form-control" />
+                                        <input type="hidden" id="OldLAVLTSID" class="form-control" />
+                                    </div>*@
+                                </div>
+                            </div>
+                                <!--<div class="col-sm-3" style="/*margin-left:20px;*/">OLD AVL</div>
+                                <div class="col-sm-3" style="margin-left:-40px;">
+                                    <input type="text" id="OldAVLName" placeholder="@Resources.Select" class="input-sm form-control" />
+                                    <input type="hidden" id="OldAcuiteVisuelLID" class="form-control" />
+                                </div>
+                                <div class="col-sm-3">OLD AVP</div>
+                                <div class="col-sm-3" style="margin-left:-40px;">
+                                    <input type="text" id="OldAVPName" placeholder="@Resources.Select" class="input-sm form-control" />
+                                    <input type="hidden" id="OldAcuiteVisuelPID" class="form-control" />
+                                </div>-->
+                            </div>
+
+                            <div class="row ipt">
+                                <h4 style="margin-left:3%;margin-top:0px;padding-top:0px;">@Resources.AnciennePlainte</h4>
+                                <div class="col-md-12" style="margin-left:0%">
+                                    <textarea id="OldPlaintePatient" class="input-sm form-control" cols="200" rows="2.5" style="width:100%; height:auto"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                    
+                <div class="panel panel-default" style="margin-top: -15px;">
+                    <div class="panel-bodypres2">
+                        <div class="col-md-12" style="margin-left:2%">
+                            <div class="col-md-6" id="DivOldDilatation">
+                                <div class="row ipt">
+                                    <div class="col-sm-3">@Resources.DatedernierConsultation</div>
+                                    <div class="col-sm-5">
+                                        <input type="text" id="DateDernierConsultation" class="input-sm form-control datepicker"  />
+                                    </div>
+                                </div>
+                                <div class="row ipt">
+                                    <div class="col-sm-3">@Resources.Dilatation ?</div>
+                                    <div class="col-sm-3">
+                                        <select id="OldDilatation" class="form-control">
+                                            <option value="0">@Resources.No</option>
+                                            <option value="1">@Resources.Yess</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-sm-3">@Resources.PrescriptionCollyre</div>
+                                    <div class="col-sm-3" style="margin-left:-30px;">
+                                        <select id="OldCollyre" class="form-control">
+                                            <option value="0">@Resources.No</option>
+                                            <option value="1">@Resources.Yess</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row ipt">
+                                    <div class="col-sm-3">@Resources.NomCollyre</div>
+                                    <div class="col-sm-9">
+                                        <textarea id="OldNomCollyre" class="input-sm form-control" cols="200" rows="2" style="width:100%; height:auto"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="row ipt">
+                                    <div class="col-md-12" id="AVL" style="margin-left:16%">
+                                        <div class="row ipt">
+                                            <div class="col-sm-3" style="margin-right:2px;">
+                                                @Resources.EyeSide
+                                            </div>
+                                            <div class="col-sm-3" style="margin-left:-60px;">
+                                                AVP
+                                            </div>
+                                            <div class="col-sm-3" style="margin-left:-25px;">
+                                                AVL
+                                            </div>
+                                            <div class="col-sm-3" style="margin-left:-25px;">
+                                                TS
+                                            </div>
+                                        </div>
+                                        <div class="row ipt">
+                                            <div class="col-sm-3">
+                                                <span>@Resources.RightSide</span>
+                                            </div>
+                                            <div class="col-sm-3" style="margin-left:-75px;">
+                                                <input type="text" id="RAVPName" placeher="@Resources.Select" class="input-sm form-control" />
+                                                <input type="hidden" id="RAcuiteVisuelPID" class="form-control" />
+                                            </div>
+                                            <div class="col-sm-3" style="margin-left:-25px;">
+                                                <input type="text" id="RAVLName" placeher="@Resources.Select" class="input-sm form-control" />
+                                                <input type="hidden" id="RAcuiteVisuelLID" class="form-control" />
+                                            </div>
+                                            <div class="col-sm-3" style="margin-left:-25px;">
+                                                <input type="text" id="RAVLTSName" placeher="@Resources.Select" class="input-sm form-control" />
+                                                <input type="hidden" id="RAVLTSID" class="form-control" />
+                                            </div>
+
+                                        </div>
+                                        <div class="row ipt">
+                                            <div class="col-sm-3">
+                                                <span>@Resources.LeftSide</span>
+                                            </div>
+                                            <div class="col-sm-3" style="margin-left:-75px;">
+                                                <input type="text" id="LAVPName" placeher="@Resources.Select" class="input-sm form-control" />
+                                                <input type="hidden" id="LAcuiteVisuelPID" class="form-control" />
+                                            </div>
+                                            <div class="col-sm-3" style="margin-left:-25px;">
+                                                <input type="text" id="LAVLName" placeher="@Resources.Select" class="input-sm form-control" />
+                                                <input type="hidden" id="LAcuiteVisuelLID" class="form-control" />
+                                            </div>
+                                            <div class="col-sm-3" style="margin-left:-25px;">
+                                                <input type="text" id="LAVLTSName" placeher="@Resources.Select" class="input-sm form-control" />
+                                                <input type="hidden" id="LAVLTSID" class="form-control" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--<div class="row ipt">
+                                    <div class="col-sm-2" style="margin-left:20px;">AVL</div>
+                                    <div class="col-sm-3" style="margin-left:-20px;">
+                                        <input type="text" id="AVLName" placeholder="@Resources.Select" class="input-sm form-control" />
+                                        <input type="hidden" id="AcuiteVisuelLID" class="form-control" />
+                                    </div>
+                                    <div class="col-sm-2">AVP</div>
+                                    <div class="col-sm-3" style="margin-left:-20px;">
+                                        <input type="text" id="AVPName" placeholder="@Resources.Select" class="input-sm form-control" />
+                                        <input type="hidden" id="AcuiteVisuelPID" class="form-control" />
+                                    </div>
+                                </div>-->
+                                <div class="row ipt">
+                                    <div class="col-md-3" style="/*margin-left:5%*/">
+                                    <h4 style="margin-left:10%;margin-top:0px;padding-top:0px;">@Resources.Plainte</h4>
+                                    </div>
+                                    <div class="col-md-8" style="/*margin-left:5%*/">
+                                        <textarea id="PlaintePatient" class="input-sm form-control" cols="200" rows="2.5" style="width:100%; height:auto" required></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+
+        <h3>@Resources.AntedecentPersonnel</h3>
+        <fieldset>
+            @*<legend style="text-align:center">@Resources.AntedecentPersonnel</legend>*@
+            <div class="col-md-12">
+                <div class="panel panel-default">
+                    <div class="panel-bodypres">
+                        <div class="col-md-6">
+                            <fieldset>
+                                <legend>@Resources.AntedecentPersonnel</legend>
+                               
+                                    @foreach (var atcd in db.ATCDs.OrderBy(m => m.ATCDID).ToList())
+                                    {
+                                        var listCustoAtcdp = db.ATCDPersonnels.Where(sm => sm.ATCDID == atcd.ATCDID).ToList();
+                                            <span><input type="checkbox" id="@String.Concat("ATCDPerso",@atcd.ATCDID)" value="@atcd.ATCDID" name="ATCDPerso" /> @atcd.Name</span><br />
+                                        if (atcd.Name.ToLower() == "autres")
+                                        {
+                                            <div class="col-sm-9" style="margin-left:5px">
+                                                <textarea id="ATCDPersoAutre" class="input-sm form-control"></textarea>
+                                            </div>
+                                        }
+                                    }
+
+                            </fieldset>
+                        </div>
+                        <div class="col-md-6">
+                            <fieldset>
+                                <legend>@Resources.Antedecentfamilial</legend>
+                                @foreach (var atcd in db.ATCDs.OrderBy(m => m.ATCDID).ToList())
+                                {
+                                    <span><input type="checkbox" id="@String.Concat("ATCDFam",@atcd.ATCDID)" value="@atcd.ATCDID" name="ATCDFam" /> @atcd.Name</span><br />
+                                    if (atcd.Name.ToLower() == "autres")
+                                    {
+                                        <div class="col-sm-9" style="margin-left:5px">
+                                            <textarea id="ATCDFamAutre" class="input-sm form-control"></textarea>
+                                        </div>
+                                    }
+                                }
+
+</fieldset>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+
+
+
+        <h3>@Resources.Dilatation / @Resources.prescription</h3>
+        <fieldset>
+            <legend style="text-align:center">@Resources.Dilatation / @Resources.prescription</legend>
+            <div class="col-md-12">
+                <div class="panel panel-default">
+                    <div class="panel-bodypresdil">
+                        <div class="col-md-6">
+                            <div class="row ipt">
+                                <div class="col-sm-2">@Resources.Dilatation</div>
+                                <div class="col-sm-2">
+                                    <input type="radio" name="Dilatation" id="DYes" value="true" checked="checked" /> @Resources.Yess
+                                </div>
+                                <div class="col-sm-2">
+                                    <input type="radio" name="Dilatation" id="DNo" value="false"/> @Resources.No
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="row ipt" id="DivCodeDilation">
+                                <div class="col-sm-4">@Resources.Code</div>
+                                <div class="col-sm-8">
+                                    <input type="text" id="CodeDilation" class="input-sm form-control" readonly/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <fieldset style="margin-top:-50px;height:270px;" id="fielsetprescrip">
+                <legend style="text-align:center">@Resources.prescription</legend>
+                <div class="col-md-12">
+                    <div class="panel panel-default">
+                        <div class="panel-bodyprespreoption">
+                            <div class="col-md-12">
+                                <div class="row ipt">
+                                    <div class="col-sm-2">@Resources.LensPrescription</div>
+                                    <div class="col-sm-2">
+                                        <input type="radio" name="LensPrescription" id="LYes" value="true" checked="checked" /> @Resources.Yess
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <input type="radio" name="LensPrescription" id="LNo" value="false" /> @Resources.No
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel panel-default" id="lensprescription">
+                        <div class="panel-bodyprespre">
+                            <div class="col-md-6">
+                                <div class="row ipt">
+                                    <div class="col-sm-3">@Resources.Categories</div>
+                                    <div class="col-sm-9">
+                                        <select id="LensCategoryCode" class="form-control"></select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="row ipt">
+                                    <div class="col-sm-3">@Resources.SupplyingName</div>
+                                    <div class="col-sm-9" style="margin-left:-5%; width:80%">
+                                        <input type="text" id="SupplyingName" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12" style="margin-left:10%">
+                                <div class="row ipt">
+                                    <div class="col-sm-2" style="margin-right:2px;">
+                                        @Resources.EyeSide
+                                    </div>
+                                    <div class="col-sm-2" style="margin-left:-75px;">
+                                        Sphere
+                                    </div>
+                                    <div class="col-sm-2" style="margin-left:-25px;">
+                                        Cylinder
+                                    </div>
+                                    <div class="col-sm-2" style="margin-left:-25px;">
+                                        Axis
+                                    </div>
+                                    <div class="col-sm-2" style="margin-left:-25px;">
+                                        Addition
+                                    </div>
+
+                                </div>
+                                <div class="row ipt">
+                                    <div class="col-sm-2">
+                                        <span>@Resources.RightSide</span>
+                                    </div>
+                                    <div class="col-sm-2" style="margin-left:-75px;">
+                                        <input type="text" id="RESphere" class="input-sm form-control">
+                                    </div>
+                                    <div class="col-sm-2" style="margin-left:-25px;">
+                                        <input type="text" id="RECylinder" class="input-sm form-control">
+                                    </div>
+                                    <div class="col-sm-2" style="margin-left:-25px;">
+                                        <input type="text" id="REAxis" class="input-sm form-control NumbersAndDecimal">
+                                    </div>
+                                    <div class="col-sm-2" style="margin-left:-25px;">
+                                        <input type="text" id="REAddition" class="input-sm form-control">
+                                    </div>
+
+                                    <input type="hidden" id="REIndex" class="input-sm form-control NumbersAndDecimal">
+                                    <div class="col-sm-2" style="width:10px;margin-left:-25px;margin-top:-1px;">
+                                        <button type="button" class="btn btn-primary" id="btnApplyREToLE"><span class="glyphicon glyphicon-chevron-down"></span></button>
+                                    </div>
+                                </div>
+
+                                <div class="row ipt">
+                                    <div class="col-sm-2">
+                                        <span>@Resources.LeftSide</span>
+                                    </div>
+                                    <div class="col-sm-2" style="margin-left:-75px;">
+                                        <input type="text" id="LESphere" class="input-sm form-control">
+                                    </div>
+                                    <div class="col-sm-2" style="margin-left:-25px;">
+                                        <input type="text" id="LECylinder" class="input-sm form-control">
+                                    </div>
+                                    <div class="col-sm-2" style="margin-left:-25px;">
+                                        <input type="text" id="LEAxis" class="input-sm form-control NumbersAndDecimal">
+                                    </div>
+                                    <div class="col-sm-2" style="margin-left:-25px;">
+                                        <input type="text" id="LEAddition" class="input-sm form-control">
+                                    </div>
+
+                                    <input type="hidden" id="LEIndex" class="input-sm form-control NumbersAndDecimal">
+                                    <div class="col-sm-2" style="width:10px;margin-left:-25px;">
+                                        <button type="button" class="btn btn-primary" id="btnApplyLEToRE"><span class="glyphicon glyphicon-chevron-up"></span></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+        </fieldset>
+        <h3>@Resources.LastStep</h3>
+        <fieldset>
+            <legend style="text-align:center">@Resources.LastStep</legend>
+            <div class="col-md-12">
+                <div class="panel panel-default">
+                    <div class="panel-bodypres">
+                        <div class="col-md-12">
+                            <fieldset id="laststep">
+                                <div class="col-md-6">
+                                    <div class="row ipt">
+                                        <div class="col-sm-4">@Resources.Consultant <code>(*)</code></div>
+                                        <div class="col-sm-6">
+                                            <input type="text" id="MedecinTraitant" class="form-control" readonly/>
+                                        </div>
+                                    </div>
+                                    <div class="row ipt">
+                                        <div class="col-sm-4">@Resources.Remarque <code>(*)</code></div>
+                                        <div class="col-sm-6">
+                                            <textarea type="text" id="Remarque" cols="200" rows="3" class="form-control"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="row ipt">
+                                        <div class="col-sm-3">@Resources.PrescriptionCollyre</div>
+                                        <div class="col-sm-2" style="margin-left:-20px;">
+                                            <input type="radio" name="PrescriptionCollyre" id="PCYes" value="true" /> @Resources.Yess
+                                        </div>
+                                        <div class="col-sm-2" style="margin-left:-20px;">
+                                            <input type="radio" name="PrescriptionCollyre" id="PCNo" value="false" checked="checked" /> @Resources.No
+                                        </div>
+                                        <div class="col-sm-5" style="margin-left:-20px;">
+                                            <textarea type="text" id="NomCollyre" cols="300" rows="2" placeholder="@Resources.NomCollyre" class="form-control"></textarea>
+                                            @*<input type="text" id="NomCollyre" placeholder="@Resources.NomCollyre" class="input-sm form-control" />*@
+                                        </div>
+                                    </div>
+                                    <div class="row ipt">
+                                        <div class="col-sm-5">@Resources.DateRdv <code>(*)</code></div>
+                                        <div class="col-sm-7" style="margin-left:-25px;">
+                                            <input type="text" id="DateRdv" class="input-sm form-control datepicker" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </fieldset>
+</div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+
+    </form>
+</div>
+
+
+<!-- Css Begins Here -->
+
+<style>
+    .invalid-data {
+        border: 1px solid red !important;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc !important;
+    }
+
+    .ipt {
+        margin-bottom: 6px;
+    }
+
+    #img-upload {
+        width: 100%;
+    }
+
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin-left: 10px;
+        margin-right: 10px;
+        min-width: 0;
+        padding: 10px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 70px;
+    }
+
+    .panel-bodyfielset1 {
+        height: 60px;
+    }
+
+    .panel-bodyfielset2 {
+        height: 50px;
+    }
+
+    .panel-bodyfielPresc {
+        height: 250px;
+        margin-bottom: 1%;
+    }
+
+    .panel-body1 {
+        height: 25px;
+        margin-top: 1%;
+        margin-bottom: 1%;
+    }
+
+    .panel-bodyprespre {
+        height: 150px;
+        margin-bottom: 1%;
+    }
+    .panel-bodyprespreoption{
+        height: 30px;
+        margin-bottom: 1%;
+    }
+    .panel-bodypres {
+        height: 280px;
+        margin-top: 1%;
+        margin-bottom: 1%;
+    }
+
+    .panel-bodypres1 {
+        height: 110px;
+        margin-top: 1%;
+        margin-bottom: 1%;
+    }
+
+    .panel-bodypres2 {
+        height: 140px;
+        margin-top: 1%;
+        margin-bottom: 1%;
+    }
+    .panel-bodypresdil {
+        height: 45px;
+        margin-top:5px;
+        margin-bottom: 0px;
+    }
+
+    .panel-body2 {
+        height: 235px;
+        margin-top: 1px;
+        margin-left: 5px;
+        margin-right: 5px;
+    }
+
+    .panel-body3 {
+        height: 75px;
+        margin-top: 5px;
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+
+    .panel-body4 {
+        height: 300px;
+        margin-left: 10px;
+    }
+    .wizard > .steps > ul > li {
+        width: 20%;
+    }
+    
+</style>
+
+<script>
+
+        var form = $("#example-advanced-form").show();
+    var isPendingDilatationToPay = false;
+    // is it an insured customer. NB: Insured Customer do not have to pay dilatation
+    var IsBillCustomer = false;
+        form.steps({
+            headerTag: "h3",
+            bodyTag: "fieldset",
+            transitionEffect: "slideLeft",
+            onStepChanging: function (event, currentIndex, newIndex) {
+
+                if (currentIndex == 1) {
+                    const val = isStepTwoFormValid();
+                    if (val == false) {
+                        return false;
+                    }
+                }
+
+                // Allways allow previous action even if the current form is not valid!
+                if (currentIndex > newIndex) {
+                    return true;
+                }
+                //// Forbid next action on "Warning" step if the user is to young
+                //if (newIndex === 3 && Number($("#age-2").val()) < 18) {
+                //    return false;
+                //}
+                // Needed in some cases if the user went back (clean up)
+                if (currentIndex < newIndex) {
+                    // To remove error styles
+                    form.find(".body:eq(" + newIndex + ") label.error").remove();
+                    form.find(".body:eq(" + newIndex + ") .error").removeClass("error");
+                }
+                form.validate().settings.ignore = ":disabled,:hidden";
+                return form.valid();
+            },
+            onStepChanged: function (event, currentIndex, priorIndex) {
+                // Used to skip the "Warning" step if the user is old enough.
+                if (currentIndex==2 && priorIndex<=2)
+                {
+                    ValideStepTwo();
+                }
+                if (currentIndex==1 && priorIndex==2)
+                {
+                    var ConsultOldPrescrID = $('#ConsultOldPrescrID').val();
+                    if (parseInt(ConsultOldPrescrID) > 0) {
+                        // DisabledOldPresandPlainte();
+                    }
+                    else {
+                        EnableOldPresandPlainte();
+                    }
+                }
+                //step 3
+                if (currentIndex ==3 && priorIndex==2)
+                {
+                    ValideStepThree();
+                }
+                //step 4
+                if (currentIndex == 4 && priorIndex == 3) {
+                    ValideStepFour();
+                }
+            },
+            onFinishing: function (event, currentIndex) {
+                form.validate().settings.ignore = ":disabled";
+                return form.valid();
+            },
+            onFinished: function (event, currentIndex) {
+                ValideCommande();
+            }
+        }).validate({
+            errorPlacement: function errorPlacement(error, element) { element.before(error); },
+            rules: {
+                confirm: {
+                    equalTo: "#password-2"
+                }
+            }
+        });
+
+        function activePrescriptionLens()
+        {
+            $('#LensCategoryCode').prop('disabled', false);
+            $('#SupplyingName').prop('disabled', false);
+            $('#RESphere').prop('disabled', false);
+            $('#RECylinder').prop('disabled', false);
+            $('#REAxis').prop('disabled', false);
+            $('#REAddition').prop('disabled', false);
+            $('#btnApplyREToLE').prop('disabled', false);
+            $('#LESphere').prop('disabled', false);
+            $('#LECylinder').prop('disabled', false);
+            $('#LEAxis').prop('disabled', false);
+            $('#LEAddition').prop('disabled', false);
+            $('#btnApplyLEToRE').prop('disabled', false);
+
+            $('#fieldactivePrescriptionLens').val("true");
+        }
+        function DesactivePrescriptionLens() {
+            $('#LensCategoryCode').prop('disabled', true);
+            $('#SupplyingName').prop('disabled', true);
+            $('#RESphere').prop('disabled', true);
+            $('#RECylinder').prop('disabled', true);
+            $('#REAxis').prop('disabled', true);
+            $('#REAddition').prop('disabled', true);
+            $('#btnApplyREToLE').prop('disabled', true);
+            $('#LESphere').prop('disabled', true);
+            $('#LECylinder').prop('disabled', true);
+            $('#LEAxis').prop('disabled', true);
+            $('#LEAddition').prop('disabled', true);
+            $('#btnApplyLEToRE').prop('disabled', true);
+
+            $('#fieldactivePrescriptionLens').val("false");
+
+            initialisePrescription();
+        }
+        function initailisaLastStep()
+        {
+            $('#NomCollyre').val('');
+            $('#DateRdv').val('');
+            $('#Remarque').val('');
+        }
+        function initialisePrescription()
+        {
+            $('#LensCategoryCode').val('');
+            $('#SupplyingName').val('');
+            $('#RESphere').val('');
+            $('#RECylinder').val('');
+            $('#REAxis').val('');
+            $('#REAddition').val('');
+            $('#btnApplyREToLE').val('');
+            $('#LESphere').val('');
+            $('#LECylinder').val('');
+            $('#LEAxis').val('');
+            $('#LEAddition').val('');
+        }
+
+        function DisabledOldPresandPlainte()
+        {
+            $('#DivOldPresandPlainte *').prop('disabled', true);
+        }
+
+        function EnableOldPresandPlainte() {
+            $('#DivOldPresandPlainte *').prop('disabled', false);
+        }
+
+        function DisabledOldPrescription()
+        {
+            //$('#DivOldPrescription *').prop('disabled', true);
+        }
+
+        function EnableOldPrescription() {
+            //$('#DivOldPrescription *').prop('disabled', false);
+            $('#oldLenscarac *').prop('disabled', true);
+        }
+
+        function EnableOldDilatation()
+        {
+            $('#DivOldDilatation *').prop('disabled', false);
+        }
+        function DisabledOldDilatation()
+        {
+            $('#DivOldDilatation *').prop('disabled', true);
+        }
+        function activeDillation()
+        {
+            var ConsultDilPrescID = $('#ConsultDilPrescID').val();
+            var CustomerNumber = $('#GlobalPersonID').val();
+            checkifDilation(CustomerNumber,ConsultDilPrescID);
+            initialisePrescription();
+            initailisaLastStep();
+
+        }
+        function DesactiveDillation() {
+            $('#fielsetprescripActivate').val("true");
+            $('#fielsetprescrip').prop('disabled', false);
+            $('#laststep').prop('disabled', false);
+
+        }
+
+        function checkifDilation(CustomerNumber,ConsultDilPrescID)
+        {
+            $.get('@Url.Action("checkifDilation", "Consultation")', { CustomerNumber: CustomerNumber,ConsultDilPrescID: ConsultDilPrescID }, function (data) {
+                $('#CodeDilation').empty();
+                $.each(data, function (key, value) {
+                    $('#CodeDilation').val(value.CodeDilation);
+                    isPendingDilatationToPay = value.CodeDilation == null && value.ConsultDilatationID > 0;
+                    if (isPendingDilatationToPay == true) {
+                        // Interdir la modification de la dilatation
+                    }
+                    console.log("checkifDilation ", value);
+                });
+                var checkifalreadydilattion = $('#CodeDilation').val();
+                if (checkifalreadydilattion != "") {
+                    DesactiveDillation();
+                }
+                else
+                {
+                    $('#fielsetprescripActivate').val("false");
+                    $('#fielsetprescrip').prop('disabled', true);
+                    $('#laststep').prop('disabled', true);
+                    $('#CodeDilation').val('');
+
+                }
+
+            }, 'json');
+        }
+
+        // Get the Product category List
+        function GetAllLensCategories() {
+            $.get('@Url.Action("GetAllLensCategories", "Consultation")', {}, function (data) {
+                $('#LensCategoryCode').empty();
+                $('#OldProductCat').val('');
+
+                $('#LensCategoryCode').append($("<option value='0' selected='selected'>@Resources.Select</option>"));
+                $('#OldProductCat').append($("<option value='0' selected='selected'>@Resources.Select</option>"));
+                $.each(data, function (key, value) {
+                    $('#LensCategoryCode').append($("<option></option>").val(value.CategoryID).html(value.CategoryCode));
+                    $('#OldProductCat').append($("<option></option>").val(value.CategoryID).html(value.CategoryCode));
+                });
+                //var LensCategoryCode = $('#LensCategoryCode').val();
+                //SetSupplyingName(LensCategoryCode);
+
+                //var OldProductCat = $('#OldProductCat').val();
+                //SetOldProductCat(OldProductCat);
+
+            }, 'json');
+        }
+
+
+
+
+        function SetSupplyingName(LensCategoryCode) {
+            $.get('@Url.Action("SetSupplyingName", "Consultation")', { LensCategoryCode: LensCategoryCode }, function (data) {
+                $('#SupplyingName').empty();
+                $('#TypeLens').empty();
+
+                $.each(data, function (key, value) {
+                    $('#SupplyingName').val(value.SupplyingName);
+                    $('#TypeLens').val(value.TypeLens);
+                });
+                var TypeLens = $('#TypeLens').val();
+                if (TypeLens == "SV") {
+                    $('#REAddition').prop('readonly', true);
+                    $('#LEAddition').prop('readonly', true);
+                }
+                else {
+                    $('#REAddition').prop('readonly', false);
+                    $('#LEAddition').prop('readonly', false);
+                }
+            }, 'json');
+        }
+
+    function SetOldProductCat(OldProductCat) {
+        $.get('@Url.Action("SetOldProductCat", "Consultation")', { OldProductCat: OldProductCat }, function (data) {
+            $('#OldTypeLens').empty();
+
+            $.each(data, function (key, value) {
+                $('#OldTypeLens').val(value.TypeLens);
+            });
+            var TypeLens = $('#OldTypeLens').val();
+            if (TypeLens == "SV") {
+                $('#OldREAddition').prop('readonly', true);
+                $('#OldLEAddition').prop('readonly', true);
+            }
+            else {
+                $('#OldREAddition').prop('readonly', false);
+                $('#OldLEAddition').prop('readonly', false);
+
+                // Valeurs par defaut pour l'addition des deux yeux
+                //if (OldProductCat > 0) {
+                //    if ($('#OldLEAddition').val().trim() == '') {
+                //        $('#OldLEAddition').val('0.00');
+                //    }
+                //    if ($('#OldREAddition').val().trim() == '') {
+                //        $('#OldREAddition').val('0.00');
+                //    }
+                //}
+            }
+        }, 'json');
+    }
+
+        function LActivateAxe(CylinderVal) {
+            if (CylinderVal.trim() == '' || CylinderVal.length == 0) {
+                $('#LEAxis').prop('readonly', true);
+                $('#LEAxis').val('');
+            }
+            else {
+                $('#LEAxis').prop('readonly', false);
+            }
+        }
+        function RActivateAxe(CylinderVal) {
+            if (CylinderVal.trim() == '' || CylinderVal.length == 0) {
+                $('#REAxis').prop('readonly', true);
+                $('#REAxis').val('');
+            }
+            else {
+                $('#REAxis').prop('readonly', false);
+            }
+        }
+        //chargement des commandes a valider
+        function GetAllCommand(test) {
+
+            if (test) {
+                $('#mainTable').dataTable().fnDestroy();
+            }
+            var oTable = $('#mainTable');
+
+            oTable = $('#mainTable').dataTable({
+
+                fixedColumns: true,
+                "paging": true,
+                "pageLength": 3,
+                "lengthMenu": [[3, 5, 10, -1], [3, 5, 10, "All"]],
+                "searching": true,
+                "ordering": true,
+                "lengthChange": false, // https://datatables.net/reference/option/lengthChange
+                "pagingType": "full_numbers",
+                "order": [[0, 'desc']],
+                // Ajax call
+                "ajax": "@Url.Action("PendingConsultationCustomer", "Consultation")",
+                //"dom": '<"toolbar">frtip',
+                "columns": [
+                    { "data": "GlobalPersonID", "width": "5%" },
+                    { "data": "CNI", "width": "10%" },
+                    { "data": "Dateregister", "width": "10%" },
+                    { "data": "DateOfBirth", "width": "10%" },
+                    { "data": "CustomerFullName", "width": "25%" },
+                    { "data": "Surname", "width": "17%" },
+                    { "data": "CustomerNumber", "width": "10%" },
+                    { "data": "QuarterLabel", "width": "13%" },
+                    { "data": "CustomerValue", "width": "5%" },
+                    {// this is Actions Column
+                        mRender: function (data, type, row) {
+
+                            var updateOption = '@LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, @profile, CodeValue.Sale.Consultation.CODE, db)';
+                            var T_updateOption = (updateOption == 'False') ? '<a href="#" class="editor_remove" onclick="UpdateItem(' + row.GlobalPersonID + ')"><span class="glyphicon glyphicon-edit"></a>' : '';
+
+                            return T_updateOption;
+                        }
+                    }
+                ],
+                "fnRowCallback": function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                    if (aData.CustomerValue == 'VIP') {
+                        $(nRow).addClass('vip');
+                    }
+                }
+            });
+        }
+
+        function UpdateItem(obj) {
+            var globalID = obj;
+
+            //initialisation des checkbox
+            var checkboxes = document.querySelectorAll('input[type=checkbox]:checked')
+            for (var i = 0; i < checkboxes.length; i++) {
+                $('input[type=checkbox]').prop('checked', false);
+            }
+
+
+            $.get('@Url.Action("InitializeFields", "Consultation")', { GlobalPersonID: parseInt(globalID) }, function (data) {
+                $.each(data, function (key, value) {
+                    $('#GlobalPersonID').val(value.GlobalPersonID);
+                    $('#CustomerName').val(value.CustomerName);
+                    $('#CustomerNumber').val(value.CustomerNumber);
+                    $('#ConsultationID').val(value.ConsultationID);
+                    $('#PlaintePatient').val(value.plainte);
+                    $('#OldPlaintePatient').val(value.oldPlainte);
+                    IsBillCustomer = value.IsBillCustomer;
+
+                    //AcuiteVisuelLID
+                    $('#AVLName').val(value.AVLName);
+                    $('#AcuiteVisuelLID').val(value.AcuiteVisuelLID);
+
+                    //RAcuiteVisuelLID
+                    $('#RAVLName').val(value.RAVLName);
+                    $('#RAcuiteVisuelLID').val(value.RAcuiteVisuelLID);
+                    //RAVLTSID
+                    $('#RAVLTSName').val(value.RAVLTSName);
+                    $('#RAVLTSID').val(value.RAVLTSID);
+
+                    //LAcuiteVisuelLID
+                    $('#LAVLName').val(value.LAVLName);
+                    $('#LAcuiteVisuelLID').val(value.LAcuiteVisuelLID);
+                    //LAVLTSID
+                    $('#LAVLTSName').val(value.LAVLTSName);
+                    $('#LAVLTSID').val(value.LAVLTSID);
+
+                    //OldAcuiteVisuelLID
+                    $('#OldAVLName').val(value.OldAVLName);
+                    $('#OldAcuiteVisuelLID').val(value.OldAcuiteVisuelLID);
+
+                    //OldRAcuiteVisuelLID
+                    $('#OldRAVLName').val(value.OldRAVLName);
+                    $('#OldRAcuiteVisuelLID').val(value.OldRAcuiteVisuelLID);
+                    ////OldRAVLTSID
+                    //$('#OldRAVLTSName').val(value.OldRAVLTSName);
+                    //$('#OldRAVLTSID').val(value.OldRAVLTSID);
+
+                    //OldLAcuiteVisuelLID
+                    $('#OldLAVLName').val(value.OldLAVLName);
+                    $('#OldLAcuiteVisuelLID').val(value.OldLAcuiteVisuelLID);
+
+                    ////OldLAVLTSID
+                    //$('#OldLAVLTSName').val(value.OldLAVLTSName);
+                    //$('#OldLAVLTSID').val(value.OldLAVLTSID);
+
+
+                    $('#AVPName').val(value.AVPName);
+                    $('#AcuiteVisuelPID').val(value.AcuiteVisuelPID);
+                    $('#RAVPName').val(value.RAVPName);
+                    $('#RAcuiteVisuelPID').val(value.RAcuiteVisuelPID);
+
+                    $('#LAVPName').val(value.LAVPName);
+                    $('#LAcuiteVisuelPID').val(value.LAcuiteVisuelPID);
+
+                    $('#OldAVPName').val(value.OldAVPName);
+                    $('#OldAcuiteVisuelPID').val(value.OldAcuiteVisuelPID);
+
+                    $('#OldRAVPName').val(value.OldRAVPName);
+                    $('#OldRAcuiteVisuelPID').val(value.OldRAcuiteVisuelPID);
+
+                    $('#OldLAVPName').val(value.OldLAVPName);
+                    $('#OldLAcuiteVisuelPID').val(value.OldLAcuiteVisuelPID);
+
+                    $('#PrescriptionLStepID').val(value.PrescriptionLStepID);
+                    $('#ConsultOldPrescrID').val(value.ConsultOldPrescrID);
+                    $('#ConsultPersonalMedHistoID').val(value.ConsultPersonalMedHistoID);
+                    $('#ConsultDilPrescID').val(value.ConsultDilPrescID);
+                    $('#ConsultDilatationID').val(value.ConsultDilatationID);
+                    $('#ConsultLensPrescriptionID').val(value.ConsultLensPrescriptionID);
+
+                    $('#DateOfBirth').val(value.DateOfBirth);
+                    $('#CustomerAge').val(value.CustomerAge);
+                    
+
+                    $('#OldRESphere').val(value.OldRESphere);
+                    $('#OldRECylinder').val(value.OldRECylinder);
+                    $('#OldREAxis').val(value.OldREAxis);
+                    $('#OldREAddition').val(value.OldREAddition);
+                    $('#OldLESphere').val(value.OldLESphere);
+                    $('#OldLECylinder').val(value.OldLECylinder);
+                    $('#OldLEAxis').val(value.OldLEAxis);
+                    $('#OldLEAddition').val(value.OldLEAddition);
+                    $('#OldProductCat').val(value.OldProductCat);
+
+                    // Definition des valeurs par defaut pour les verres
+                    setPrescriptionDefaultValues();
+
+                    var OldProductCat = value.OldProductCat;
+                    SetOldProductCat(OldProductCat);
+                    $('#ATCDFamAutre').val('');
+                    $('#ATCDPersoAutre').val('');
+
+                    $('#CodeDilation').val('');
+
+                    $('#DateDernierConsultation').val(value.DateDernierConsultation);
+                    var divDateDernierConsultation = value.DateDernierConsultation;
+                    $('#OldDilatation').val(value.OldDilatation);
+                    $('#OldCollyre').val(value.OldCollyre);
+                    var OldCollyre = value.OldCollyre;
+
+                    $('#OldNomCollyre').val(value.OldNomCollyre);
+
+                    $.each(value.ModelCheckATCDFam, function (keyMenu, valueMenu) {
+                        $('input[id="' + valueMenu.CheckATCDFamName + '"][value="' + valueMenu.CheckATCDFamID + '"]').prop('checked', true);
+                        $('#ATCDFamAutre').val(valueMenu.CheckATCDFamValRmq);
+                    });
+
+                    $.each(value.ModelCheckATCDPerso, function (keyMenu, valueMenu) {
+                        $('input[id="' + valueMenu.CheckATCDPersoName + '"][value="' + valueMenu.CheckATCDPersoID + '"]').prop('checked', true);
+                        $('#ATCDPersoAutre').val(valueMenu.CheckATCDPersoValRmq);
+                    });
+
+                    if (divDateDernierConsultation == "" || divDateDernierConsultation == null)
+                    {
+                        EnableOldDilatation();
+                    }
+                    else {
+                        // DisabledOldDilatation();
+                    }
+
+                    DesactiveDillation();
+                    var ConsultDilatationID = $('#ConsultDilatationID').val();
+                    if (parseInt(ConsultDilatationID) > 0)
+                    {
+                        activeDillation();
+                        $('#DNo').prop('checked', false);
+                        $('#DYes').prop('checked', true);
+                    }
+                    else
+                    {
+                        DesactiveDillation();
+                        $('#DNo').prop('checked', true);
+                        $('#DYes').prop('checked', false);
+                    }
+
+
+
+                    var ConsultOldPrescrID = $('#ConsultOldPrescrID').val();
+                    if (parseInt(ConsultOldPrescrID) > 0) {
+                        // DisabledOldPresandPlainte();
+                    }
+                    else {
+                        EnableOldPresandPlainte();
+                    }
+
+                    if (parseInt(OldCollyre) == 0) {
+                        $('#OldNomCollyre').prop('disabled', true);
+                    }
+                    else {
+                        $('#OldNomCollyre').prop('disabled', false);
+                    }
+                    if (OldProductCat == "0" || OldProductCat == null) {
+                        EnableOldPrescription();
+                    }
+                    else {
+                       //  DisabledOldPrescription();
+                    }
+
+                    //console.log('Les Infos sur la prescription: ');
+                    //console.log('LensCategoryCode: ' + value.LensCategoryCode);
+                    //console.log('SupplyingName: ' + value.SupplyingName);
+                    //console.log('RESphere: ' + value.RESphere);
+                    //console.log('RECylinder: ' + value.RECylinder);
+                    //console.log('REAxis: ' + value.REAxis);
+                    //console.log('REAddition: ' + value.REAddition);
+                    //console.log('LESphere: ' + value.LESphere);
+                    //console.log('LEAxis: ' + value.LEAxis);
+                    //console.log('LEAddition: ' + value.LEAddition);
+
+
+                    $('#LensCategoryCode').val(value.LensCategoryCode);
+                    $('#SupplyingName').val(value.SupplyingName);
+
+                    $('#RESphere').val(value.RESphere);
+                    $('#RECylinder').val(value.RECylinder);
+                    $('#REAxis').val(value.REAxis);
+                    $('#REAddition').val(value.REAddition);
+                    $('#LESphere').val(value.LESphere);
+                    $('#LECylinder').val(value.LECylinder);
+                    $('#LEAxis').val(value.LEAxis);
+                    $('#LEAddition').val(value.LEAddition);
+
+
+                    var ConsultLensPrescriptionID = $('#ConsultLensPrescriptionID').val();
+                    if (parseInt(ConsultLensPrescriptionID) > 0)
+                    {
+                        activePrescriptionLens();
+                        $('#LNo').prop('checked', false);
+                        $('#LYes').prop('checked', true);
+                    }
+                    else
+                    {
+                        DesactivePrescriptionLens();
+                        $('#LNo').prop('checked', true);
+                        $('#LYes').prop('checked', false);
+                    }
+
+                    var LensCategoryCode = $('#LensCategoryCode').val();
+                    SetSupplyingName(LensCategoryCode);
+
+                    //last step
+                    $('#MedecinTraitant').val(value.Medecin);
+                    $('#Remarque').val(value.Remarque);
+                    $('#DateRdv').val(value.DateProchaineCunsultation);
+                    var Collyre = value.Collyre;
+                    if (parseInt(Collyre) > 0) {
+                        $('#PCNo').prop('checked', false);
+                        $('#PCYes').prop('checked', true);
+                        $('#NomCollyre').prop('disabled', false);
+                    }
+                    else {
+                        $('#PCNo').prop('checked', true);
+                        $('#PCYes').prop('checked', false);
+                        $('#NomCollyre').prop('disabled', true);
+                    }
+                    $('#NomCollyre').val(value.NomCollyre);
+
+                });
+            }, 'json');
+
+
+        }
+
+        function productitems() {
+            $('#LensCategoryCode').val('0');
+            $('#SupplyingName').val('');
+            InitRE();
+            InitLE();
+        }
+
+        function OldproductitemsansCat() {
+            $('#oldLenscarac *').prop('disabled', false);
+            OldInitRE();
+            OldInitLE();
+        }
+        function OldInitRE() {
+            //set values
+            $('#OldREAddition').val('');
+            $('#OldREAxis').val('');
+            $('#OldREIndex').val('');
+            $('#OldRECylinder').val('');
+            $('#OldRESphere').val('');
+        }
+        function OldInitLE() {
+            //set values
+            $('#OldLEAddition').val('');
+            $('#OldLEAxis').val('');
+            $('#OldLEIndex').val('');
+            $('#OldLECylinder').val('');
+            $('#OldLESphere').val('');
+        }
+
+        function productitemsansCat() {
+            InitRE();
+            InitLE();
+            $('#SupplyingName').val('');
+        }
+
+        function InitRE() {
+            //set values
+            $('#REAddition').val('');
+            $('#REAxis').val('');
+            $('#REIndex').val('');
+            $('#RECylinder').val('');
+            $('#RESphere').val('');
+        }
+        function ApplyLEToRE() {
+            //get values
+            var LEAddition = $('#LEAddition').val();
+            var LEAxis = $('#LEAxis').val();
+            var LEIndex = $('#LEIndex').val();
+            var LECylinder = $('#LECylinder').val();
+            var LESphere = $('#LESphere').val();
+
+            //set values
+            $('#REAddition').val(LEAddition);
+            $('#REAxis').val(LEAxis);
+            $('#REIndex').val(LEIndex);
+            $('#RECylinder').val(LECylinder);
+            $('#RESphere').val(LESphere);
+
+
+        }
+
+        function InitLE() {
+            //set values
+            $('#LEAddition').val('');
+            $('#LEAxis').val('');
+            $('#LEIndex').val('');
+            $('#LECylinder').val('');
+            $('#LESphere').val('');
+        }
+
+
+        function ApplyREToLE() {
+
+            //get values
+            var REAddition = $('#REAddition').val();
+            var REAxis = $('#REAxis').val();
+            var REIndex = $('#REIndex').val();
+            var RECylinder = $('#RECylinder').val();
+            var RESphere = $('#RESphere').val();
+
+            //set values
+            $('#LEAddition').val(REAddition);
+            $('#LEAxis').val(REAxis);
+            $('#LEIndex').val(REIndex);
+            $('#LECylinder').val(RECylinder);
+            $('#LESphere').val(RESphere);
+
+        }
+
+
+
+        $(document).on('ready', function () {
+            if ($('#DisplayForm').val().trim() == 0) {
+                $("#SaleValideForm").hide();
+            }
+            else {
+                $("#SaleValideForm").show();
+            }
+
+            var todaysDate = new Date();
+            $(function () {
+                $(".datepicker").datepicker({
+                    format: 'yyyy-mm-dd',
+                    showButtonPanel: true,
+                    minDate: todaysDate
+                });
+            });
+
+            $("#DateOfBirth").blur(function () {
+                var DateOfBirth = $('#DateOfBirth').val();
+                var dobyear = parseInt(DateOfBirth.substring(0, 4));
+                //alert(dobyear);
+                var CustomerAge = todaysDate.getFullYear() - dobyear;
+                $('#CustomerAge').val(CustomerAge);
+            });
+            //chargement des AVL
+            populateAVL();
+            populateAVP();
+
+            populateSpecificAVL('RAcuiteVisuelLID', 'RAVLName');
+            populateSpecificAVL('LAcuiteVisuelLID', 'LAVLName');
+
+            populateSpecificAVLTS('RAVLTSID', 'RAVLTSName')
+            populateSpecificAVLTS('LAVLTSID', 'LAVLTSName')
+
+            populateSpecificAVP('RAcuiteVisuelPID', 'RAVPName');
+            populateSpecificAVP('LAcuiteVisuelPID', 'LAVPName');
+
+            populateSpecificAVL('OldRAcuiteVisuelLID', 'OldRAVLName');
+            populateSpecificAVL('OldLAcuiteVisuelLID', 'OldLAVLName');
+
+            //populateSpecificAVLTS('OldRAVLTSID', 'OldRAVLTSName')
+            //populateSpecificAVLTS('OldLAVLTSID', 'OldLAVLTSName')
+
+            populateSpecificAVP('OldRAcuiteVisuelPID', 'OldRAVPName');
+            populateSpecificAVP('OldLAcuiteVisuelPID', 'OldLAVPName');
+
+
+            $('#OldCollyre').on('change', function () {
+                var OldCollyre = $('#OldCollyre').val();
+                if (parseInt(OldCollyre)==0)
+                {
+                    $('#OldNomCollyre').prop('disabled', true);
+                }
+                else
+                {
+                    $('#OldNomCollyre').prop('disabled', false);
+                }
+
+            });
+
+            DesactiveDillation();
+
+            $('#DYes').on('click', function () {
+                activeDillation();
+            });
+
+            $('#DNo').on('click', function () {
+                DesactiveDillation();
+                $('#CodeDilation').val('');
+            });
+
+            activePrescriptionLens();
+            $('#LYes').on('click', function () {
+                activePrescriptionLens();
+            });
+
+            $('#LNo').on('click', function () {
+                DesactivePrescriptionLens();
+            });
+
+            $('#NomCollyre').prop('disabled', true);
+            $('#PCYes').on('click', function () {
+                $('#NomCollyre').prop('disabled', false);
+            });
+
+            $('#PCNo').on('click', function () {
+                $('#NomCollyre').prop('disabled', true);
+                $('#NomCollyre').val('');
+            });
+            $('#RECylinder').on('keyup', function () {
+                var RCylinderVal = $('#RECylinder').val();
+                RActivateAxe(RCylinderVal)
+            });
+
+            $('#REAxis').on('keyup', function () {
+                var RCylinderVal = $('#RECylinder').val();
+                RActivateAxe(RCylinderVal)
+            });
+
+            $('#LECylinder').on('keyup', function () {
+                var LCylinderVal = $('#LECylinder').val();
+                LActivateAxe(LCylinderVal)
+            });
+
+            $('#LEAxis').on('keyup', function () {
+                var LCylinderVal = $('#LECylinder').val();
+                LActivateAxe(LCylinderVal)
+            });
+
+
+            //chargement des categories
+            GetAllLensCategories();
+
+            //$('#LensCategoryCode').change(function () {
+            //    productitemsansCat();
+            //});
+
+            $('#LensCategoryCode').change(function () {
+                productitemsansCat();
+                var LensCategoryCode = $('#LensCategoryCode').val();
+                SetSupplyingName(LensCategoryCode);
+            });
+            $('#OldProductCat').change(function () {
+                OldproductitemsansCat();
+                var OldProductCat = $('#OldProductCat').val();
+                SetOldProductCat(OldProductCat);
+            });
+
+
+            $('#btnApplyREToLE').on('click', function () {
+                ApplyREToLE();
+            });
+            $('#btnApplyLEToRE').on('click', function () {
+                ApplyLEToRE();
+            });
+
+            GetAllCommand(false);
+        });
+
+        function InitialiseHeader() {
+            //header
+            $("#PrescriptionLStepID").val('0');
+            $("#ConsultOldPrescrID").val('0');
+            $("#ConsultPersonalMedHistoID").val('0');
+            $("#ConsultDilPrescID").val('0');
+
+            $("#ConsultDilatationID").val('0');
+            $("#ConsultLensPrescriptionID").val('0');
+
+            $('#fielsetprescripActivate').val("false");
+            $('#fieldactivePrescriptionLens').val("false");
+            
+            $("#ConsultationID").val('0');
+            $('#CustomerName').val('');
+            $('#GlobalPersonID').val('0');
+            $('#Remarque').val('');
+            $('#MedecinTraitant').val('');
+            $('#CustomerNumber').val('0');
+            $('#DateOfBirth').val('');
+            $('#CustomerAge').val('0');
+
+            $('#AcuiteVisuelLID').val('0');
+            $('#AVLName').val('');
+
+            $('#RAcuiteVisuelLID').val('0');
+            $('#RAVLName').val('');
+
+            $('#RAVLTSID').val('0');
+            $('#RAVLTSName').val('');
+
+            $('#LAcuiteVisuelLID').val('0');
+            $('#LAVLName').val('');
+
+            $('#LAVLTSID').val('0');
+            $('#LAVLTSName').val('');
+
+            $('#AcuiteVisuelPID').val('0');
+            $('#AVPName').val('');
+
+            $('#RAcuiteVisuelPID').val('0');
+            $('#RAVPName').val('');
+
+            $('#LAcuiteVisuelPID').val('0');
+            $('#LAVPName').val('');
+
+            $('#OldAcuiteVisuelLID').val('0');
+            $('#OldAVLName').val('');
+
+            $('#OldRAcuiteVisuelLID').val('0');
+            $('#OldRAVLName').val('');
+
+            //$('#OldRAVLTSID').val('');
+            //$('#OldRAVLTSName').val('');
+
+            $('#OldLAcuiteVisuelLID').val('0');
+            $('#OldLAVLName').val('');
+
+            //$('#OldLAVLTSID').val('');
+            //$('#OldLAVLTSName').val('');
+
+            $('#OldAcuiteVisuelPID').val('0');
+            $('#OldAVPName').val('');
+
+            $('#DateRdv').val('');
+            $('#NomCollyre').val('');
+        }
+        function ClearForm() {
+            InitialiseHeader();
+
+            productitems();
+            GetAllCommand(true);
+        }
+
+    // Get the AVL List
+        function populateAVL() {
+            $('#AcuiteVisuelLID').val('0');
+            $("#AVLName").autocomplete({
+                minLength: 1, // set minimum of 1 characters before search executes.
+                delay: 100, // wait 0.1 second after keystroke before search executes.
+                source: function (request, response) {
+                    $.ajax({
+                        url: '@Url.Action("LoadAVLName", "Consultation")',
+                        type: "POST",
+                        dataType: "json",
+                        //cache: false,
+                        data: { filter: request.term },
+                        success: function (data) {
+                            response($.map(data, function (item) {
+                                return { label: item.Name, value: item.Name, id: item.ID };
+                            }))
+                        }
+                    })
+                },
+                messages: {
+                    noResults: "No results",
+                    results: function (count) {
+                        return count + (count == 0 ? ' result' : ' results');
+                    }
+                },
+                select: function (event, ui) {
+                    $("#AcuiteVisuelLID").val(ui.item.id);
+                }
+            });
+
+            $('#OldAcuiteVisuelLID').val('0');
+            $("#OldAVLName").autocomplete({
+                minLength: 1, // set minimum of 1 characters before search executes.
+                delay: 100, // wait 0.1 second after keystroke before search executes.
+                source: function (request, response) {
+                    $.ajax({
+                        url: '@Url.Action("LoadAVLName", "Consultation")',
+                        type: "POST",
+                        dataType: "json",
+                        //cache: false,
+                        data: { filter: request.term },
+                        success: function (data) {
+                            response($.map(data, function (item) {
+                                return { label: item.Name, value: item.Name, id: item.ID };
+                            }))
+                        }
+                    })
+                },
+                messages: {
+                    noResults: "No results",
+                    results: function (count) {
+                        return count + (count == 0 ? ' result' : ' results');
+                    }
+                },
+                select: function (event, ui) {
+                    $("#OldAcuiteVisuelLID").val(ui.item.id);
+                }
+            });
+        }
+
+    function populateSpecificAVL(AcuiteVisuelLID, AVLName) {
+        $("#" + AcuiteVisuelLID).val('');
+        $("#" + AVLName).autocomplete({
+            minLength: 1, // set minimum of 1 characters before search executes.
+            delay: 100, // wait 0.1 second after keystroke before search executes.
+            source: function (request, response) {
+                $.ajax({
+                    url: '@Url.Action("LoadAVLName", "Consultation")',
+                    type: "POST",
+                    dataType: "json",
+                    //cache: false,
+                    data: { filter: request.term },
+                    success: function (data) {
+                        response($.map(data, function (item) {
+                            return { label: item.Name, value: item.Name, id: item.ID };
+                        }))
+                    }
+                })
+            },
+            messages: {
+                noResults: "No results",
+                results: function (count) {
+                    return count + (count == 0 ? ' result' : ' results');
+                }
+            },
+            select: function (event, ui) {
+                $("#" + AcuiteVisuelLID).val(ui.item.id);
+            }
+        });
+    }
+
+    function populateSpecificAVLTS(AVLTSID, AVLTSName) {
+        $("#" + AVLTSID).val('');
+        $("#" + AVLTSName).autocomplete({
+            minLength: 1, // set minimum of 1 characters before search executes.
+            delay: 100, // wait 0.1 second after keystroke before search executes.
+            source: function (request, response) {
+                $.ajax({
+                    url: '@Url.Action("LoadAVLTSName", "Consultation")',
+                    type: "POST",
+                    dataType: "json",
+                    //cache: false,
+                    data: { filter: request.term },
+                    success: function (data) {
+                        response($.map(data, function (item) {
+                            return { label: item.Name, value: item.Name, id: item.ID };
+                        }))
+                    }
+                })
+            },
+            messages: {
+                noResults: "No results",
+                results: function (count) {
+                    return count + (count == 0 ? ' result' : ' results');
+                }
+            },
+            select: function (event, ui) {
+                $("#" + AVLTSID).val(ui.item.id);
+            }
+        });
+    }
+
+    function populateSpecificAVP(AcuiteVisuelPID, AVPName) {
+        $("#" + AcuiteVisuelPID).val('');
+        $("#" + AVPName).autocomplete({
+            minLength: 1, // set minimum of 1 characters before search executes.
+            delay: 100, // wait 0.1 second after keystroke before search executes.
+            source: function (request, response) {
+                $.ajax({
+                    url: '@Url.Action("LoadAVPName", "Consultation")',
+                    type: "POST",
+                    dataType: "json",
+                    //cache: false,
+                    data: { filter: request.term },
+                    success: function (data) {
+                        response($.map(data, function (item) {
+                            return { label: item.Name, value: item.Name, id: item.ID };
+                        }))
+                    }
+                })
+            },
+            messages: {
+                noResults: "No results",
+                results: function (count) {
+                    return count + (count == 0 ? ' result' : ' results');
+                }
+            },
+            select: function (event, ui) {
+                console.log('AVL Selected ', event, ui);
+                $("#" + AcuiteVisuelPID).val(ui.item.id);
+            }
+        });
+    }
+
+    // Get the AVL List
+    function populateAVP() {
+        $('#AcuiteVisuelPID').val('0');
+        $("#AVPName").autocomplete({
+            minLength: 1, // set minimum of 1 characters before search executes.
+            delay: 100, // wait 0.1 second after keystroke before search executes.
+            source: function (request, response) {
+                $.ajax({
+                    url: '@Url.Action("LoadAVPName", "Consultation")',
+                    type: "POST",
+                    dataType: "json",
+                    //cache: false,
+                    data: { filter: request.term },
+                    success: function (data) {
+                        response($.map(data, function (item) {
+                            return { label: item.Name, value: item.Name, id: item.ID };
+                        }))
+                    }
+                })
+            },
+            messages: {
+                noResults: "No results",
+                results: function (count) {
+                    return count + (count == 0 ? ' result' : ' results');
+                }
+            },
+            select: function (event, ui) {
+                console.log('AVL Selected ', event, ui);
+                $("#AcuiteVisuelPID").val(ui.item.id);
+            }
+        });
+
+        $('#OldAcuiteVisuelPID').val('0');
+        $("#OldAVPName").autocomplete({
+            minLength: 1, // set minimum of 1 characters before search executes.
+            delay: 100, // wait 0.1 second after keystroke before search executes.
+            source: function (request, response) {
+                $.ajax({
+                    url: '@Url.Action("LoadAVPName", "Consultation")',
+                    type: "POST",
+                    dataType: "json",
+                    //cache: false,
+                    data: { filter: request.term },
+                    success: function (data) {
+                        response($.map(data, function (item) {
+                            return { label: item.Name, value: item.Name, id: item.ID };
+                        }))
+                    }
+                })
+            },
+            messages: {
+                noResults: "No results",
+                results: function (count) {
+                    return count + (count == 0 ? ' result' : ' results');
+                }
+            },
+            select: function (event, ui) {
+                console.log('AVL Selected ', event, ui);
+                $("#OldAcuiteVisuelPID").val(ui.item.id);
+            }
+        });
+    }
+
+    function setPrescriptionDefaultValues() {
+        var OldProductCat = $('#OldProductCat').val();
+        console.log('OldProductCat ' + OldProductCat);
+        if (parseInt(OldProductCat) > 0)
+        {
+            console.log('OldRESphere ' + $('#OldRESphere').val().trim());
+            console.log('OldLESphere ' + $('#OldLESphere').val().trim());
+            console.log('OldLESphere ' + $('#OldLESphere').val().trim());
+            console.log('OldLECylinder ' + $('#OldLECylinder').val().trim());
+            if ($('#OldRESphere').val().trim() == '') {
+                $('#OldRESphere').val('0.00');
+            }
+
+            if ($('#OldRECylinder').val().trim() == '') {
+                // $('#OldRECylinder').val('0.00');
+            }
+
+            if ($('#OldLESphere').val().trim() == '') {
+                $('#OldLESphere').val('0.00');
+            }
+
+            if ($('#OldLECylinder').val().trim() == '') {
+                // $('#OldLECylinder').val('0.00');
+            }
+        }
+    }
+
+        function ValideStepTwo() {
+            var isAllValid = true;
+            var finalstatus = false;
+            var d = new Date();
+            var hourPayment = d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds();
+            $('#heureVente').val(hourPayment);
+
+            if ($('#heureVente').val().trim() == '') {
+                isAllValid = false;
+            }
+
+            //if selected lens cate
+            var OldProductCat = $('#OldProductCat').val();
+            if (parseInt(OldProductCat) > 0)
+            {
+                if ($('#OldRESphere').val().trim() == '') {
+                    isAllValid = false;
+                    $("#OldRESphere").addClass("invalid-data");
+                }
+                else {
+                    $("#OldRESphere").addClass("valid-data");
+                }
+                /*if ($('#OldRECylinder').val().trim() == '') {
+                    isAllValid = false;
+                    $("#OldRECylinder").addClass("invalid-data");
+                }
+                else {
+                    $("#OldRECylinder").addClass("valid-data");
+                }*/
+
+                if ($('#OldLESphere').val().trim() == '') {
+                    isAllValid = false;
+                    $("#OldLESphere").addClass("invalid-data");
+                }
+                else {
+                    $("#OldLESphere").addClass("valid-data");
+                }
+                /*if ($('#OldLECylinder').val().trim() == '') {
+                    isAllValid = false;
+                    $("#OldLECylinder").addClass("invalid-data");
+                }
+                else {
+                    $("#OldLECylinder").addClass("valid-data");
+                }*/
+            }
+            var OldCollyre = $('#OldCollyre').val();
+            if (parseInt(OldCollyre) == 1)
+            {
+                if ($('#OldNomCollyre').val().trim() == '') {
+                    isAllValid = false;
+                    $("#OldNomCollyre").addClass("invalid-data");
+                }
+                else {
+                    $("#OldNomCollyre").addClass("valid-data");
+                }
+            }
+
+            if ($('#CustomerNumber').val().trim() == '' || $('#CustomerNumber').val().trim() == '0') {
+                isAllValid = false;
+                $("#CustomerNumber").addClass("invalid-data");
+            }
+            else {
+                $("#CustomerNumber").addClass("valid-data");
+            }
+
+            if ($('#CustomerName').val() == '') {
+                isAllValid = false;
+                $("#CustomerName").addClass("invalid-data");
+            }
+            else {
+                $("#CustomerName").addClass("valid-data");
+            }
+
+            if ($('#DateOfBirth').val() == '' || $('#DateOfBirth').val() == '1900-01-01') {
+                isAllValid = false;
+                alert("Invalid Date of birth");
+                $("#DateOfBirth").addClass("invalid-data");
+            }
+            else {
+                $("#DateOfBirth").addClass("valid-data");
+            }
+
+            if ($('#PlaintePatient').val() == '') {
+                isAllValid = false;
+                $("#PlaintePatient").addClass("invalid-data");
+            }
+            else {
+                $("#PlaintePatient").addClass("valid-data");
+            }
+            /*
+            var AcuiteVisuelLID = $('#AcuiteVisuelLID').val();
+            if (AcuiteVisuelLID == '' || AcuiteVisuelLID == '0' || AcuiteVisuelLID == null) {
+                isAllValid = false;
+                $("#AVLName").addClass("invalid-data");
+            }
+            else {
+                $("#AVLName").addClass("valid-data");
+            }
+
+            var AcuiteVisuelPID = $('#AcuiteVisuelPID').val();
+            if (AcuiteVisuelPID == '' || AcuiteVisuelPID == '0' || AcuiteVisuelPID == null) {
+                isAllValid = false;
+                $("#AVPName").addClass("invalid-data");
+            }
+            else {
+                $("#AVPName").addClass("valid-data");
+            }*/
+            isAllValid = validateAV('RAcuiteVisuelLID', 'RAVLName');
+            isAllValid = validateAV('LAcuiteVisuelLID', 'LAVLName');
+
+            isAllValid = validateAV('RAVLTSID', 'RAVLTSName');
+            isAllValid = validateAV('LAVLTSID', 'LAVLTSName');
+
+            isAllValid = validateAV('RAcuiteVisuelPID', 'RAVPName');
+            isAllValid = validateAV('LAcuiteVisuelPID', 'LAVPName');
+
+            var ConsultOldPrescrID = $('#ConsultOldPrescrID').val();
+            if (/*parseInt(ConsultOldPrescrID) == 0*/ true == true)
+            {
+                if (isAllValid) {
+
+
+                    var data = {
+                        HeureConsOldPres: $('#heureVente').val().trim(),
+
+                        AcuiteVisuelPID: $('#AcuiteVisuelPID').val(),
+                        RAcuiteVisuelPID: $('#RAcuiteVisuelPID').val(),
+                        LAcuiteVisuelPID: $('#LAcuiteVisuelPID').val(),
+
+                        AcuiteVisuelLID: $('#AcuiteVisuelLID').val(),
+                        RAcuiteVisuelLID: $('#RAcuiteVisuelLID').val(),
+                        LAcuiteVisuelLID: $('#LAcuiteVisuelLID').val(),
+                        RAVLTSID: $('#RAVLTSID').val(),
+                        LAVLTSID: $('#LAVLTSID').val(),
+
+                        OldAcuiteVisuelPID: $('#OldAcuiteVisuelPID').val(),
+                        OldRAcuiteVisuelPID: $('#OldRAcuiteVisuelPID').val(),
+                        OldLAcuiteVisuelPID: $('#OldLAcuiteVisuelPID').val(),
+
+                        OldAcuiteVisuelLID: $('#OldAcuiteVisuelLID').val(),
+                        OldRAcuiteVisuelLID: $('#OldRAcuiteVisuelLID').val(),
+                        OldLAcuiteVisuelLID: $('#OldLAcuiteVisuelLID').val(),
+                        //OldRAVLTSID: $('#OldRAVLTSID').val(),
+                        //OldLAVLTSID: $('#OldLAVLTSID').val(),
+
+                        CategoryID: $('#OldProductCat').val(),
+                        //left
+                        LAxis: $('#OldLEAxis').val(),
+                        LAddition: $('#OldLEAddition').val(),
+                        LCylValue: $('#OldLECylinder').val(),
+                        LSphValue: $('#OldLESphere').val(),
+                        //right
+                        RAxis: $('#OldREAxis').val(),
+                        RAddition: $('#OldREAddition').val(),
+                        RCylValue: $('#OldRECylinder').val(),
+                        RSphValue: $('#OldRESphere').val(),
+
+                        DateDernierConsultation: $('#DateDernierConsultation').val(),
+                        DateOfBirth: $('#DateOfBirth').val(),
+
+                        IsOldDilatation: $('#OldDilatation').val(),
+                        IsOldCollyre: $('#OldCollyre').val(),
+                        NomCollyre: $('#OldNomCollyre').val().trim(),
+
+                        PlaintePatient: $('#PlaintePatient').val().trim(),
+                        OldPlaintePatient: $('#OldPlaintePatient').val().trim(),
+                        CustomerNumber: $('#GlobalPersonID').val(),
+
+                        ConsultationID: $('#ConsultationID').val(),
+                        ConsultOldPrescrID: $('#ConsultOldPrescrID').val()
+                    }
+                    console.log('Les donnees de step two a persister ', data);
+                    $(this).val('Please wait...');
+                    //post data to server
+                    $.ajax({
+                        url: '@Url.Action("ValideStepTwo", "Consultation")',
+                        type: "POST",
+                        data: JSON.stringify(data),
+                        dataType: "JSON",
+                        contentType: "application/json",
+                        success: function (d) {
+                            //check is successfully save to database
+                            if (d.status == true) {
+                                finalstatus = true;
+                                var ConsultOldPrescrID = d.ConsultOldPrescrID;
+                                $("#ConsultOldPrescrID").val(ConsultOldPrescrID);
+                                //form.steps("next");
+                            }
+                            else {
+                                alert(d.Message);
+                                finalstatus = false;
+                                form.steps("previous");
+                            }
+                        },
+                        error: function (response) {
+                            alert('Error. Please try again.');
+                            finalstatus = false;
+                            form.steps("previous");
+                        }
+                    });
+                }
+                else {
+                    finalstatus = false;
+                    form.steps("previous");
+                }
+            }
+            else {
+                finalstatus = true;
+            }
+            return finalstatus;
+        }
+
+
+    function validateAV(AcuiteVisuelPID, AVPName) {
+        /*var AcuiteVisuelPID = $('#AcuiteVisuelPID').val();
+        if (AcuiteVisuelPID == '' || AcuiteVisuelPID == '0' || AcuiteVisuelPID == null) {
+            isAllValid = false;
+            $("#AVPName").addClass("invalid-data");
+        }
+        else {
+            $("#AVPName").addClass("valid-data");
+        }*/
+        var isAllValid = false;
+        var AVID = $('#' + AcuiteVisuelPID).val();
+        if (AVID == '' || AVID == '0' || AVID == null) {
+            isAllValid = false;
+            $("#" + AVPName).addClass("invalid-data");
+        }
+        else {
+            isAllValid = true;
+            $("#" + AVPName).addClass("valid-data");
+        }
+
+        return isAllValid;
+    }
+
+    //this step is to check personal medical history of patient
+    function ValideStepThree()
+    {
+        var isAllValid = true;
+        var finalstatus = false;
+        var d = new Date();
+        var hourPayment = d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds();
+        $('#heureVente').val(hourPayment);
+
+        if ($('#heureVente').val().trim() == '') {
+            isAllValid = false;
+        }
+
+        if ($('#CustomerNumber').val().trim() == '' || $('#CustomerNumber').val().trim() == '0') {
+            isAllValid = false;
+            $("#CustomerNumber").addClass("invalid-data");
+        }
+        else {
+            $("#CustomerNumber").addClass("valid-data");
+        }
+
+        if ($('#CustomerName').val() == '') {
+            isAllValid = false;
+            $("#CustomerName").addClass("invalid-data");
+        }
+        else {
+            $("#CustomerName").addClass("valid-data");
+        }
+
+        var checkboxesATCDFam = document.querySelectorAll('input[type=checkbox][name=ATCDFam]:checked')
+
+        for (var i = 0; i < checkboxesATCDFam.length; i++) {
+            arrayATCDFam.push(checkboxesATCDFam[i].value)
+        }
+
+        var checkboxesATCDPerso = document.querySelectorAll('input[type=checkbox][name=ATCDPerso]:checked')
+
+        for (var i = 0; i < checkboxesATCDPerso.length; i++) {
+            arrayATCDPerso.push(checkboxesATCDPerso[i].value)
+        }
+
+        //var ConsultPersonalMedHistoID = $('#ConsultPersonalMedHistoID').val();
+        //if (parseInt(ConsultPersonalMedHistoID) == 0) {
+            if (isAllValid) {
+
+
+                var data = {
+                    HeureConsultPersonalMedHisto: $('#heureVente').val().trim(),
+
+                    ATCDPersoAutre: $('#ATCDPersoAutre').val(),
+                    ATCDFamAutre: $('#ATCDFamAutre').val(),
+                    defaultATCDPerso: arrayATCDPerso,
+                    defaultATCDFam: arrayATCDFam,
+                    CustomerNumber: $('#GlobalPersonID').val(),
+
+                    ConsultationID: $('#ConsultationID').val(),
+                    ConsultPersonalMedHistoID: $('#ConsultPersonalMedHistoID').val()
+
+                }
+                $(this).val('Please wait...');
+                //post data to server
+                $.ajax({
+                    url: '@Url.Action("ValideStepThree", "Consultation")',
+                    type: "POST",
+                    data: JSON.stringify(data),
+                    dataType: "JSON",
+                    contentType: "application/json",
+                    success: function (d) {
+                        //check is successfully save to database
+                        if (d.status == true) {
+                            finalstatus = true;
+                            var ConsultPersonalMedHistoID = d.ConsultPersonalMedHistoID;
+                            $("#ConsultPersonalMedHistoID").val(ConsultPersonalMedHistoID);
+                            //form.steps("next");
+                        }
+                        else {
+                            alert(d.Message);
+                            finalstatus = false;
+                            form.steps("previous");
+                        }
+                    },
+                    error: function (response) {
+                        alert('Error. Please try again.');
+                        finalstatus = false;
+                        form.steps("previous");
+                    }
+                });
+            }
+            else {
+                finalstatus = false;
+                form.steps("previous");
+            }
+        //}
+        //else {
+        //    finalstatus = true;
+        //}
+        return finalstatus;
+    }
+    //step to validate dilation and lens prescription
+    function ValideStepFour()
+    {
+        
+
+        var isAllValid = true;
+        var finalstatus = false;
+        var d = new Date();
+        var hourPayment = d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds();
+        $('#heureVente').val(hourPayment);
+
+        if ($('#heureVente').val().trim() == '') {
+            isAllValid = false;
+        }
+
+        if ($('#CustomerNumber').val().trim() == '' || $('#CustomerNumber').val().trim() == '0') {
+            isAllValid = false;
+            $("#CustomerNumber").addClass("invalid-data");
+        }
+        else {
+            $("#CustomerNumber").addClass("valid-data");
+        }
+
+        if ($('#CustomerName').val() == '') {
+            isAllValid = false;
+            $("#CustomerName").addClass("invalid-data");
+        }
+        else {
+            $("#CustomerName").addClass("valid-data");
+        }
+
+        var fielsetprescripActivate = $('#fielsetprescripActivate').val();
+        var fieldactivePrescriptionLens = $('#fieldactivePrescriptionLens').val();
+
+        if (fielsetprescripActivate == "true" && fieldactivePrescriptionLens == "true") {
+            //on verifi si le verre est choisi
+            var LensCategoryCode = $('#LensCategoryCode').val();
+            if (LensCategoryCode == "0" || LensCategoryCode == "" || LensCategoryCode==null) {
+                isAllValid = false;
+                $("#LensCategoryCode").addClass("invalid-data");
+                $("#ProductID").addClass("invalid-data");
+            }
+            else { //si le verre est choisi -> saisi seulement du verre
+                $("#LensCategoryCode").addClass("valid-data");
+
+                //on verrifi les caracterisque du verre
+                //verification de l'addition
+                var TypeLens = $('#TypeLens').val();
+
+                var RESphere = $('#RESphere').val();
+                if (RESphere == "" || RESphere == null)
+                {
+                    isAllValid = false;
+                    $("#RESphere").addClass("invalid-data");
+                }
+                else {
+                    $("#RESphere").addClass("valid-data");
+                }
+
+                var RECylinder = $('#RECylinder').val();
+                // D'apres la nomenclature des verres, 0.00, plan et plano pour Cyl n'est pas necessaire
+                /*if (RECylinder == "" || RECylinder == null) {
+                   isAllValid = false;
+                   $("#RECylinder").addClass("invalid-data");
+                }
+                else {
+                    $("#RECylinder").addClass("valid-data");
+                }*/
+                //var REAddition = $('#REAddition').val();
+
+                var LESphere = $('#LESphere').val();
+                if (LESphere == "" || LESphere == null) {
+                    isAllValid = false;
+                    $("#LESphere").addClass("invalid-data");
+                }
+                else {
+                    $("#LESphere").addClass("valid-data");
+                }
+                var LECylinder = $('#LECylinder').val();
+                /*if (LECylinder == "" || LECylinder == null) {
+                    isAllValid = false;
+                    $("#LECylinder").addClass("invalid-data");
+                }
+                else {
+                    $("#LECylinder").addClass("valid-data");
+                }*/
+
+                if (TypeLens != "SV") {
+
+                    if ((RESphere != null && RESphere.length >= 4) || (RECylinder != null && RECylinder.length >= 4)) {
+                        if ($('#REAddition').val().trim() == '') {
+                            isAllValid = false;
+                            $("#REAddition").addClass("invalid-data");
+                        }
+                        else {
+                            $("#REAddition").addClass("valid-data");
+                        }
+                    }
+
+                    if ((LESphere != null && LESphere.length >= 4) || (LECylinder != null && LECylinder.length >= 4)) {
+                        if ($('#LEAddition').val().trim() == '') {
+                            isAllValid = false;
+                            $("#LEAddition").addClass("invalid-data");
+                        }
+                        else {
+                            $("#LEAddition").addClass("valid-data");
+                        }
+                    }
+                }
+            }
+        }
+        var isAuthoriseSale = (IsBillCustomer == false) ? false : true;
+        if (isAllValid) {
+
+
+            var data = {
+                heureVente: $('#heureVente').val().trim(),
+
+                CustomerNumber: $('#GlobalPersonID').val(),
+
+                ConsultationID: $('#ConsultationID').val(),
+                ConsultDilPrescID: $('#ConsultDilPrescID').val(),
+
+                fielsetprescripActivate: $('#fielsetprescripActivate').val(),
+                fieldactivePrescriptionLens: $('#fieldactivePrescriptionLens').val(),
+                isDilation: $('input[name=Dilatation]:checked').val(),
+                CodeDilation: $('#CodeDilation').val(),
+                isAuthoriseSale:isAuthoriseSale,
+                //lens details
+                CategoryID: $.trim($('#LensCategoryCode').val()),
+                SupplyingName: $.trim($('#SupplyingName').val()),
+                LAddition: $.trim($('#LEAddition').val()),
+                LAxis: $.trim($('#LEAxis').val()),
+                LIndex: $.trim($('#LEIndex').val()),
+                LCylValue: $.trim($('#LECylinder').val()),
+                LSphValue: $.trim($('#LESphere').val()),
+
+                RAddition: $.trim($('#REAddition').val()),
+                RAxis: $.trim($('#REAxis').val()),
+                RIndex: $.trim($('#REIndex').val()),
+                RCylValue: $.trim($('#RECylinder').val()),
+                RSphValue: $.trim($('#RESphere').val())
+
+            }
+            $(this).val('Please wait...');
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("ValideStepFour", "Consultation")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        finalstatus = true;
+                        var ConsultDilPrescID = d.ConsultDilPrescID;
+                        $("#ConsultDilPrescID").val(ConsultDilPrescID);
+                    }
+                    else {
+                        alert(d.Message);
+                        finalstatus = false;
+                        form.steps("previous");
+                    }
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                    finalstatus = false;
+                    form.steps("previous");
+                }
+            });
+        }
+        else {
+            finalstatus = false;
+            form.steps("previous");
+        }
+
+        var isDilation = $('input[name=Dilatation]:checked').val();
+        var CodeDilation = $('#CodeDilation').val();
+
+        console.log("Dilatation payment Testing: ", isDilation, isDilation === true, (CodeDilation == undefined || CodeDilation == "" || CodeDilation == null),
+            isDilation === true && (CodeDilation == undefined || CodeDilation == "" || CodeDilation == null));
+
+            
+            // Ancienne Dilatation Prescrite qui n'est pas encore payer
+            /*if (isPendingDilatationToPay == true) {
+                form.steps("previous");
+                alert("There is a Pending Dilatation to Pay for this Patient; you can go to next step only after that payment");
+                return false;
+            }*/
+
+            // si ce nest pas un client assure Sil existe une dilatation non paye, on ne continue pas a letape suivante
+        if (IsBillCustomer == false && (isDilation == true || isDilation == "true") &&
+            (CodeDilation == undefined || CodeDilation == "" || CodeDilation.substring(0, 3) != "VPT" || CodeDilation == null)) {
+            form.steps("previous");
+            alert("You can go to Next Step only after the payment of dilatation by the patient");
+            return false;
+        } else {
+            return finalstatus;
+        }
+    }
+
+    var arrayATCDFam = [];
+        var arrayATCDPerso = [];
+        //validation d'une commande
+        function ValideCommande() {
+
+            var isAllValid = true;
+            var d = new Date();
+            var hourPayment = d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds();
+            $('#heureVente').val(hourPayment);
+
+            if ($('#heureVente').val().trim() == '') {
+                isAllValid = false;
+            }
+
+            //entete
+            if ($('#MedecinTraitant').val().trim() == '') {
+                isAllValid = false;
+                $("#MedecinTraitant").addClass("invalid-data");
+            }
+            else {
+                $("#MedecinTraitant").addClass("valid-data");
+            }
+            if ($('#CustomerNumber').val().trim() == '' || $('#CustomerNumber').val().trim() == '0') {
+                isAllValid = false;
+                $("#CustomerNumber").addClass("invalid-data");
+            }
+            else {
+                $("#CustomerNumber").addClass("valid-data");
+            }
+
+            if ($('#CustomerName').val() == '') {
+                isAllValid = false;
+                $("#CustomerName").addClass("invalid-data");
+            }
+            else {
+                $("#CustomerName").addClass("valid-data");
+            }
+
+
+
+            if ($('#Remarque').val() == '') {
+                isAllValid = false;
+                $("#Remarque").addClass("invalid-data");
+            }
+            else {
+                $("#Remarque").addClass("valid-data");
+            }
+
+            if ($('#DateRdv').val() == '' || $('#DateRdv').val() == '1900-01-01') {
+                isAllValid = false;
+                alert("Wrong Appointement Date");
+                $("#DateRdv").addClass("invalid-data");
+            }
+            else {
+                $("#DateRdv").addClass("valid-data");
+            }
+
+            var Collyre = $('input[name=PrescriptionCollyre]:checked').val();
+            if (Collyre=="true") {
+                if ($('#NomCollyre').val() == '') {
+                    isAllValid = false;
+                    $("#NomCollyre").addClass("invalid-data");
+                }
+                else {
+                    $("#NomCollyre").addClass("valid-data");
+                }
+            }
+
+            if (isAllValid) {
+
+
+                var data = {
+                    heureVente: $('#heureVente').val().trim(),
+                    Remarque: $('#Remarque').val().trim(),
+                    MedecinTraitant: $('#MedecinTraitant').val().trim(),
+                    CustomerID: $('#GlobalPersonID').val(),
+                    ConsultationID: $('#ConsultationID').val(),
+                    PrescriptionLStepID: $('#PrescriptionLStepID').val(),
+                    fieldactivePrescriptionLens: $('#fieldactivePrescriptionLens').val(),
+                    PrescriptionCollyre: $('input[name=PrescriptionCollyre]:checked').val(),
+                    CollyreName: $('#NomCollyre').val(),
+
+                    DateRdv: $('#DateRdv').val()
+
+                }
+                $(this).val('Please wait...');
+                //post data to server
+                $.ajax({
+                    url: '@Url.Action("AddPrescriptionLStep", "Consultation")',
+                    type: "POST",
+                    data: JSON.stringify(data),
+                    dataType: "JSON",
+                    contentType: "application/json",
+                    success: function (d) {
+                        //check is successfully save to database
+                        if (d.status == true) {
+                            //will send status from server side
+                            alert(d.Message);
+                            location.reload(true);
+                        }
+                        else {
+                            alert(d.Message);
+                        }
+                    },
+                    error: function (response) {
+                        alert('Error. Please try again.');
+                    }
+                });
+            }
+        }
+
+    /*
+    * cette methode verifie si la prescription de la lunette est valide
+    * Les champs peuvent tous etre null mais si un seul est renseigner, Les 4 composantes doivent etre renseignees
+    * le champ conducteur ici c'est la category(OldProductCat);
+    * dont s'il est renseigner, les autres proprietes doivent aussi avoir une valeur; il s'agit de:
+    *
+    */
+    function isOldLensPrescriptionValid() {
+        var OldProductCat = $('#OldProductCat').val();
+        if (parseInt(OldProductCat) > 0)
+        {
+            if ($('#OldRESphere').val().trim() == '') {
+                $("#OldRESphere").addClass("invalid-data");
+                alert('Please put valid value for Right Eye Sphere');
+
+                $("#OldRESphere").change(function () {
+                    if ($('#OldRESphere').val().trim() != '') {
+                        $("#OldRESphere").removeClass("invalid-data");
+                        $("#OldRESphere").addClass("valid-data");
+                    }
+                });
+
+                return false;
+            }
+
+            /*if ($('#OldRECylinder').val().trim() == '') {
+                $("#OldRECylinder").addClass("invalid-data");
+                alert('Please put valid value for Right Eye Cylinder');
+                $("#OldRECylinder").change(function () {
+                    if ($('#OldRECylinder').val().trim() != '') {
+                        $("#OldRECylinder").removeClass("invalid-data");
+                        $("#OldRECylinder").addClass("valid-data");
+                    }
+                });
+                return false;
+            }*/
+
+            if ($('#OldLESphere').val().trim() == '') {
+                $("#OldLESphere").addClass("invalid-data");
+                alert('Please put valid value for Left Eye Sphere');
+                $("#OldLESphere").change(function () {
+                    if ($('#OldLESphere').val().trim() != '') {
+                        $("#OldLESphere").removeClass("invalid-data");
+                        $("#OldLESphere").addClass("valid-data");
+                    }
+                });
+                return false;
+            }
+
+            /*if ($('#OldLECylinder').val().trim() == '') {
+                $("#OldLECylinder").addClass("invalid-data");
+                alert('Please put valid value for Left Eye Cylinder');
+                $("#OldLECylinder").change(function () {
+                    if ($('#OldLECylinder').val().trim() != '') {
+                        $("#OldLECylinder").removeClass("invalid-data");
+                        $("#OldLECylinder").addClass("valid-data");
+                    }
+                });
+                return false;
+            }*/
+
+            return true;
+
+
+        } else {
+            return true;
+        }
+    }
+
+    function isStepTwoFormValid() {
+        const val = isOldLensPrescriptionValid();
+
+        if (val == false) {
+            return false;
+        }
+
+        var OldCollyre = $('#OldCollyre').val();
+        if (parseInt(OldCollyre) == 1) {
+            if ($('#OldNomCollyre').val().trim() == '') {
+                $("#OldNomCollyre").addClass("invalid-data");
+                alert('Please enter a valid colyre name');
+
+                $("#OldNomCollyre").change(function () {
+                    if ($('#OldNomCollyre').val().trim() != '') {
+                        $("#OldNomCollyre").removeClass("invalid-data");
+                        $("#OldNomCollyre").addClass("valid-data");
+                    }
+                });
+
+                return false;
+            }
+        }
+
+        if ($('#CustomerNumber').val().trim() == '' || $('#CustomerNumber').val().trim() == '0') {
+            $("#CustomerNumber").addClass("invalid-data");
+            alert('Please enter a valid Customer Number');
+
+            $("#CustomerNumber").change(function () {
+                if ($('#CustomerNumber').val().trim() != '' || $('#CustomerNumber').val().trim() != '0') {
+                    $("#CustomerNumber").removeClass("invalid-data");
+                    $("#CustomerNumber").addClass("valid-data");
+                }
+            });
+
+            return false;
+        }
+
+
+        if ($('#CustomerName').val() == '') {
+            $("#CustomerName").addClass("invalid-data");
+            alert('Please enter a valid customer name');
+
+            $("#CustomerNumber").change(function () {
+                if ($('#CustomerName').val().trim() != '') {
+                    $("#CustomerName").removeClass("invalid-data");
+                    $("#CustomerName").addClass("valid-data");
+                }
+            });
+
+            return false;
+        }
+
+        if ($('#DateOfBirth').val() == '' || $('#DateOfBirth').val() == '1900-01-01') {
+            $("#DateOfBirth").addClass("invalid-data");
+            alert('Please enter a valid Date Of Birth');
+
+            $("#CustomerNumber").change(function () {
+                if ($('#DateOfBirth').val().trim() != '') {
+                    $("#DateOfBirth").removeClass("invalid-data");
+                    $("#DateOfBirth").addClass("valid-data");
+                }
+            });
+
+            return false;
+        }
+
+        if ($('#PlaintePatient').val() == '') {
+            $("#PlaintePatient").addClass("invalid-data");
+            alert('Please enter a valid Complain');
+
+            $("#PlaintePatient").change(function () {
+                if ($('#PlaintePatient').val().trim() != '') {
+                    $("#PlaintePatient").removeClass("invalid-data");
+                    $("#PlaintePatient").addClass("valid-data");
+                }
+            });
+
+            return false;
+        }
+
+        var isAllValid = validateAV('RAcuiteVisuelLID', 'RAVLName');
+        if (isAllValid == false) {
+            alert('Please enter a valid AVL');
+            return false;
+        }
+        isAllValid = validateAV('LAcuiteVisuelLID', 'LAVLName');
+        if (isAllValid == false) {
+            alert('Please enter a valid AVL');
+            return false;
+        }
+
+        isAllValid = validateAV('RAVLTSID', 'RAVLTSName');
+        if (isAllValid == false) {
+            alert('Please enter a valid AVL TS');
+            return false;
+        }
+
+        isAllValid = validateAV('LAVLTSID', 'LAVLTSName');
+        if (isAllValid == false) {
+            alert('Please enter a valid AVL TS');
+            return false;
+        }
+        isAllValid = validateAV('RAcuiteVisuelPID', 'RAVPName');
+        if (isAllValid == false) {
+            alert('Please enter a valid AVP');
+            return false;
+        }
+        isAllValid = validateAV('LAcuiteVisuelPID', 'LAVPName');
+        if (isAllValid == false) {
+            alert('Please enter a valid AVP');
+            return false;
+        }
+
+
+        /*
+        var AcuiteVisuelLID = $('#AcuiteVisuelLID').val();
+        if (AcuiteVisuelLID == '' || AcuiteVisuelLID == '0' || AcuiteVisuelLID == null) {
+            $("#AVLName").addClass("invalid-data");
+            alert('Please enter a valid AVL');
+            $("#AVLName").change(function () {
+                var AcuiteVisuelLID2 = $('#AcuiteVisuelLID').val();
+                if (AcuiteVisuelLID2 != '' && AcuiteVisuelLID2 != '0' && AcuiteVisuelLID2 != null) {
+                    $("#AVLName").removeClass("invalid-data");
+                    $("#AVLName").addClass("valid-data");
+                }
+            });
+            return false;
+        }
+
+        var AcuiteVisuelPID = $('#AcuiteVisuelPID').val();
+        if (AcuiteVisuelPID == '' || AcuiteVisuelPID == '0' || AcuiteVisuelPID == null) {
+            $("#AVPName").addClass("invalid-data");
+            alert('Please enter a valid AVP');
+            $("#AVPName").change(function () {
+                var AcuiteVisuelPID = $('#AcuiteVisuelPID').val();
+                if (AcuiteVisuelPID != '' && AcuiteVisuelPID != '0' && AcuiteVisuelPID != null) {
+                    $("#AVPName").removeClass("invalid-data");
+                    $("#AVPName").addClass("valid-data");
+                }
+            });
+            return false;
+        }*/
+    }
+
+</script>

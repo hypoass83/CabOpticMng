@@ -1,0 +1,275 @@
+
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+
+@model System.Collections.IEnumerable
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+
+@section content
+{
+    @(
+ X.Container()
+             .Layout(LayoutType.HBox)
+             .MarginSpec("0 0 10")
+             .Items(
+                X.FieldSet()
+                 .Flex(1)
+                 .Layout(LayoutType.Anchor)
+                 .Border(false)
+                 .DefaultAnchor("90%")
+                 .Items(
+                        X.FormPanel()
+                                .ID("AccountingSection")
+                                .Items(
+                                X.PanelTitle()
+                                .ID("PanelTitle")
+                                .Border(true)
+                                .Padding(2)
+                                .Content(
+                                    @<header>
+                                        <h6>@Resources.RequireField <code>(*)</code></h6>
+                                    </header>
+                                )
+                               )
+                                .Title(Resources.UIAccountingSectiontl)
+                                .Frame(true)
+                                .MarginSpec("0 20 20 20")
+                                .Width(350)
+                                .BodyPadding(10)
+                                .FieldDefaults(fd => { fd.LabelWidth = 120; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+                                .Buttons(
+                                    X.Button()
+                                        .ID("btnSave") 
+                                         .Text(Resources.SaveButton)
+                                        .Disabled(true)
+                                        .Icon(Icon.Disk)
+                                        .Margin(5)
+                                        .DirectEvents(de =>
+                                        {
+                                            de.Click.Url = Url.Action("AddAccountingSection", "CollectifAccount");
+                                            de.Click.Before = @"if (!#{AccountingSection}.getForm().isValid()) { return false; }";
+                                            de.Click.EventMask.ShowMask = true;
+                                            de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                                        }),
+
+                                    X.Button()
+                                        .Text(Resources.ResetButton)
+                                        .MarginSpec("0 20 10 10")
+                                        .Icon(Icon.ArrowRefresh)
+                                        .ID("btnReset")
+                                        .DirectEvents(
+                                            de =>
+                                            {
+                                                de.Click.Url = Url.Action("ResetAcctSectForm");
+                                                de.Click.EventMask.ShowMask = true;
+                                                de.Click.EventMask.Msg = FatSod.Ressources.Resources.EventMaskMsg;
+                                            }
+                                        )
+                                )
+                                .Listeners(
+                                    ls =>
+                                    {
+                                        ls.FieldChange.Handler = "if(App.AccountingSection.isValid()){App.btnSave.setDisabled(false);}else{App.btnSave.setDisabled(true);}";
+                                    }
+                                )
+                                .Items(
+                                    X.Container()
+                                        .Layout(LayoutType.HBox)
+                                        .MarginSpec("0 0 10")
+                                        .Items(
+                                            X.FieldSet()
+                                                .Flex(1)
+                                                .Title(Resources.UIAcctSectionId)
+                                                .Layout(LayoutType.Anchor)
+                                                .Height(160)
+                                                .DefaultAnchor("100%")
+                                                .Items(
+                                                    X.TextField().Name("AccountingSectionID").ID("AccountingSectionID").Hidden(true),
+
+                                                    X.TextField().FieldLabel(Resources.UIAccountingSectionCode)
+                                                    .Name("AccountingSectionCode")
+                                                    .MsgTarget(MessageTarget.Side)
+                                                    .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                                    .ID("AccountingSectionCode")
+                                                    .BlankText(Resources.UIAccountingSectionCode + " " + Resources.RequiredField)
+                                                    .AllowBlank(false).MaxLength(4)
+                                                    .EnforceMaxLength(true)
+                                                    ,
+                                                X.ComboBox().Name("ClassAccountID").FieldLabel(FatSod.Ressources.Resources.UIClassAccount)
+                                                            .Items(LoadComponent.ClassAccounts)
+                                                            .ValueField("ClassAccountID")
+                                                            .AllowBlank(false).ForceSelection(true)
+                                                            .ID("ClassAccountID")
+                                                            .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                                            .EmptyText(FatSod.Ressources.Resources.InputBlankTextMessage)
+                                                            .BlankText(Resources.UIClassAccount + " " + Resources.RequiredField)
+                                                            .AutoSelect(false)
+                                                            .DirectEvents(de =>
+                                                            {
+                                                                de.Select.Action = "LoadClassAccount";
+                                                                de.Select.ExtraParams.Add(new Parameter("ClassAccountID", "this.getValue()", ParameterMode.Raw));
+                                                            })
+                                                        ,
+                                                        X.FieldContainer().FieldLabel(Resources.UINumero)
+                                                            .Layout(LayoutType.HBox)
+                                                            .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                                            .ID("AccountingSectionNumber")
+                                                            .MsgTarget(MessageTarget.Side)                                                            
+                                                             .Items(
+                                                                X.TextField().Width(20).ID("ASClass").ReadOnly(true),
+                                                                X.NumberField().Width(60).ID("ASNumber")
+                                                                    .BlankText(Resources.UINumero + " " + Resources.RequiredField)
+                                                                    .AllowBlank(false).MaxLength(2)
+                                                                    .EnforceMaxLength(true)
+                                                             )
+                                                    ,
+                                                       
+                                                    X.TextField().FieldLabel(Resources.UINom)
+                                                                .Name("AccountingSectionLabel")
+                                                                .ID("AccountingSectionLabel")
+                                                                .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                                                .BlankText(Resources.UINom + " " + Resources.RequiredField)
+                                                                .AllowBlank(false)
+                                                ),
+
+                                           X.Component().Width(10)
+                                        )
+                                )
+                 )
+
+             ,
+        ////
+             X.FieldSet()
+              .Flex(1)
+              .Layout(LayoutType.Anchor)
+              .Border(false)
+              .DefaultAnchor("100%")
+              .Items(
+
+                    Html.X().GridPanel()
+                            .Title(Resources.UIAcctSectionList)
+                            //.ID("AccountingSectionList")
+                            .Layout(LayoutType.Fit)
+                            .MarginSpec("0 20 20 20")
+                            .Frame(true)
+                            .Collapsible(true)
+                            .AutoScroll(true)
+                            .Store(Html.X().Store()
+                                .ID("Store")
+                                .RemotePaging(true)
+                                .AutoLoad(true)
+                                .PageSize(10)
+                                .DataSource(Model)
+                                .Model(Html.X().Model()
+                                    .Fields(
+                                        //new ModelField() { Name = "ClassAccount", Type = ModelFieldType.Object },
+                                        //new ModelField() { Name = "ClassAccountNumber", Convert = { Fn = "prepareClassAccount" } },
+                                        new ModelField() { Name = "AccountingSectionID", Type = ModelFieldType.Int },
+                                        new ModelField() { Name = "AccountingSectionCode", Type = ModelFieldType.String },
+                                        new ModelField() { Name = "AccountingSectionNumber", Type = ModelFieldType.String },
+                                        new ModelField() { Name = "AccountingSectionLabel", Type = ModelFieldType.String },
+                                        new ModelField() { Name = "ClassAccountID", Type = ModelFieldType.Int },
+                                        new ModelField() { Name = "UIClassAccountNumber", Type = ModelFieldType.String }
+
+                                    )
+                                )
+                                .Sorters(
+                                    X.DataSorter()
+                                    .Property("AccountingSectionNumber")
+                                    .Direction(Ext.Net.SortDirection.ASC)
+                                )       
+                                .ServerProxy(
+                                    X.AjaxProxy()
+                                    .Url(Url.Action("GetListAccountingSection"))
+                                    .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                                    .Reader(X.JsonReader().RootProperty("data"))
+                                )
+                                                             
+                            )
+
+                            .ColumnModel(
+                                X.RowNumbererColumn(),
+                                X.Column()
+                                        .Text(Resources.UIClassAccount).DataIndex("UIClassAccountNumber")
+                                        //.DataIndex("ClassAccountID")
+                                        
+                                        .Flex(1)
+                                        ,
+                                X.Column()
+                                    .Text(Resources.UIAccountingSectionCode)
+                                    .DataIndex("AccountingSectionCode")
+                                    .Flex(1)
+                                                                        
+                                    ,
+                                X.Column()
+                                    .Text(Resources.UINumero)
+                                    .DataIndex("AccountingSectionNumber")
+                                    .Flex(1)
+                                    ,
+                                X.Column()
+                                        .Text(Resources.UINom)
+                                            .DataIndex("AccountingSectionLabel")
+                                        .Flex(1),
+                                X.ImageCommandColumn()
+                                            .Width(30)
+											.Hidden(LoadAction.IsMenuActionAble(MenuAction.DELETE, profile,CodeValue.Accounting.AccountingSection.CODE,db))
+                                            .Commands(
+                                                Html.X().ImageCommand()
+                                                    .CommandName("Delete")
+                                                    .IconCls("icon-delete")
+                                                    .ToolTip(tt =>
+                                                        {
+                                                            tt.Text = Resources.ConfirmDeleteMessage;
+                                                            tt.Title = "Supression";
+                                                        }
+                                                     )
+                                            )
+                                            .DirectEvents(de =>
+                                            {
+                                                de.Command.Action = "DeleteAccountingSection";
+                                                de.Command.Confirmation.ConfirmRequest = true;
+                                                de.Command.Confirmation.Message = Resources.ConfirmDeleteMessage;
+                                                de.Command.Confirmation.Title = Resources.ConfirmDeleteTitle;
+                                                de.Command.ExtraParams.Add(new Parameter("ID", "record.data.AccountingSectionID", ParameterMode.Raw));
+                                                de.Command.EventMask.ShowMask = true;
+                                                de.Command.EventMask.Msg = Resources.EventMaskMsg;
+                                            }),
+                                X.ImageCommandColumn()
+                                        .Width(30)
+										.Hidden(LoadAction.IsMenuActionAble(MenuAction.UPDATE, profile,CodeValue.Accounting.AccountingSection.CODE,db))
+                                        .Commands(
+                                        Html.X().ImageCommand()
+                                                .CommandName("Edit")
+                                                .IconCls("icon-edit")
+                                                .ToolTip(tt => tt.Text = "Modifier ?")
+                                        )
+
+                                        .DirectEvents(de =>
+                                        {
+                                            de.Command.Action = "ClickUpdateAccountingSection";
+                                            de.Command.ExtraParams.Add(new Parameter("ID", "record.data.AccountingSectionID", ParameterMode.Raw));
+                                            de.Command.EventMask.ShowMask = true;
+                                            de.Command.EventMask.Msg = Resources.EventMaskUpdate;
+                                        })
+                                )
+                            .Plugins(
+                            X.FilterHeader()
+                            )
+                            .BottomBar(
+                    X.PagingToolbar()
+            )
+                       )
+                 )
+    )
+}

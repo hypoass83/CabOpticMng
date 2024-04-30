@@ -1,0 +1,311 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+@using FatSod.Supply.Entities;
+@model System.Collections.IEnumerable
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    string labelSeparator = "  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :";
+    string cashRegisterCode = CodeValue.Accounting.DefaultCodeAccountingSection.CODECAIS;
+    string bank = CodeValue.Accounting.DefaultCodeAccountingSection.CODEBANK;
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+@section content
+{
+    @************************************************ BudgetExpense form informations ********************************@
+    @(
+ X.FormPanel()
+        .ID("Unknow")
+        .Items(
+             X.PanelTitle()
+              .ID("PanelTitl555e")
+              .Border(true)
+              .Padding(1)
+              .Content(
+                @<header>
+                    <h4>@Resources.E_BudgetExpense</h4>
+                </header>
+                )
+            )
+            .Frame(true)
+            .MarginSpec("-20 0 -10 0")
+            .BodyPadding(10)
+    )
+    @***********************  BudgetExpense form  ***************************@
+
+    @*************************************************** BudgetExpense list *************************************************************@
+    @(X.GridPanel()
+        .ID("BudgetExpenseList")
+        .Layout(LayoutType.Fit)
+        .MarginSpec("0 0 10 0")
+        .Margin(5)
+        .Frame(false)
+        .Collapsible(false)
+        .Store(X.Store()
+            .GroupField("Pending BudgetExpense list")
+            .ID("BudgetExpenseListStore")
+            .RemotePaging(true)
+            .AutoLoad(true)
+            .PageSize(5)
+            .Model(
+                X.Model()
+                    .IDProperty("BudgetExpenseModelID")
+                    .Fields(
+                            new ModelField("UIBudgetAllocated", ModelFieldType.String),
+                            new ModelField("DateOperation", ModelFieldType.Date),
+                            new ModelField("BudgetConsumptionID", ModelFieldType.Int),
+                            new ModelField("VoucherAmount", ModelFieldType.Float),
+                            new ModelField("Reference", ModelFieldType.String),
+                            new ModelField("BeneficiaryName", ModelFieldType.String),
+                            new ModelField("Justification", ModelFieldType.String)//,
+                            //new ModelField("PaymentMethodID", ModelFieldType.Int)
+                    )
+            )
+            .DataSource(Model)
+            .ServerProxy(
+                X.AjaxProxy()
+                .Url(Url.Action("GetAllAuthBudgetConsumtion", "BudgetExpense"))
+                .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                .Reader(X.JsonReader().RootProperty("data"))
+            )
+            .Sorters(
+                X.DataSorter()
+                .Property("UIBudgetAllocated")
+                .Direction(Ext.Net.SortDirection.ASC)
+            )
+        )
+
+        .ColumnModel(
+            X.RowNumbererColumn()
+            ,
+         X.ImageCommandColumn()
+            .Width(30)
+            .Hidden(LoadAction.IsMenuActionAble(MenuAction.UPDATE, profile, CodeValue.CashRegister.CODEBudgetExpense,db))
+            .Commands(
+            X.ImageCommand()
+                    .CommandName("Edit")
+                    .IconCls("icon-edit")
+            )
+            .Listeners(ls => ls.Command.Handler = "App.BudgetExpenseReglementForm.setDisabled(false);App.Pdf.setHidden(true);")
+            .DirectEvents(de =>
+            {
+                de.Command.Action = "InitializeCommandFields";
+                de.Command.Method = HttpMethod.POST;
+                de.Command.ExtraParams.Add(new Parameter("ID", "record.data.BudgetConsumptionID", ParameterMode.Raw));
+                de.Command.EventMask.ShowMask = true;
+                de.Command.EventMask.Msg = Resources.EventMaskUpdate;
+            })
+            ,
+            X.Column()
+                .Text(Resources.UIBudgetAllocated)
+                .DataIndex("UIBudgetAllocated")
+                .Flex(1)
+                ,
+                    X.DateColumn()
+                .Text(Resources.UIDateOperation)
+                .DataIndex("DateOperation")
+                .Flex(1),
+            X.Column()
+                .Text(Resources.Reference)
+                .DataIndex("Reference")
+                .Flex(1),
+            X.Column()
+                .Text(Resources.VoucherAmount)
+                .DataIndex("VoucherAmount")
+                .Flex(1)//,
+            //X.Column()
+            //    .Text(Resources.PaymentMethod)
+            //    .DataIndex("PaymentMethodID")
+            //    .Flex(1)
+            )
+            /*.Features(
+                X.GroupingSummary()
+                 .ID("GroupingSummary1")
+                )*/
+            .Plugins(
+                X.FilterHeader()
+            )
+                    .BottomBar(
+                            X.PagingToolbar()
+                    )
+    )
+    @***********************  BudgetExpense form  ***************************@
+    @(
+ X.FormPanel()
+        .ID("GlobalBudgetExpenseForm")
+        .MarginSpec("0 0 0 0")
+        .Padding(0)
+        .FieldDefaults(fd => { fd.LabelWidth = 110; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+        .Listeners(
+           ls =>
+           {
+               ls.FieldChange.Handler = "if(App.GlobalBudgetExpenseForm.isValid()){App.btnSave.setDisabled(false);}else{App.btnSave.setDisabled(true);}";
+           }
+        )
+        .Buttons(
+            X.Button()
+                .ID("btnSave")
+                .Text(Resources.SaveButton)
+                .Disabled(true)
+                .Icon(Icon.Disk)
+                .DirectEvents(de =>
+                {
+                    de.Click.Url = Url.Action("BudgetExpenseValidate", "BudgetExpense");
+                    de.Click.EventMask.ShowMask = true;
+                    de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                }),
+
+            X.Button()
+                .ID("btnReceipt")
+                .Text(Resources.PrintReceipt)
+                .Icon(Icon.Printer)
+                .Disabled(true)
+                .OnClientClick("App.Pdf.setHidden(false)")
+                .DirectEvents(de =>
+                {
+                    de.Click.Url = Url.Action("PrintBudgetExpenseReceipt", "BudgetExpense");
+                    de.Click.EventMask.ShowMask = true;
+                    de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                }),
+
+            X.Button()
+                .Text(Resources.ResetButton)
+                .MarginSpec("0 20 10 10")
+                .OnClientClick("this.up('form').reset();App.BudgetExpenseReglementForm.setDisabled(true);App.Pdf.setHidden(true)")
+        )
+        .Items(
+            X.FormPanel()
+                .ID("FormBudgetExpenseId")
+                .MarginSpec("0 0 0 0")
+                .Title(Resources.BudgetConsumTitle)
+                .Items(
+        //Top Fields, BudgetExpense information
+                     X.Container()
+                     .MarginSpec("0 0 0 0")
+                     //.Title(" ")
+                     .Layout(LayoutType.Column)
+                     .LayoutConfig(new ColumnLayoutConfig { DefaultValueMode = DefaultValueMode.RenderExplicit })
+                     .Items(
+                        X.TextField().Name("BudgetConsumptionID").ID("BudgetConsumptionID").Hidden(true),
+                        X.TextField().Name("BudgetAllocatedID").ID("BudgetAllocatedID").Hidden(true),
+
+                        X.TextField().Name("BudgetAllocatedName")
+                        .FieldLabel(Resources.UIBudgetAllocated)
+                        .ID("BudgetAllocatedName")
+                         .MarginSpec("5 0 10 0")
+                         .ReadOnly(true),
+                        X.DateField().FieldLabel(Resources.UIDateOperation)
+                        .AllowBlank(false).Name("DateOperation")
+                        .ID("DateOperation")
+                        .ReadOnly(true)
+                        .MarginSpec("5 0 10 0")
+                        .InputType(Ext.Net.InputType.DateTime)
+                        ,
+                        X.TextField().FieldLabel(Resources.Reference)
+                            .MarginSpec("5 0 10 0")
+                            .Name("Reference")
+                            .AllowBlank(false)
+                            .ID("Reference")
+                            .MinLength(2)
+                            .ReadOnly(true)
+                        ,
+                        X.TextField().FieldLabel(Resources.BeneficiaryName)
+                            .MarginSpec("5 0 10 0")
+                            .Name("BeneficiaryName")
+                            .AllowBlank(false)
+                            .ID("BeneficiaryName")
+                            .ReadOnly(true)
+                         ,
+                        X.TextArea().FieldLabel(Resources.Justification)
+                            .MarginSpec("5 0 10 0")
+                            .Name("Justification")
+                            .AllowBlank(false)
+                            .ID("Justification")
+                            .ReadOnly(true)                                                
+                       ,
+                        X.ComboBox().Name("BuyType").FieldLabel(Resources.PaymentMethod)
+                            .ID("BuyType")
+                            .ForceSelection(true)
+                            .MarginSpec("5 0 10 0")
+                            .LabelSeparator(labelSeparator)
+                            //.Hidden(true)
+                            .ForceSelection(true)
+                            .AutoSelect(false)
+                            .EmptyText(Resources.Select)
+                            .AllowBlank(false)
+                            .BlankText(Resources.RequiredField)
+                            .Items(LoadComponent.PaymentMethods)
+                                                                  
+                       ,
+                       X.TextField().FieldLabel(Resources.VoucherAmount)
+                            .MarginSpec("5 0 10 0")
+                            .Name("VoucherAmount")
+                            .AllowBlank(false)
+                            .ID("VoucherAmount")
+                            .ReadOnly(true)                                                
+                       )
+                     ,
+                    
+        //BudgetExpense reglement
+                     X.Container()
+                     .MarginSpec("0 0 0 0")
+                     //.Title(" ")
+                     .Layout(LayoutType.Column)
+                     .Disabled(true)
+                     .ID("BudgetExpenseReglementForm")
+                     .LayoutConfig(new ColumnLayoutConfig { DefaultValueMode = DefaultValueMode.RenderExplicit })
+                     .Items(
+                        X.TextField().ID("CashRegisterCode").Value(cashRegisterCode).Hidden(true),
+                        X.TextField().ID("bank").Value(bank).Hidden(true),
+                        X.ComboBox().Name("DeviseID")
+                                    .FieldLabel(Resources.UIDevise)
+                                    .EmptyText(Resources.Select)
+                                    .LabelSeparator(labelSeparator)
+                                    .MarginSpec("5 0 10 0")
+                                    .AllowBlank(false)
+                                    .ForceSelection(true)
+                                    .BlankText(Resources.RequiredField)
+                                    .ID("DeviseID")
+                                    .Value(1)
+                                    .Items(LoadComponent.GetDevise)
+                                    .AutoSelect(false)
+                                           
+                       )
+                       ,
+        //Panel for print
+                        X.Container()
+                        .ID("Pdf")
+                        //.Title(Resources.panelprintvalreceip)
+                        .Hidden(true)
+                        .Layout(LayoutType.HBox)
+                        .Flex(1)
+                        //.Collapsible(true)
+                        .Padding(20)
+                        .AutoScroll(false)
+                        .Hidden(true)
+                        .MinHeight(500)
+                        .Loader(
+                           X.ComponentLoader()
+                            .AutoLoad(false)
+                            .Mode(LoadMode.Frame)
+                            .LoadMask(lm =>
+                                {
+                                    lm.ShowMask = true;
+                                    lm.Msg = Resources.MsgGenerateState;
+                                    lm.UseMsg = true;
+
+                                })
+                            )
+                     )
+
+               )
+    )
+
+}

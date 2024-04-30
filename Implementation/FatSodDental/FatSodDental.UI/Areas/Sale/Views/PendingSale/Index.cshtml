@@ -1,0 +1,128 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+@model System.Collections.IEnumerable
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+
+}
+
+@section header
+{
+    <style>
+        .search-item {
+            font: normal 11px tahoma, arial, helvetica, sans-serif;
+            padding: 3px 10px 3px 10px;
+            border: 1px solid #fff;
+            border-bottom: 1px solid #eeeeee;
+            white-space: normal;
+            color: #555;
+        }
+
+            .search-item h3 {
+                display: block;
+                font: inherit;
+                font-weight: bold;
+                color: #222;
+                margin: 0px;
+            }
+
+        /*.search-item h3 span {
+                    float: right;
+                    font-weight: normal;
+                    margin: 0 0 5px 5px;
+                    width: 100px;
+                    display: block;
+                    clear: none;
+                }*/
+
+        p {
+            width: 650px;
+        }
+
+        .ext-ie .x-form-text {
+            position: static !important;
+        }
+    </style>
+}
+@section content
+{
+<h1>@FatSod.Ressources.Resources.PendingSale</h1>
+    @***********************  Sale form  ***************************@
+    
+    @*************************************************** Sales list *************************************************************@
+    @(X.GridPanel()
+            //.Title(Resources.SaleList)
+        .ID("CustomerOrderList")
+        .Layout(LayoutType.Fit)
+        .MarginSpec("0 0 0 0")
+        .Margin(5)
+        .Frame(false)
+        .Collapsible(false)
+        .Store(X.Store()
+            .GroupField(Resources.AllCmd)
+            .ID("CommandListStore")
+            .RemotePaging(true)
+            .AutoLoad(true)
+            .PageSize(10)
+            .DataSource(Model)
+            .Model(
+                X.Model()
+                    .IDProperty("CustomerOrderID")
+                    .Fields(
+                        new ModelField("CustomerOrderDate", ModelFieldType.Date),
+                        new ModelField("CustomerOrderID", ModelFieldType.Int),
+                        new ModelField("CustomerOrderTotalPrice", ModelFieldType.Int),
+                        new ModelField("CustomerOrderNumber", ModelFieldType.String),
+                        new ModelField("CustomerName", ModelFieldType.String)
+
+                    )
+            )
+            .ServerProxy(
+                X.AjaxProxy()
+                .Url(Url.Action("GetAllPendingSales", "PendingSale"))
+                .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                .Reader(X.JsonReader().RootProperty("data"))
+            )
+            .Sorters(
+                X.DataSorter()
+                .Property("CustomerName")
+                .Direction(Ext.Net.SortDirection.ASC)
+            )
+        )
+
+        .ColumnModel(
+            X.RowNumbererColumn()
+            ,
+            X.DateColumn()
+                .Text(Resources.UIDateOperation)
+                .DataIndex("CustomerOrderDate")
+                .Flex(1),
+
+            X.Column()
+                .Text(Resources.Customer)
+                .DataIndex("CustomerName")
+                .Flex(1),
+            X.Column()
+                .Text(Resources.Commandref)
+                .DataIndex("CustomerOrderNumber")
+                .Flex(1),
+
+            X.Column()
+                .Text(Resources.CustorderEstimation)
+                .DataIndex("CustomerOrderTotalPrice")
+                .Flex(1)
+            
+            )
+            .BottomBar(
+                        X.PagingToolbar()
+                )
+    )
+
+}

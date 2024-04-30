@@ -1,0 +1,391 @@
+﻿@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+
+@using FatSod.DataContext.Initializer;
+@using CABOPMANAGEMENT.Tools;
+
+@model IEnumerable<FatSod.Supply.Entities.Partner>
+
+@{
+    ViewBag.Title = @Resources.Partner;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var profile = (Session["UserProfile"] == null) ? 0 : (int)Session["UserProfile"];
+    var user = (Session["UserID"] == null) ? 0 : (int)Session["UserID"];
+
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+
+<div class="box box-primary box-body">
+    <!--<form id="FormAccountingSection">-->
+    @****************************@
+    @Html.AntiForgeryToken()
+
+    <h6>@Resources.RequireField<code>(*)</code>.</h6>
+    <hr>
+
+    <div class="box box-primary box-body">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="panel panel-default">
+                    <div class="panel-body1">
+                        <fieldset>
+                            <legend>@Resources.PartnerAddTitle</legend>
+                            <input type="hidden" id="PartnerId" name="PartnerId" />
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="row ipt">
+                                        <!-- PartnerCode -->
+                                        <div class="col-sm-12">@Resources.PartnerCode<code>(*)</code></div>
+                                        <div class="col-sm-12">
+                                            <input type="text" id="PartnerCode" name="PartnerCode" class="input-sm form-control" />
+                                        </div>
+                                    </div>
+                                    <div class="row ipt">
+                                        <!-- Date Operation -->
+                                        <div class="col-sm-12">@Resources.FullName<code>(*)</code></div>
+                                        <div class="col-sm-12">
+                                            <input type="text" id="FullName" name="FullName" class="input-sm form-control" />
+                                        </div>
+                                    </div>
+                                    <div class="row ipt">
+                                        <!-- Date Operation -->
+                                        <div class="col-sm-12">@Resources.PhoneNumber<code>(*)</code></div>
+                                        <div class="col-sm-12">
+                                            <input type="text" id="PhoneNumber" name="PhoneNumber" class="input-sm form-control" />
+                                        </div>
+                                    </div>
+                                    <div class="row ipt">
+                                        <!-- Date Operation -->
+                                        <div class="col-sm-12">@Resources.Email<code>(*)</code></div>
+                                        <div class="col-sm-12">
+                                            <input type="text" id="Email" name="Email" class="input-sm form-control" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="row ipt">
+                                        <!-- Date Operation -->
+                                        <div class="col-sm-12">@Resources.Function<code>(*)</code></div>
+                                        <div class="col-sm-12">
+                                            <input type="text" id="Function" name="Function" class="input-sm form-control" />
+                                        </div>
+                                    </div>
+                                    <div class="row ipt">
+                                        <!-- Date Operation -->
+                                        <div class="col-sm-12">@Resources.Company<code>(*)</code></div>
+                                        <div class="col-sm-12">
+                                            <input type="text" id="Company" name="Company" class="input-sm form-control" />
+                                        </div>
+                                    </div>
+                                    <div class="row ipt">
+                                        <!-- Justification -->
+                                        <div class="col-sm-12">@Resources.ProductsAndServices<code>(*)</code></div>
+                                        <div class="col-sm-12">
+                                            @*<input type="text" id="ProductsAndServices" class="input-sm form-control" />*@
+                                            <textarea style="width: 291px; height: 90px;" class="form-control input-sm" name="ProductsAndServices" id="ProductsAndServices"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <div class="row ipt" style="margin-top: 100px; margin-left:100px;">
+            <div class="col-sm-4">
+                <button type="button" id="btnCancel" class="btn btn-primary">@Resources.ResetButton</button>
+            </div>
+            <div class="col-sm-8">
+                <button type="submit" class="btn btn-primary" id="btnSubmit">@Resources.SaveButton</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Ajout de la table contenant les data deja enregistrees-->
+<h2>@Resources.Partners</h2>
+<div class="box box-body box-primary">
+
+    <table class="table" id="mainTable">
+        <thead>
+            <tr class="dataTableHead">
+                <th>
+                    @Resources.Code
+                </th>
+                <th>
+                    @Resources.Label
+                </th>
+                <th>
+                    @Resources.Description
+                </th>
+                <th>
+                    @Resources.Description
+                </th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.PartnerCode)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.FullName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.PhoneNumber)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ProductsAndServices)
+                </td>
+                <td>
+                    @if (!LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, @profile, "Partner", db))
+                    {<a href=# onclick="UpdateItem(@item.PartnerId)"><span class="glyphicon glyphicon-edit"></span></a>} |
+                    @if (!LoadAction.IsSubMenuActionAble(MenuAction.DELETE, @profile, "Partner", db))
+                    {<a href=# onclick="DeleteItem(@item.PartnerId)"><span class="glyphicon glyphicon-trash"></span></a>}
+                </td>
+            </tr>
+        }
+
+    </table>
+</div>
+
+
+<!--********** JavaScripts **********-->
+<script>
+
+    function UpdateItem(globalID) {
+        clearForm();
+        $.get('@Url.Action("Details", "Partner")', { ID: globalID }, function (data) {
+            $.each(data, function (key, value) {
+
+                console.log(value);
+                $('#PartnerId').val(value.PartnerId);
+                $('#PartnerCode').val(value.PartnerCode);
+                $('#FullName').val(value.FullName);
+                $('#PhoneNumber').val(value.PhoneNumber);
+                $('#Email').val(value.Email);
+                $('#Function').val(value.Function);
+                $('#Company').val(value.Company);
+                $('#ProductsAndServices').val(value.ProductsAndServices);
+            });
+        }, 'json');
+    }
+    function clearForm() {
+        $('#PartnerId').val('');
+        $('#FullName').val('');
+        $('#PhoneNumber').val('');
+        $('#Email').val();
+        $('#Function').val('');
+        $('#Company').val('');
+        $('#ProductsAndServices').val();
+    }
+
+    function ValidePartner()
+    {
+        var isAllValid = true;
+
+
+        if ($('#PartnerCode').val() == '') {
+            isAllValid = false;
+            $("#PartnerCode").addClass("invalid-data");
+        }
+        else {
+            $("#PartnerCode").addClass("valid-data");
+        }
+
+        if ($('#FullName').val().trim() == '') {
+            isAllValid = false;
+            $("#FullName").addClass("invalid-data");
+        }
+        else {
+            $("#FullName").addClass("valid-data");
+        }
+
+        if ($('#PhoneNumber').val().trim() == '') {
+            isAllValid = false;
+            $("#PhoneNumber").addClass("invalid-data");
+        }
+        else {
+            $("#PhoneNumber").addClass("valid-data");
+        }
+
+        if ($('#Function').val().trim() == '') {
+            isAllValid = false;
+            $("#Function").addClass("invalid-data");
+        }
+        else {
+            $("#Function").addClass("valid-data");
+        }
+
+        if ($('#ProductsAndServices').val().trim() == '') {
+            isAllValid = false;
+            $("#ProductsAndServices").addClass("invalid-data");
+        }
+        else {
+            $("#ProductsAndServices").addClass("valid-data");
+        }
+
+
+        if (isAllValid) {
+
+
+            var data = {
+
+                PartnerId: $('#PartnerId').val(),
+                FullName: $('#FullName').val().trim(),
+                PartnerCode: $('#PartnerCode').val().trim(),
+                PhoneNumber: $('#PhoneNumber').val(),
+                Email: $('#Email').val(),
+                Function: $('#Function').val().trim(),
+                Company: $('#Company').val(),
+                ProductsAndServices: $('#ProductsAndServices').val().trim(),
+            }
+            console.log(data);
+            $(this).val('Please wait...');
+
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("AddManager", "Partner")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        location.reload(true);
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                }
+            });
+        }
+    }
+
+    $(document).on('ready', function () {
+
+        $('#btnCancel').on('click', function () {
+            clearForm();
+        });
+
+
+        $('#mainTable').DataTable();
+
+        $('#btnSubmit').on('click', function () {
+            ValidePartner();
+        });
+    });
+    //supression commande en attente
+    function DeleteItem(PartnerId) {
+        if (confirm("Do you want to Delete ?")) {
+            //post to the server
+            $(this).val('Please wait...');
+            var data = {
+                PartnerId: parseInt(PartnerId)
+            }
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("Delete", "Partner")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        location.reload(true);
+                        //ClearForm();
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                }
+            });
+        }
+
+    }
+</script>
+
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 3px;
+        margin-left: 1px;
+    }
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin: 0;
+        min-width: 0;
+        padding: 10px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 300px;
+    }
+
+    .panel-body1 {
+        height: 140px;
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+</style>
+

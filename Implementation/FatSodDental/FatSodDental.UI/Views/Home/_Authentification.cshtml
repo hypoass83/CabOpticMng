@@ -1,0 +1,110 @@
+﻿@using FatSod.Ressources;
+@{
+    var X = Html.X();
+}
+
+
+@* Fenêtre de connexion *@
+@(
+    X.Window()
+        .ID("WindowLogin")
+        .Title(Resources.LoginForm)
+        .TitleAlign(TitleAlign.Left)
+        .Resizable(false)
+        .Closable(true)
+        .Height(210)
+        .Width(280)
+        .DefaultButton("Bt_Login")
+        .Icon(Icon.Lock)
+        .Draggable(true)
+        .Hidden(false)
+        .Layout(LayoutType.Fit)
+        .AutoRender(false)
+        .Modal(true)
+        .Listeners(l =>
+        {
+            l.Close.Handler = "#{Form}.reset();";
+        })
+        .Items(
+            X.Panel()
+                .Border(false)
+                .BodyPadding(5)
+                .Layout(LayoutType.Table)
+                .LayoutConfig(new TableLayoutConfig() { Columns = 2 })
+                .BodyStyle("background-color:transparent;")
+                .Items(
+
+                    X.Panel()
+                        .Border(false)
+                        .Layout(LayoutType.VBox)
+                        .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center, Pack = BoxPack.Center })
+                        .BodyStyle("background-color:transparent;")
+                        .Height(120)
+                        .Width(115)
+                        .Items(
+                            X.Image()
+                                .Height(110)
+                                .Width(110)
+                                .ImageUrl("~/Content/Images/png/Mr_Suit.png")
+                        ),
+
+                    X.FormPanel().ID("Form")
+                        .Border(false)
+                        .Width(140)
+                        .BodyStyle("background-color:transparent;")
+                        .Layout(LayoutType.VBox)
+                        .Defaults(X.Parameter().Name("margins").Value("0 5 0 0").Mode(ParameterMode.Value))
+                        .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Center, Pack = BoxPack.Center })
+                        .Defaults(d =>
+                        {
+                            d.Add(new Parameter("anchor", "100%", ParameterMode.Value));
+                            d.Add(new Parameter("blankText", Resources.RequiredField, ParameterMode.Value));
+                            d.Add(new Parameter("allowBlank", "false", ParameterMode.Raw));
+                            d.Add(new Parameter("msgTarget", "side", ParameterMode.Value));
+                        })
+                        .Items(
+                            //X.Label("").Height(10),
+
+                            X.TextField()
+                                .Name("compte")
+                                .ID("Code")
+                                .EmptyText("...")
+                                .Width(130)
+                                .LabelAlign(LabelAlign.Top)
+                                .StandardVtype(ValidationType.AlphaNum)
+                                .FieldLabel(@"<b> " +Resources.username + "</b>"),
+                            X.TextField()
+                                .ID("Password")
+                                .Name("motdedasse")
+                                .EmptyText("...")
+                                .Width(130)
+                                .LabelAlign(LabelAlign.Top)
+                                .StandardVtype(ValidationType.AlphaNum)
+                                .FieldLabel(@"<b> " + Resources.password + "</b>")
+                                .InputType(Ext.Net.InputType.Password)
+                            )
+                    )
+            )
+            .BottomBarItem(
+                X.ToolbarFill(),
+                X.Button()
+                    .Text(Resources.Cancel)
+                    .Icon(Icon.Cancel)
+                    .Handler("#{Form}.getForm().reset()"),
+                X.ToolbarSeparator(),
+                X.Button()
+                    .Text(Resources.Connect)
+                    .Icon(Icon.Accept)
+                    .ID("Bt_Login")
+                    .DirectEvents(de =>
+                    {
+                        de.Click.FormID = "Form";
+                        de.Click.Url = Url.Action("Authentification", "Session");
+                        de.Click.ExtraParams.Add(new Parameter("login", "#{Code}.getValue()", ParameterMode.Raw));
+                        de.Click.ExtraParams.Add(new Parameter("password", "#{Password}.getValue()", ParameterMode.Raw));
+                        de.Click.Before = @"if (!#{Form}.getForm().isValid()) { return false; }";
+                        de.Click.EventMask.ShowMask = true;
+                        de.Click.EventMask.Msg = Resources.Loading + "...";
+                    })
+            )
+)

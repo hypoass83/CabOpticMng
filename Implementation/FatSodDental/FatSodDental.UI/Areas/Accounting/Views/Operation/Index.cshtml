@@ -1,0 +1,276 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Supply.Entities;
+@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+
+@model System.Collections.IEnumerable
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    var X = Html.X();
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+   
+}
+
+@section content
+{
+   
+    @(
+
+        //Début du FormPanel
+            X.FormPanel()
+        //paramétrages du formpanel
+                .ID("Operation")
+                .Items(
+                X.PanelTitle()
+                .ID("PanelTitle")
+                .Border(true)
+                .Padding(2)
+                .Content(
+                    @<header>
+                        <h6>@Resources.RequireField <code>(*)</code></h6>
+                    </header>
+                )
+               )
+                .Collapsible(true)
+                .Title(FatSod.Ressources.Resources.OperationAddTitle)
+                .Frame(true)
+                .MarginSpec("0 20 20 20")
+                .BodyPadding(10)
+                .FieldDefaults(fd => { fd.LabelWidth = 120; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+        //buttons enregistrer et Réinitialiser
+                .Buttons(
+        //buttons enregistrer
+                    X.Button()
+                        .ID("btnSave")
+                        .Text(FatSod.Ressources.Resources.SaveButton)
+                        .Disabled(true)
+                        .Icon(Icon.Disk)
+                        .Margin(10)
+                            .DirectEvents(
+                                de =>
+                                {
+                                    de.Click.Url = Url.Action("AddOperation", "Operation");
+                                    de.Click.EventMask.ShowMask = true;
+                                    de.Click.EventMask.Msg = FatSod.Ressources.Resources.EventMaskMsg;
+                                }
+                            ),
+        //buttons Réinitialiser
+                            X.Button()
+                            .Text(FatSod.Ressources.Resources.ResetButton)
+                            .MarginSpec("0 10 10 10")
+                            .OnClientClick("this.up('form').reset();")
+                        
+                    )
+        //listeners du formpanel
+                    .Listeners(
+                        ls =>
+                        {
+                            ls.FieldChange.Handler = "if(App.Operation.isValid()){App.btnSave.setDisabled(false);}else{App.btnSave.setDisabled(true);}";
+                        }
+                     )
+        //les champs de saisie du formulaire
+                     .Items(
+        //identifiant
+                        X.TextField()
+                            .Name("OperationID")
+                            .ID("OperationID")
+                            .Hidden(true),
+        //code
+                        X.TextField()
+                            .ID("OperationCode")
+                            .Name("OperationCode")
+                            .FieldLabel(FatSod.Ressources.Resources.Code)
+                               // .Value("OperationCode")//valeur par défaut de la zone de saisie
+                            .MsgTarget(MessageTarget.Side)//le lieu d'affichage du message d'erreur lié à un défaut de validation
+                            .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                            .EmptyText(FatSod.Ressources.Resources.InputBlankTextMessage)//message qui sera afficher si le champ reste vide
+                            .AllowBlank(false)//dit si oui ou non le champ peut etre vide
+                            .MinLength(4)
+                            .MaxLength(30)
+                            .EnforceMaxLength(true)
+                            .Width(310),
+                            
+                            //combo
+                            X.ComboBox().Name("OperationTypeID").FieldLabel(FatSod.Ressources.Resources.UIOperation)
+                            .Items(LoadComponent.OperationType)
+                            .ValueField("OperationTypeID")
+                            .AllowBlank(false).ForceSelection(true)
+                            .ID("OperationTypeID")
+                            .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                            .EmptyText(FatSod.Ressources.Resources.InputBlankTextMessage)
+                            .Width(400)
+                            ,
+                            //combo MacroOperationID
+                            X.ComboBox().Name("MacroOperationID").FieldLabel(FatSod.Ressources.Resources.UIMacroOperationID)
+                            .Items(LoadComponent.MacroOperation)
+                            .ValueField("MacroOperationID")
+                            .AllowBlank(false).ForceSelection(true)
+                            .ID("MacroOperationID")
+                            .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                            .EmptyText(Resources.InputBlankTextMessage)
+                            .Width(400)
+                            ,
+                            //combo ReglementTypeID
+                            X.ComboBox().Name("ReglementTypeID").FieldLabel(FatSod.Ressources.Resources.UIReglementTypeID)
+                            .Items(LoadComponent.ReglementType)
+                            .ValueField("ReglementTypeID")
+                            .AllowBlank(false).ForceSelection(true)
+                            .ID("ReglementTypeID")
+                            .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                            .EmptyText(FatSod.Ressources.Resources.InputBlankTextMessage)
+                            .Width(400)
+                            ,                            
+        //label
+                        X.TextField()
+                            .ID("OperationLabel")
+                            .Name("OperationLabel")
+                            .FieldLabel(FatSod.Ressources.Resources.Label)
+                              //  .Value("OperationLabel")//valeur par défaut de la zone de saisie
+                            .MsgTarget(MessageTarget.Side)//le lieu d'affichage du message d'erreur lié à un défaut de validation
+                            .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :") //séparateur entre le texte du label et la zone de saisie
+                            .EmptyText(FatSod.Ressources.Resources.InputBlankTextMessage)//message qui sera afficher si le champ reste vide
+                            .Width(400)
+                            .AllowBlank(false),//dit si oui ou non le champ peut etre vide
+                            
+        //description
+                        X.TextArea()
+                            .ID("OperationDescription")
+                            .Name("OperationDescription")
+                            .FieldLabel(FatSod.Ressources.Resources.Description)
+                             //   .Value("OperationDescription")//valeur par défaut de la zone de saisie
+                            .Width(400)
+                            .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"></span> :")//séparateur entre le texte du label et la zone de saisie
+                        )
+                        @*Fin du FormPanel*@
+    )
+    @*fin de la partie formulaire*@
+    @*Début du tableau*@
+    @(Html.X().GridPanel()
+        .Title(FatSod.Ressources.Resources.OperationList)
+        //.ID("OperationList")
+        .Layout(LayoutType.Fit)
+        .MarginSpec("0 20 20 20")
+        .Frame(true)
+        .Collapsible(true)
+        .AutoScroll(true)
+        .Store(
+            Html.X().Store()
+                .ID("Store")
+                .RemotePaging(true)
+                .AutoLoad(true)
+                .PageSize(10)
+                .ServerProxy(
+                    X.AjaxProxy()
+                    .Url(Url.Action("GetList"))
+                    .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                    .Reader(X.JsonReader().RootProperty("data"))
+                    )
+                .Sorters(
+                        X.DataSorter()
+                        .Property("OperationCode")
+                        .Direction(Ext.Net.SortDirection.ASC)
+                    )                    
+                .Model(Html.X().Model()
+                    .Fields(
+                        new ModelField() { Name = "OperationID", Type = ModelFieldType.Int },
+                        new ModelField() { Name = "OperationCode", Type = ModelFieldType.String },
+                        new ModelField() { Name = "OperationLabel", Type = ModelFieldType.String },
+                        new ModelField() { Name = "UIoperationTypeCode", Type = ModelFieldType.String },
+                        new ModelField() { Name = "UIMacroOperationCode", Type = ModelFieldType.String },
+                        new ModelField() { Name = "UIReglementTypeCode", Type = ModelFieldType.String },
+                        new ModelField() { Name = "OperationDescription", Type = ModelFieldType.String }
+                    )
+                )
+                .DataSource(Model)
+            )
+
+        .ColumnModel(
+            X.RowNumbererColumn(),
+            Html.X().Column()
+                    .Text(FatSod.Ressources.Resources.Code)
+                    .DataIndex("OperationCode")
+                    .Filterable(true).Flex(1)
+                    ,
+        Html.X().Column()
+        .Text(FatSod.Ressources.Resources.UIOperation)
+        .DataIndex("UIoperationTypeCode")
+        .Filterable(false).Flex(1),
+        
+        Html.X().Column()
+        .Text(FatSod.Ressources.Resources.UIMacroOperationID)
+        .DataIndex("UIMacroOperationCode")
+        .Filterable(false).Flex(1),
+        
+        Html.X().Column()
+        .Text(FatSod.Ressources.Resources.UIReglementTypeID)
+        .DataIndex("UIReglementTypeCode")
+        .Filterable(false).Flex(1),
+        
+            Html.X().Column()
+                .Text(FatSod.Ressources.Resources.Label)
+                .DataIndex("OperationLabel")
+                .Filterable(true).Flex(1)
+                ,
+            Html.X().Column()
+                .Text(FatSod.Ressources.Resources.Description)
+                .DataIndex("OperationDescription")
+            .Filterable(false).Flex(1),
+            Html.X().ImageCommandColumn()
+                    .Width(30)
+                    .Hidden(LoadAction.IsMenuActionAble(MenuAction.DELETE, profile, CodeValue.Accounting.AccountOperation.CODE,db))
+                    .Commands(
+                            Html.X().ImageCommand()
+                            .CommandName("Delete")
+                            .IconCls("icon-delete")
+                            .ToolTip(tt =>
+                                            {
+                                                tt.Text = Resources.ConfirmDeleteMessage;
+                                                tt.Title = "Supression";
+                                            }
+                                )
+                    )
+                    .DirectEvents(de =>
+                    {
+                        de.Command.Action = "DeleteOperation";
+                        de.Command.Confirmation.ConfirmRequest = true;
+                        de.Command.Confirmation.Message = Resources.ConfirmDeleteMessage;
+                        de.Command.Confirmation.Title = Resources.ConfirmDeleteTitle;
+                        de.Command.ExtraParams.Add(new Parameter("ID", "record.data.OperationID", ParameterMode.Raw));
+                        de.Command.EventMask.ShowMask = true;
+                        de.Command.EventMask.Msg = Resources.EventMaskMsg;
+                    }),
+            Html.X().ImageCommandColumn()
+                    .Width(30)
+					.Hidden(LoadAction.IsMenuActionAble(MenuAction.UPDATE, profile,CodeValue.Accounting.AccountOperation.CODE,db))
+                    .Commands(
+                    Html.X().ImageCommand()
+                            .CommandName("Edit")
+                            .IconCls("icon-edit")
+                            .ToolTip(tt => tt.Text = "Modifier ?")
+                    )
+                    .DirectEvents(de =>
+                    {
+                        de.Command.Action = "ClickUpdateOperation";
+                        de.Command.ExtraParams.Add(new Parameter("ID", "record.data.OperationID", ParameterMode.Raw));
+                        de.Command.EventMask.ShowMask = true;
+                        de.Command.EventMask.Msg = FatSod.Ressources.Resources.EventMaskUpdate;
+                    })
+            )
+                    .Plugins(
+                    X.FilterHeader()
+                    )
+                    .BottomBar(
+                    X.PagingToolbar()
+            )
+    )
+    @*Fin du tableau*@
+
+}
+
+
+

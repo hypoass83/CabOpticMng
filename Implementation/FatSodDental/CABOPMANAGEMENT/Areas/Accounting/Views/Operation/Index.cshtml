@@ -1,0 +1,400 @@
+﻿@using FatSod.Ressources;
+@model IEnumerable<FatSod.Supply.Entities.Operation>
+
+@{
+    ViewBag.Title = Resources.Operation;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<link href="~/Scripts/AdminLTE/plugins/iCheck/square/red.css" rel="stylesheet" />
+<link href="~/Scripts/AdminLTE/plugins/iCheck/minimal/minimal.css" rel="stylesheet" />
+<script src="~/Scripts/AdminLTE/plugins/iCheck/icheck.min.js"></script>
+
+@*<h2>@Resources.UIAccountTitle</h2>*@
+
+<div class="box box-primary box-body">
+    <!--<form id="FormAccountingSection">-->
+    @****************************@
+    @Html.AntiForgeryToken()
+    <h6>@Resources.RequireField <code>(*)</code></h6>
+    <hr />
+    <h4>@Resources.OperationAddTitle</h4><hr>
+
+    <div class="row">
+        <div class="col-sm-1"></div>
+        <div class="col-sm-8">
+            <div class="row">
+                <input id="OperationID" name="OperationID" type="hidden" class="form-control" />
+                <div class="col-sm-4">@Resources.Code<code>(*)</code></div>
+                <div class="col-md-8">
+                    <select id="OperationCode" name="OperationCode" class="form-control"></select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-4">@Resources.Label<code>(*)</code></div>
+                <div class="col-sm-8">
+                    <input type="text" id="OperationLabel" name="OperationLabel" class="form-control" />
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-4">@Resources.Description</div>
+                <div class="col-sm-8">
+                    <input type="text" name="OperationDescription" id="OperationDescription" class="form-control" /> 
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-4">@Resources.OperationType<code>(*)</code></div>
+                <div class="col-md-8">
+                    <select id="OperationTypeID" name="OperationTypeID" class="form-control"></select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-4">@Resources.Journal<code>(*)</code></div>
+                <div class="col-md-8">
+                    <select id="JournalID" name="JournalID" class="form-control"></select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-1">
+                </div>
+                <hr />
+                <div class="col-sm-4">
+                    <button type="button" id="btnCancel" class="btn btn-primary">@Resources.ResetButton</button>
+                </div>
+                <div class="col-sm-8">
+                    <button type="submit" class="btn btn-primary" id="btnSubmit">@Resources.SaveButton</button>
+                </div>
+            </div>
+            <!--</form>-->
+        </div>
+    </div>
+</div>
+
+<!-- Ajout de la table contenant les data deja enregistrees-->
+<h2>List of Operation</h2>
+<div class="box box-body box-primary">
+
+    <table class="table" id="mainTable">
+        <thead>
+            <tr class="dataTableHead">
+                <th>
+                    ID
+                </th>
+                <th>
+                    @Resources.Code
+                </th>
+                <th>
+                    @Resources.Label
+                </th>
+                <th>
+                    @Resources.Description
+                </th>
+                <th>
+                    @Resources.Journal
+                </th>
+                <th>
+                </th>
+            </tr>
+        </thead>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.OperationID)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.OperationCode)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.OperationLabel)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.OperationDescription)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Journal.JournalCode)
+                </td>
+                <td>
+                    <a href=# onclick="EditItem(this)"><span class="glyphicon glyphicon-edit"></span></a> |
+                    <a href=# onclick="DeleteItem(this)"><span class="glyphicon glyphicon-trash"></span></a>
+                </td>
+            </tr>
+        }
+
+    </table>
+</div>
+
+
+<!--********** JavaScripts **********-->
+<script>
+    function populateCodeOperation() {
+        $.get('@Url.Action("populateCodeOperation", "Operation")', {}, function (data) {
+            $('#OperationCode').empty();
+            $('#OperationCode').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#OperationCode').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+
+    function populateTypeOperation() {
+        $.get('@Url.Action("populateTypeOperation", "Operation")', {}, function (data) {
+            $('#OperationTypeID').empty();
+            $('#OperationTypeID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#OperationTypeID').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+    function populateJournal() {
+        $.get('@Url.Action("populateJournal", "Operation")', {}, function (data) {
+            $('#JournalID').empty();
+            $('#JournalID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#JournalID').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+
+    function clearForm() {
+        $('#OperationDescription').val('');
+        $('#OperationCode').val('');
+        $('#OperationLabel').val('');
+        $('#OperationID').val('');
+        $('#OperationTypeID').val('');
+        $('#JournalID').val('');
+        
+    }
+
+
+    $(document).on('ready', function () {
+        populateCodeOperation();
+        populateTypeOperation();
+        populateJournal();
+
+        $('#btnCancel').on('click', function () {
+            clearForm();
+        });
+
+        $('#mainTable').DataTable();
+
+        $('#btnSubmit').on('click', function () {
+            var isAllValid = true;
+
+            if ($('#OperationCode').val().trim() == '0') {
+                isAllValid = false;
+                $("#OperationCode").addClass("invalid-data");
+            }
+            else {
+                $("#OperationCode").addClass("valid-data");
+            }
+
+            if ($('#OperationLabel').val().trim() == '') {
+                isAllValid = false;
+                $("#OperationLabel").addClass("invalid-data");
+            }
+            else {
+                $("#OperationLabel").addClass("valid-data");
+            }
+
+            if ($('#OperationDescription').val().trim() == '') {
+                isAllValid = false;
+                $("#OperationDescription").addClass("invalid-data");
+            }
+            else {
+                $("#OperationDescription").addClass("valid-data");
+            }
+
+            if ($('#OperationTypeID').val().trim() == '0') {
+                isAllValid = false;
+                $("#OperationTypeID").addClass("invalid-data");
+            }
+            else {
+                $("#OperationTypeID").addClass("valid-data");
+            }
+
+            if ($('#JournalID').val().trim() == '0') {
+                isAllValid = false;
+                $("#JournalID").addClass("invalid-data");
+            }
+            else {
+                $("#JournalID").addClass("valid-data");
+            }
+            
+
+            if (isAllValid) {
+                var data = {
+                    OperationCode: $('#OperationCode').val().trim(),
+                    OperationDescription: $('#OperationDescription').val().trim(),
+                    OperationLabel: $('#OperationLabel').val().trim(),
+                    OperationID: $('#OperationID').val().trim(),
+                    OperationTypeID: $('#OperationTypeID').val().trim(),
+                    JournalID: $('#JournalID').val().trim()
+                }
+                $(this).val('Please wait...');
+
+
+                //post data to server
+                $.ajax({
+                    url: '@Url.Action("AddOperation", "Operation")',
+                    type: "POST",
+                    data: JSON.stringify(data),
+                    dataType: "JSON",
+                    contentType: "application/json",
+                    success: function (d) {
+                        //check is successfully save to database
+                        if (d.status == true) {
+                            //will send status from server side
+                            alert(d.Message);
+                            location.reload(true);
+
+                            clearForm();
+                        }
+                        else {
+                            alert(d.Message);
+                        }
+                        $('#submit').val('@Resources.SaveButton');
+                    },
+                    error: function () {
+                        alert('Error. Please try again.');
+                        $('#btnSubmit').val('@Resources.SaveButton');
+                    }
+                });
+            }
+        });
+    });
+
+    function EditItem(obj)
+    {
+
+        var globalID=$(obj).parent().siblings(":first").text();
+
+        $.get('@Url.Action("IniatializeFieldAccount", "Operation")', { id : parseInt(globalID) },  function (data) {
+            $.each(data, function (key, value) {
+                $('#OperationCode').val(value.OperationCode);
+                $('#OperationDescription').val(value.OperationDescription);
+                $('#OperationLabel').val(value.OperationLabel);
+                $('#OperationID').val(value.OperationID);
+                $('#OperationTypeID').val(value.OperationTypeID);
+                $('#JournalID').val(value.JournalID);
+                
+            });
+        }, 'json');
+
+
+    }
+    function DeleteItem  (obj)
+    {
+        if (confirm("Do you want to Delete ?"))
+        {
+            var globalID=$(obj).parent().siblings(":first").text();
+            //post to the server
+            $(this).val('Please wait...');
+            var data = {
+                ID: parseInt(globalID)
+            }
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("DeleteOperation", "Operation")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        location.reload(true);
+
+                        clearForm();
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                }
+            });
+        }
+
+    }
+</script>
+
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 6px;
+    }
+
+    #img-upload {
+        width: 100%;
+    }
+
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin-left: 10px;
+        min-width: 0;
+        padding: 0px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 70px;
+    }
+
+    .panel-body1 {
+        height: 100px;
+        margin-top: 5px;
+        /*margin-left: 15%;*/
+    }
+
+    .panel-body2 {
+        height: 225px;
+        margin-top: 10px;
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+
+    .panel-body3 {
+        height: 75px;
+        margin-top: 5px;
+        /*margin-left: 15%;*/
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+</style>

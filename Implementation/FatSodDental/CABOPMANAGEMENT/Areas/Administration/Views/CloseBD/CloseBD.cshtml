@@ -1,0 +1,287 @@
+﻿@using FatSod.Ressources;
+
+@model IEnumerable<FatSod.Security.Entities.BusinessDay>
+@{
+    ViewBag.Title = @Resources.closeBsDay;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    //var user = (int)Session["UserID"];
+}
+
+<div class="row" style="margin-top:5px;margin-left:25px">
+    @if (TempData["Message"] != null)
+    {
+        @Html.Raw(TempData["Message"])
+    }
+</div>
+
+<div class="box box-primary box-body">
+
+    <div class="row">
+        <fieldset class="col-md-10">
+            <legend>@Resources.BDayInformations</legend>
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <div class="row ipt">
+                        <input class="form-control input-sm" id="BusinessDayID" type="hidden">
+                        <div class="col-sm-2">@Resources.Branches</div>
+                        <div class="col-sm-3">
+                            <input type="hidden" class="form-control input-sm" id="BranchID" name="BranchID">
+                            <input type="text" class="form-control input-sm" id="BranchName" name="BranchName" readonly>
+                        </div>
+                        <div class="col-sm-2">Date</div>
+                        <div class="col-sm-3">
+                            <input class="form-control" id="CloseBDDate" name="BDDateOperation" type="text" readonly>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="row" style="margin-bottom:15px;">
+                    <div class="col-sm-2">
+                        <button id="btnCancel" style="margin-left:20px;" class="btn btn-primary btn-danger">@Resources.Cancel</button>
+                    </div>
+                    <div class="col-sm-2">
+                        <button id="btnSubmit" class="btn btn-primary">@Resources.closeBsDay</button>
+                    </div>
+
+                </div>
+            </div>
+        </fieldset>
+    </div><br />
+
+</div>
+
+<!-- Ajout de la table contenant les data deja enregistrees-->
+<h2>@Resources.ListofOpenedBsDays</h2>
+<div class="box box-body box-primary">
+    <table class="table" id="mainTable">
+        <thead>
+            <tr class="dataTableHead">
+                <th>
+                    ID
+                </th>
+                <th>
+                    @Resources.Branches
+                </th>
+                <th>
+                    @Resources.LastOpDate
+                </th>
+                <th>
+                    Statut
+                </th>
+                <th>
+
+                </th>
+            </tr>
+        </thead>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.BusinessDayID)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Branch.BranchName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.BDDateOperation)
+                </td>
+                <td>
+                    @Html.DisplayTextFor(modelItem => item.BDStatut)
+                </td>
+
+                <td>
+                    <a href=# onclick="EditItem(this)"><span class="glyphicon glyphicon-edit"></span></a>
+                </td>
+            </tr>
+        }
+
+    </table>
+</div>
+
+<!-- Css Begins Here -->
+
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 6px;
+    }
+
+    #img-upload {
+        width: 100%;
+    }
+
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin-left: 10%;
+        min-width: 0;
+        padding: 10px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 70px;
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+</style>
+
+<!--********** JavaScripts **********-->
+<script>
+
+
+    // Get the UserBranch List
+    function OpenedBusday() {
+        $.get('@Url.Action("OpenedBusday", "CloseBD")', {}, function (data) {
+            $('#BranchID').empty();
+            $('#BranchID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#BranchID').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+
+
+    function clearForm() {
+
+        $('#BranchID').val('');
+        $('#BranchName').val('');
+        $('#CloseBDDate').val('');
+        $('#BusinessDayID').val('');
+    }
+
+
+    $(document).on('ready', function () {
+        //OpenedBusday();
+
+        ////datepicker
+        //$(function () {
+        //    $(".datepicker").datepicker({
+        //        format: 'yyyy-mm-dd'
+        //    });
+        //});
+        
+        $('#btnCancel').on('click', function () {
+            $('#BranchID').prop('selectedIndex', 0);
+            clearForm();
+
+        });
+
+
+        $('#mainTable').DataTable();
+
+        $('#btnSubmit').on('click', function () {
+            var isAllValid = true;
+
+
+            if ($('#BranchID').val() == "0") {
+                isAllValid = false;
+                $("#BranchID").addClass("invalid-data");
+            }
+            else {
+                $("#BranchID").addClass("valid-data");
+            }
+
+            if ($('#CloseBDDate').val().trim() == '') {
+                isAllValid = false;
+                $("#CloseBDDate").addClass("invalid-data");
+            }
+            else {
+                $("#CloseBDDate").addClass("valid-data");
+            }
+
+
+            if (isAllValid) {
+
+                var formData = new FormData();
+
+                formData.append("BranchID", $('#BranchID').val().trim());
+                formData.append("BDDateOperation", $('#CloseBDDate').val().trim());
+                formData.append("BusinessDayID", $('#BusinessDayID').val().trim());
+
+                $(this).val('Please wait...');
+
+                //post data to server
+                $.ajax({
+                    url: '@Url.Action("BtnCloseBusinessDay", "CloseBD")',
+                    type: "POST",
+                    data: formData,
+                    dataType: "JSON",
+                    //contentType: "application/json",
+                    contentType: false,
+                    processData: false,
+                    success: function (d) {
+                        //check is successfully save to database
+                        if (d.status == true) {
+                            //will send status from server side
+                            if (d.Message == "") {
+                                window.location.href = d.redirectUrl;
+                            }
+                            else {
+                                alert(d.Message);
+                                location.reload(true);
+                            }
+                            //clear form
+                            clearForm();
+                        }
+                        else {
+                            alert(d.Message);
+                        }
+                        $('#btnSubmit').val('@Resources.closeBsDay');
+                    },
+                    error: function (response) {
+                        alert('Error. Please try again.');
+                        $('#btnSubmit').val('@Resources.closeBsDay');
+                    }
+                });
+            }
+        });
+    });
+
+    function EditItem(obj) {
+
+        var globalID = $(obj).parent().siblings(":first").text();
+
+        $.get('@Url.Action("InitializeCloseBDFields", "CloseBD")', { ID: parseInt(globalID) }, function (data) {
+            $.each(data, function (key, value) {
+                $('#BranchID').val(value.BranchID);
+                $('#BranchName').val(value.BranchName);
+                $('#CloseBDDate').val(value.BDDateOperation);
+                $('#BusinessDayID').val(value.BusinessDayID);
+            });
+        }, 'json');
+
+    }
+
+</script>
+

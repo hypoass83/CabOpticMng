@@ -1,0 +1,355 @@
+﻿@using FatSod.Ressources;
+
+@model IEnumerable<FatSod.Budget.Entities.FiscalYear>
+@{
+    ViewBag.Title = "Fiscal Year";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<header>
+    <h4>Defines your Fiscal Year here</h4>
+</header>
+
+<div class="box box-primary box-body">
+
+    <div class="row">
+        <fieldset class="col-md-10">
+            <legend>Identification</legend>
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <div class="row ipt">
+                        <input class="form-control input-sm" id="FiscalYearID" name="FiscalYearID" type="hidden">
+                        <div class="col-sm-4">Fiscal Year</div>
+                        <div class="col-sm-8">
+                            <input class="form-control NumbersAndDecimal" id="FiscalYearNumber" name="FiscalYearNumber" type="text">
+                        </div>
+                    </div>
+                    <div class="row ipt">
+                        <div class="col-sm-4">@Resources.UIisOpen</div>
+                        <div class="col-sm-8">
+                            <input type="radio" id="isOpenNO" name="isOpen" value="0" checked="checked" /> @Resources.No
+                            <input type="radio" id="isOpen" name="isOpen" value="1" /> @Resources.Yess
+                        </div>
+                    </div>
+                    <div class="row ipt">
+                        <div class="col-sm-4">@Resources.Label</div>
+                        <div class="col-sm-8">
+                            <input class="form-control input-sm" id="FiscalYearLabel" name="FiscalYearLabel" type="text">
+                        </div>
+                    </div>
+                    <div class="row ipt">
+                        <div class="col-sm-4">@Resources.UIBeginDate</div>
+                        <div class="col-sm-8">
+                            <input class="form-control datepicker" id="StartFrom" name="StartFrom" type="text">
+                        </div>
+                    </div>
+                    <div class="row ipt">
+                        <div class="col-sm-4">@Resources.UIEndDate</div>
+                        <div class="col-sm-8">
+                            <input class="form-control datepicker" id="EndFrom" name="EndFrom" type="text" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-2">
+                    <button id="btnCancel" class="btn btn-primary btn-danger">@Resources.ResetButton</button>
+                </div>
+                <div class="col-sm-2">
+                    <button id="btnSubmit" class="btn btn-primary btn-success">@Resources.SaveButton</button>
+                </div>
+            </div>
+        </fieldset>
+
+    </div><br />
+
+</div>
+
+<!-- Ajout de la table contenant les data deja enregistrees-->
+<h2>Fiscal Year historique</h2>
+<div class="box box-body box-primary">
+    <table class="table" id="mainTable">
+        <thead>
+            <tr class="dataTableHead">
+                <th>
+                    ID
+                </th>
+                <th>
+                    @Resources.Label
+                </th>
+                <th>
+                    Fiscal Year
+                </th>
+                <th>
+                    @Resources.UIBeginDate
+                </th>
+                <th>
+                    @Resources.UIEndDate
+                </th>
+                <th>
+                    Status
+                </th>
+                <th>
+
+                </th>
+            </tr>
+        </thead>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.FiscalYearID)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.FiscalYearLabel)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.FiscalYearNumber)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.StartFrom)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.EndFrom)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.FiscalYearStatus)
+                </td>
+
+                <td>
+                    <a href=# onclick="EditItem(this)"><span class="glyphicon glyphicon-edit"></span></a> |
+                    <a href=# onclick="DeleteItem(this)"><span class="glyphicon glyphicon-trash"></span></a>
+                </td>
+            </tr>
+        }
+
+    </table>
+</div>
+
+<!-- Css Begins Here -->
+
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 6px;
+    }
+
+    #img-upload {
+        width: 100%;
+    }
+
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin-left: 10%;
+        min-width: 0;
+        padding: 10px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 200px;
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+</style>
+
+<!--********** JavaScripts **********-->
+<script>
+
+
+    function clearForm() {
+        $('#FiscalYearNumber').val('');
+        $('#FiscalYearLabel').val('');
+        $('#StartFrom').val('');
+        $('#EndFrom').val('');
+        $('#FiscalYearID').val('');
+    }
+
+
+    $(document).on('ready', function () {
+        
+        $(function () {
+            $(".datepicker").datepicker({
+                format: 'yyyy-mm-dd',
+                showButtonPanel: true
+            });
+        });
+
+        $('#btnCancel').on('click', function () {
+           
+            clearForm();
+
+        });
+
+        $('#mainTable').DataTable();
+
+        $('#btnSubmit').on('click', function () {
+            var isAllValid = true;
+
+
+            if ($('#FiscalYearNumber').val().trim() == '') {
+                isAllValid = false;
+                $("#FiscalYearNumber").addClass("invalid-data");
+            }
+            else {
+                $("#FiscalYearNumber").addClass("valid-data");
+            }
+
+            if ($('#FiscalYearLabel').val().trim() == '') {
+                isAllValid = false;
+                $("#FiscalYearLabel").addClass("invalid-data");
+            }
+            else {
+                $("#FiscalYearLabel").addClass("valid-data");
+            }
+
+            if ($('#StartFrom').val().trim() == '') {
+                isAllValid = false;
+                $("#StartFrom").addClass("invalid-data");
+            }
+            else {
+                $("#StartFrom").addClass("valid-data");
+            }
+
+            if ($('#EndFrom').val().trim() == '') {
+                isAllValid = false;
+                $("#EndFrom").addClass("invalid-data");
+            }
+            else {
+                $("#EndFrom").addClass("valid-data");
+            }
+
+            if (isAllValid) {
+
+                var formData = new FormData();
+
+                formData.append("FiscalYearID", $('#FiscalYearID').val().trim());
+                formData.append("FiscalYearNumber", $('#FiscalYearNumber').val().trim());
+                formData.append("FiscalYearLabel", $('#FiscalYearLabel').val().trim());
+                formData.append("StartFrom", $('#StartFrom').val().trim());
+                formData.append("EndFrom", $('#EndFrom').val().trim());
+                formData.append("isOpen", $('input[name=isOpen]:checked').val().trim());
+
+                $(this).val('Please wait...');
+
+                //post data to server
+                $.ajax({
+                    url: '@Url.Action("AddFiscalYear", "FiscalYear")',
+                    type: "POST",
+                    data: formData,
+                    dataType: "JSON",
+                    //contentType: "application/json",
+                    contentType: false,
+                    processData: false,
+                    success: function (d) {
+                        //check is successfully save to database
+                        if (d.status == true) {
+                            //will send status from server side
+                            alert(d.Message);
+                            location.reload(true);
+                            //clear form
+                            clearForm();
+                        }
+                        else {
+                            alert(d.Message);
+                        }
+                        $('#btnSubmit').val('@Resources.SaveButton');
+                    },
+                    error: function (response) {
+                        alert('Error. Please try again.');
+                        $('#btnSubmit').val('@Resources.SaveButton');
+                    }
+                });
+            }
+        });
+    });
+
+    function EditItem(obj)
+    {
+
+        var globalID=$(obj).parent().siblings(":first").text();
+
+        $.get('@Url.Action("InitializeFieldsFiscalYear", "FiscalYear")', { ID : parseInt(globalID) },  function (data) {
+            $.each(data, function (key, value) {
+                $('#FiscalYearID').val(value.FiscalYearID);
+                $('#FiscalYearNumber').val(value.FiscalYearNumber);
+                $('#FiscalYearLabel').val(value.FiscalYearLabel);
+                $('#StartFrom').val(value.StartFrom);
+                $('#EndFrom').val(value.EndFrom);
+                $('input[name=isOpen][value="' + value.FiscalYearStatus + '"]').prop('checked', true);
+            });
+        }, 'json');
+
+    }
+    function DeleteItem  (obj)
+    {
+        if (confirm("Do you want to Delete ?"))
+        {
+            var globalID=$(obj).parent().siblings(":first").text();
+            //post to the server
+            $(this).val('Please wait...');
+            var data = {
+                ID: parseInt(globalID)
+            }
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("DeleteFiscalYear", "FiscalYear")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        location.reload(true);
+                        //clear form
+                        clearForm();
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                }
+            });
+        }
+
+    }
+</script>

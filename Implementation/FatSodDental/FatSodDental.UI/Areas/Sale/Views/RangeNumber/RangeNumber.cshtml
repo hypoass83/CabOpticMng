@@ -1,0 +1,215 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Supply.Entities;
+@using FatSod.DataContext.Initializer;
+@model System.Collections.IEnumerable
+
+@{
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    //ViewBag.Title = FatSod.Ressources.Resources.b_LensCoating;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+   @section content
+{ 
+    @(
+
+            //Début du FormPanel
+            X.FormPanel()
+            //paramétrages du formpanel
+                .ID("RangeNumberForm")
+                .Collapsible(true)
+                .Layout(LayoutType.Column)
+                .Title("Add New Lens Number Range")
+                .Frame(true)
+                .MarginSpec("10 20 20 20")
+                .BodyPadding(10)
+                .FieldDefaults(fd => { fd.LabelWidth = 120; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+                //buttons enregistrer et Réinitialiser
+                .Buttons(
+                    //buttons enregistrer
+                    X.Button()
+                        .ID("btnSave")
+                        .Text(FatSod.Ressources.Resources.SaveButton)
+                        .Disabled(true)
+                        .Icon(Icon.Disk)
+                        .Margin(10)
+                        //.DirectClickAction(addAction),
+                            .DirectEvents(
+                                de =>
+                                {
+                                    de.Click.Url = Url.Action("AddManager");
+                                    de.Click.EventMask.ShowMask = true;
+                                    de.Click.EventMask.Msg = FatSod.Ressources.Resources.EventMaskMsg;
+                                }
+                            ),
+                        //buttons Réinitialiser
+                        X.Button()
+                            .ID("btnReset")
+                            .Text(FatSod.Ressources.Resources.ResetButton)
+                            .Icon(Icon.ArrowRefresh)
+                            .MarginSpec("0 20 10 10")
+                            .DirectEvents(
+                                    de =>
+                                    {
+                                        de.Click.Url = Url.Action("Reset");
+                                        de.Click.EventMask.ShowMask = true;
+                                        de.Click.EventMask.Msg = FatSod.Ressources.Resources.EventMaskMsg;
+                                    }
+                            )
+                    )
+                    //listeners du formpanel
+                    .Listeners(
+                        ls =>
+                        {
+                            ls.FieldChange.Handler = "if(App.RangeNumberForm.isValid()){App.btnSave.setDisabled(false);}else{App.btnSave.setDisabled(true);}";
+                            ls.AfterRender.Handler = "if(App.RangeNumberForm.isValid()){App.btnSave.setDisabled(false);}else{App.btnSave.setDisabled(true);}";
+                        }
+                     )
+                    //les champs de saisie du formulaire                    
+                     .Items(
+                        X.Container() @*début du box contenant code et libellé*@
+                        .Layout(LayoutType.VBox)
+                        .Items(
+                        //identifiant
+                        X.TextField()
+                            .Name("LensNumberRangeID")
+                            .ID("LensNumberRangeID")
+                            .Hidden(true)
+                            ,
+                        //code
+                        X.TextField()
+                            .ID("Minimum")
+                            .Name("Minimum")
+                            .FieldLabel("Minimum")
+                            .MsgTarget(MessageTarget.Side)//le lieu d'affichage du message d'erreur lié à un défaut de validation
+                            .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                            .BlankText(FatSod.Ressources.Resources.InputBlankTextMessage)//message qui sera afficher si le champ reste vide
+                            .AllowBlank(false)//dit si oui ou non le champ peut etre vide
+                            .MinLength(4),
+                        //label
+                        X.TextField()
+                            .ID("Maximum").MinLength(4)
+                            .Name("Maximum")
+                            .FieldLabel("Maximum")
+                            .MsgTarget(MessageTarget.Side)//le lieu d'affichage du message d'erreur lié à un défaut de validation
+                            .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :") //séparateur entre le texte du label et la zone de saisie
+                            .BlankText(FatSod.Ressources.Resources.InputBlankTextMessage)//message qui sera afficher si le champ reste vide
+                            .AllowBlank(false)//dit si oui ou non le champ peut etre vide
+                            )@*, début du box contenant code et libellé*@
+                        )
+                    @*Fin du FormPanel*@
+                 )
+    @*fin de la partie formulaire*@
+
+    @*Début du tableau*@
+        @(Html.X().GridPanel()
+        .Title("Lens Number Ranges")
+        .ID("RangeNumberList")
+        .Layout(LayoutType.Fit)
+        .MarginSpec("0 20 20 20")
+        .Frame(true)
+        .Collapsible(true)
+        .Store(
+            Html.X().Store()
+                .ID("RangeNumberListStore")
+                .AutoLoad(true)
+                .PageSize(10)
+                .RemotePaging(true)
+                .GroupField("Light")
+                .DataSource(Model)
+                .Model(Html.X().Model()
+                    .Fields(
+                        new ModelField() { Name = "LensNumberRangeID", Type = ModelFieldType.Int },
+                        new ModelField() { Name = "Minimum", Type = ModelFieldType.String },
+                        new ModelField() { Name = "Maximum", Type = ModelFieldType.String },
+                        new ModelField() { Name = "FullName", Type = ModelFieldType.String }
+                    )
+                )
+                .Sorters(
+                    X.DataSorter()
+                    .Property("Minimum")
+                    .Direction(Ext.Net.SortDirection.DESC)
+                )
+                .ServerProxy(X.AjaxProxy()
+                    .Url(Url.Action("GetAllRanges"))
+                    .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                    .Reader(X.JsonReader().RootProperty("data"))
+                )
+                
+            )
+
+        .ColumnModel(
+            Html.X().Column()
+                    .Text("Minimum")
+                    .DataIndex("Minimum")
+                    .Flex(1)
+                    ,
+            Html.X().Column()
+                .Text("Maximum")
+                .DataIndex("Maximum")
+                .Flex(1)
+                ,
+            Html.X().Column()
+                .Text("Full Name")
+                .DataIndex("FullName")
+                .Flex(1)
+                ,
+            
+            Html.X().ImageCommandColumn()
+                        .Width(30)
+                        .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.DELETE, profile, CodeValue.Supply.LensCoating_SM.CODE,db))
+                        .Commands(
+                            Html.X().ImageCommand()
+                                .CommandName("Delete")
+                                .IconCls("icon-delete")
+                                .ToolTip(tt =>
+                                    {
+                                        tt.Text = FatSod.Ressources.Resources.ConfirmDeleteMessage;
+                                        tt.Title = "Supression";
+                                    }
+                                 )
+                        )
+                        .DirectEvents(de =>
+                        {
+                            de.Command.Action = "DeleteLensCoating";
+                            de.Command.Method = HttpMethod.POST;
+                            de.Command.Confirmation.ConfirmRequest = true;
+                            de.Command.Confirmation.Message = FatSod.Ressources.Resources.ConfirmDeleteMessage;
+                            de.Command.Confirmation.Title = FatSod.Ressources.Resources.ConfirmDeleteTitle;
+                            de.Command.ExtraParams.Add(new Parameter("LensNumberRangeID", "record.data.LensNumberRangeID", ParameterMode.Raw));
+                            de.Command.EventMask.ShowMask = true;
+                            de.Command.EventMask.Msg = FatSod.Ressources.Resources.EventMaskMsg;
+                        }),
+            Html.X().ImageCommandColumn()
+                    .Width(30)
+                    .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, profile, CodeValue.Supply.LensCoating_SM.CODE,db))
+                    .Commands(
+                    Html.X().ImageCommand()
+                            .CommandName("Edit")
+                            .IconCls("icon-edit")
+                            .ToolTip(tt => tt.Text = "Modifier ?")
+                    )
+
+                    .DirectEvents(de =>
+                    {
+                        de.Command.Action = "UpdateLensNumberRange";
+                        de.Command.Method = HttpMethod.GET;
+                        de.Command.ExtraParams.Add(new Parameter("LensNumberRangeID", "record.data.LensNumberRangeID", ParameterMode.Raw));
+                        de.Command.EventMask.ShowMask = true;
+                        de.Command.EventMask.Msg = FatSod.Ressources.Resources.EventMaskUpdate;
+                    })
+            )
+            .Plugins(
+            X.FilterHeader()
+            )
+                    .BottomBar(
+                            X.PagingToolbar()
+                    )
+        )
+    @*Fin du tableau*@
+       }

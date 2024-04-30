@@ -1,0 +1,590 @@
+﻿@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+@using CABOPMANAGEMENT.Tools;
+
+@model IEnumerable<FatSod.Supply.Entities.InventoryDirectory>
+@{
+    ViewBag.Title = "Inventory Counting";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var profile = (Session["UserProfile"] == null) ? 0 : (int)Session["UserProfile"];
+    var user = (Session["UserID"] == null) ? 0 : (int)Session["UserID"];
+
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+
+}
+
+<div id="container-div" class="box box-primary box-body">
+    <div class="row">
+        <div class="col-md-12">
+            <fieldset>
+                <legend>@Resources.GeneralInfoIdentification</legend>
+                <div class="panel panel-default">
+                    <div class="panel-body1">
+                        <div class="col-md-6">
+                            <div class="row ipt" style="margin-top:2px;">
+                                <div class="col-sm-3">@Resources.Reference</div>
+                                <div class="col-sm-7">
+                                    <input class="form-control input-sm" id="Reference" type="text" value="@ViewBag.Reference" readonly>
+                                </div>
+                            </div>
+                            <div class="row ipt" style="margin-top:2px;">
+                                <input type="hidden" id="InventoryCountingId" />
+                                <input type="hidden" id="RegisteredById" value="@user" />
+                                <input type="hidden" id="RegistrationDate" value="@ViewBag.BusnessDayDate" />
+
+                                <div class="col-sm-3">@Resources.Branches<code>(*)</code></div>
+                                <div class="row">
+                                    <div class="col-sm-7">
+                                        <select disabled id="BranchID" class="form-control"></select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row ipt" style="margin-top:2px;">
+                                <div class="col-sm-3">@Resources.AutorizedBy</div>
+                                <div class="col-sm-7">
+                                    <select class="form-control" id="AuthorizedById" name="AuthorizedById"> </select>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="col-md-6">
+                            <div class="row ipt" style="margin-top:2px;">
+                                <div class="col-sm-3">@Resources.CountBy</div>
+                                <div class="col-sm-7">
+                                    <select class="form-control" id="CountedById" name="CountedById"> </select>
+                                </div>
+                            </div>
+                            <div class="row ipt" style="margin-top:2px;">
+                                <div class="col-sm-3">@Resources.Description</div>
+                                <div class="col-sm-7">
+                                    <textarea readonly class="form-control input-sm" id="Description" type="text"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+
+    <div class="row" style="margin-top:-50px;">
+        <fieldset class="col-md-5">
+            <legend>Product Barcode</legend>
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <div class="row ipt">
+                        <div class="col-sm-12">
+                            <div class="row ipt">
+                                <div class="col-sm-2">@Resources.CodeBar</div>
+                                <div class="col-sm-10">
+                                    <div class="row">
+                                        <div class="col-sm-8">
+                                            <input autocomplete="off" type="text" id="BarCode" placeholder="Scan barcode or type it manually" class="input-sm form-control">
+                                        </div>
+                                        <div hidden class="col-sm-2" style="margin-left: -50px;">
+                                            <button type="submit" class="btn btn-success btnreduice" id="btnBarCodeScanned">OK</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset class="col-md-7">
+            <legend>Counted Product</legend>
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <table class="table" id="CommandLinesGrid">
+                        <thead>
+                            <tr class="dataTableHead">
+                                <th>
+                                    @Resources.BarCode
+                                </th>
+                                <th>
+                                    @Resources.Marque
+                                </th>
+                                <th>
+                                    @Resources.NumeroSerie
+                                </th>
+                                <th>
+                                    @Resources.Designation
+                                </th>
+                                <th>
+                                    @Resources.Quantity
+                                </th>
+                                <th>
+                                    Action
+                                </th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </fieldset>
+
+
+    </div>
+
+    <div class="row">
+        <div class="col-sm-8">
+        </div>
+        <div class="col-sm-2">
+            <button type="submit" class="btn btn-primary btn-success" id="btnSubmit">@Resources.SaveButton</button>
+        </div>
+        <div class="col-sm-2">
+            <button type="button" id="btnCancel" class="btn btn-primary btn-danger">@Resources.ResetButton</button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <fieldset>
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <table class="table" id="mainTable">
+                            <thead>
+                                <tr class="dataTableHead">
+                                    <th>
+                                        @Resources.RegisterDate
+                                    </th>
+                                    <th>
+                                        @Resources.BarCode
+                                    </th>
+                                    <th>
+                                        @Resources.Marque
+                                    </th>
+                                    <th>
+                                        @Resources.NumeroSerie
+                                    </th>
+                                    <th>
+                                        @Resources.Designation
+                                    </th>
+                                    <th>
+                                        @Resources.Quantity
+                                    </th>
+                                    <th>
+                                        @Resources.AutorizedBy
+                                    </th>
+                                    <th>
+                                        @Resources.CountBy
+                                    </th>
+                                    <th>
+                                        @Resources.RegisteredBy
+                                    </th>
+                                    <th>
+                                        Action
+                                    </th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+</div>
+<!--css detail-->
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .btnreduice {
+        padding-bottom: 2px;
+        padding-top: 2px;
+    }
+
+    .ipt {
+        margin-bottom: 3px;
+        /* margin-left: 1px;*/
+    }
+
+    .ipt1 {
+        margin-bottom: 3px;
+        margin-left: -1%;
+    }
+
+    #img-upload {
+        width: 100%;
+    }
+
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin: 0;
+        min-width: 0;
+        padding: 10px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 275px;
+        margin-bottom: 4%;
+    }
+
+    .panel-body1 {
+        height: 80px;
+        margin-bottom: 2%;
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+</style>
+<!--javascript-->
+<script>
+    $(document).on('ready', function () {
+        $('#BarCode').focus();
+        //datepicker
+        $(function () {
+            $(".datepicker").datepicker({
+                format: 'yyyy-mm-dd',
+                showButtonPanel: true,
+                minDate: '@ViewBag.BusnessDayDate'
+            });
+        });
+        populateBranch();
+
+        populateUsers();
+
+        LoadInventoryCounting($('#Reference').val());
+        GetInventoryCountingLines(false);
+
+        $('#btnCancel').on('click', function () {
+           location.reload(true);
+        });
+
+        $('#btnSubmit').on('click', function () {
+            ValideCommande();
+        });
+
+        $('#BarCode').on('keyup', function () {
+            var barCode = $('#BarCode').val();
+            if (barCode.length == 10) {
+                //alert("Correct Barcode " + barCode);
+                AddInventoryCountingLine();
+            }
+        });
+    });
+
+    function AddInventoryCountingLine() {
+        $('#BarCode').prop('disabled', true);
+        var barCode = $('#BarCode').val();
+        var data = { barCode: barCode };
+        console.log("AddInventoryCountingLine ", data);
+        $.ajax({
+            url: '@Url.Action("AddInventoryCountingLine", "Counting")',
+            type: "POST",
+            data: JSON.stringify(data),
+            dataType: "JSON",
+            contentType: "application/json",
+            success: function (d) {
+                if (d.status == false) {
+                    alert(d.Message);
+                }
+                $('#BarCode').val('');
+                $('#BarCode').prop('disabled', false);
+                $('#BarCode').focus();
+
+                GetInventoryCountingLines(true);
+            },
+            error: function (response) {
+                alert('Error. Please try again.');
+                $('#BarCode').prop('disabled', false);
+            }
+        });
+    }
+
+    function populateBranch() {
+        $.get('@Url.Action("OpenedBusday", "Directory")', {}, function (data) {
+            console.log("Liste des branches ", data);
+            $('#BranchID').empty();
+            $('#BranchID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#BranchID').append($("<option></option>").val(value.BranchID).html(value.BranchName));
+            });
+            var _DefaultId = $('#DefaultBranchID').val();
+            $('#BranchID').val(_DefaultId);
+            InitDate(_DefaultId);
+        }, 'json');
+    }
+
+    function populateUsers() {
+        $.get('@Url.Action("populateUsers", "Directory")', {}, function (data) {
+            $('#AuthorizedById').empty();
+            $('#AuthorizedById').append($("<option value='0'>@Resources.Select</option>"));
+
+            $('#CountedById').empty();
+            $('#CountedById').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#AuthorizedById').append($("<option></option>").val(value.GlobalPersonID).html(value.UserFullName));
+                $('#CountedById').append($("<option></option>").val(value.GlobalPersonID).html(value.UserFullName));
+            });
+        }, 'json');
+    }
+
+    function InitDate(Branch) {
+        $.get('@Url.Action("ChangeBusDay", "Directory")', { BranchID: Branch }, function (data) {
+            $('#Reference').empty();
+            $.each(data, function (key, value) {
+                $('#Reference').val(value.InventoryDirectoryReference);
+            });
+        }, 'json');
+    }
+
+    function ValideCommande() {
+
+        var isAllValid = true;
+        var fields = ["BranchID", "AuthorizedById", "RegisteredById", "RegistrationDate", "Reference", "Description"]
+
+        if ($('#AuthorizedById').val() == '' || $('#AuthorizedById').val() == 0) {
+            isAllValid = false;
+            $("#AuthorizedById").addClass("invalid-data");
+        }
+        else {
+            $("#AuthorizedById").addClass("valid-data");
+        }
+
+        if ($('#CountedById').val() == '' || $('#CountedById').val() == 0) {
+            isAllValid = false;
+            $("#CountedById").addClass("invalid-data");
+        }
+        else {
+            $("#CountedById").addClass("valid-data");
+        }
+
+        if ($('#RegisteredById').val() == '' || $('#RegisteredById').val() == 0) {
+            isAllValid = false;
+            $("#RegisteredById").addClass("invalid-data");
+        }
+        else {
+            $("#RegisteredById").addClass("valid-data");
+        }
+
+        if ($('#RegistrationDate').val() == '') {
+            isAllValid = false;
+            $("#RegistrationDate").addClass("invalid-data");
+        }
+        else {
+            $("#RegistrationDate").addClass("valid-data");
+        }
+
+        if (isAllValid) {
+            var data = {
+                InventoryCountingId: $('#InventoryCountingId').val(),
+                AuthorizedById: $('#AuthorizedById').val(),
+                CountedById: $('#CountedById').val(),
+                RegisteredById: $('#RegisteredById').val(),
+                RegistrationDate: $('#RegistrationDate').val(),
+            }
+
+            $(this).val('Please wait...');
+            //$(this).prop('disabled', true);
+            $('#btnSubmit').prop('disabled', true);
+            console.log("AddInventoryCounting ", data);
+            $.ajax({
+                url: '@Url.Action("AddInventoryCountingLines", "Counting")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    alert(d.Message);
+                    if (d.status == true)
+                        location.reload();
+
+                    $('#btnSubmit').prop('disabled', false);
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').prop('disabled', false);
+                }
+            });
+        }
+    }
+
+    function GetExistingInventoryCountingLines(test) {
+
+        if (test) {
+            $('#mainTable').dataTable().fnDestroy();
+        }
+        var oTable = $('#mainTable');
+        var inventoryCountingId = $('#InventoryCountingId').val();
+        oTable = $('#mainTable').dataTable({
+            "paging": true,
+            "pageLength": 4,
+            "lengthMenu": [[4, 8, 12, -1], [4, 8, 12, "All"]],
+            "searching": true,
+            "ordering": true,
+            "pagingType": "full_numbers",
+            "ajax": {
+                "url": "@Url.Action("GetExistingInventoryCountingLines", "Counting")",
+                "datatype": "json",
+                "data": { inventoryCountingId: inventoryCountingId }
+            },
+            "columns": [
+                { "data": "RegistrationDate", "width": "10%" },
+                { "data": "Barcode", "width": "8%" },
+                { "data": "Marque", "width": "10%" },
+                { "data": "NumeroSerie", "width": "15%" },
+                { "data": "ProductLabel", "width": "15%" },
+                { "data": "CountedQuantity", "width": "5%" },
+                { "data": "AuthorizedBy", "width": "10%" },
+                { "data": "CountedBy", "width": "10%" },
+                { "data": "Registeredy", "width": "10%" },
+                {// this is Actions Column
+                    mRender: function (data, type, row) {
+                        return '<a href="#" class="editor_remove" onclick="DeleteExistingInventoryCountingLine(' + row.InventoryCountingLineId + ')"><span class="glyphicon glyphicon-trash"></span></a>'
+                    }
+                }
+            ]
+        });
+    }
+
+    function GetInventoryCountingLines(test) {
+
+        if (test) {
+            $('#CommandLinesGrid').dataTable().fnDestroy();
+        }
+        var oTable = $('#CommandLinesGrid');
+
+        oTable = $('#CommandLinesGrid').dataTable({
+            "paging": true,
+            "pageLength": 4,
+            "lengthMenu": [[4, 8, 12, -1], [4, 8, 12, "All"]],
+            "searching": false,
+            "ordering": true,
+            "pagingType": "full_numbers",
+            // Ajax call
+            "ajax": "@Url.Action("GetInventoryCountingLines", "Counting")",
+            "datatype": "json",
+            "columns": [
+                { "data": "Barcode", "width": "15%" },
+                { "data": "Marque", "width": "15%" },
+                { "data": "NumeroSerie", "width": "20%" },
+                { "data": "ProductLabel", "width": "20%" },
+                { "data": "CountedQuantity", "width": "5%" },
+                {// this is Actions Column
+                    mRender: function (data, type, row) {
+                        var addOne = '<a href="#" class="editor_remove" onclick="IncrementLine(' + row.InventoryCountingLineId + ',' + true + ')"><span class="glyphicon glyphicon-plus-sign"></span></a>';
+                        var removeOne = '<a href="#" class="editor_remove" onclick="IncrementLine(' + row.InventoryCountingLineId + ',' + false + ')"><span class="glyphicon glyphicon-minus-sign"></span></a>'
+                        var deleteAll = '<a href="#" class="editor_remove" onclick="DeleteLine(' + row.InventoryCountingLineId + ')"><span class="glyphicon glyphicon-trash"></span></a>';
+                        return removeOne + ' | ' + addOne + ' | ' + deleteAll;
+                    }
+                }
+            ]
+        });
+    }
+
+
+    function DeleteExistingInventoryCountingLine(inventoryCountingLineId) {
+
+        if (!confirm("Do you really want to Delete ?"))
+            return;
+
+        var data = { inventoryCountingLineId: parseInt(inventoryCountingLineId) };
+        $.ajax({
+                url: '@Url.Action("DeleteExistingInventoryCountingLine", "Counting")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    alert(d.Message);
+                    GetExistingInventoryCountingLines(true);
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                }
+            });
+    }
+
+    function LoadInventoryCounting(reference) {
+        $.get('@Url.Action("GetInventoryCounting", "Counting")', { reference: reference }, function (inventoryCounting) {
+
+            console.log("LoadInventoryCounting ", inventoryCounting);
+
+            if (inventoryCounting.Reference == null) {
+                alert("No Inventory Directory is currently created/opened; please create one before proceed !!!");
+            }
+
+            $('#Reference').val(inventoryCounting.Reference);
+            $('#Description').val(inventoryCounting.Description);
+            $('#BranchID').val(inventoryCounting.BranchId);
+            $('#AuthorizedById').val(inventoryCounting.AuthorizedById);
+            $('#InventoryCountingId').val(inventoryCounting.InventoryCountingId);
+
+            GetExistingInventoryCountingLines(false);
+        }, 'json');
+    }
+
+    function DeleteLine(stockId) {
+        if (!confirm("Do you really want to Delete ?"))
+            return;
+
+        var data = { stockId };
+        $.ajax({
+            url: '@Url.Action("DeleteInventoryCountingLine", "Counting")',
+            type: "POST",
+            data: JSON.stringify(data),
+            dataType: "JSON",
+            contentType: "application/json",
+            success: function (d) {
+                GetInventoryCountingLines(true);
+            },
+            error: function (response) {
+                console.error(response);
+                alert('Error. Please try again.');
+            }
+        });
+    }
+
+    function IncrementLine(stockId, isIncrement) {
+        var data = { stockId, isIncrement };
+        $.ajax({
+            url: '@Url.Action("IncrementLine", "Counting")',
+            type: "POST",
+            data: JSON.stringify(data),
+            dataType: "JSON",
+            contentType: "application/json",
+            success: function (d) {
+                GetInventoryCountingLines(true);
+            },
+            error: function (response) {
+                console.error(response);
+                alert('Error. Please try again.');
+            }
+        });
+    }
+
+</script>

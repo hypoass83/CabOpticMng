@@ -1,0 +1,336 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+
+@model System.Collections.IEnumerable
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+@section content
+{
+@(
+  X.FormPanel()
+    .ID("Unknow")
+    .Items(
+            X.PanelTitle()
+            .ID("PanelTitl555e")
+            .Border(true)
+            .Padding(2)
+            .Content(
+        @<header>
+            <h4>@Resources.CompanyAndJob</h4>
+            @*<span>
+                <a href="@Url.Action("Pdf", "Customer")">Generate Customer Report</a>
+            </span>*@
+            <h6>@Resources.RequireField <code>(*)</code>.</h6>
+        </header>
+            )
+        )
+        .Frame(true)
+        .MarginSpec("-50 10 10 10")
+        .BodyPadding(10)
+)
+@(
+ X.FormPanel()
+        .ID("CompanyForm")
+        .Title("Update your company informations here")
+        //.Frame(true)
+        .MarginSpec("-20 10 10 10")
+        //.Width(350)
+        .BodyPadding(10)
+        .FieldDefaults(fd => { fd.LabelWidth = 120; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+        .Buttons(
+            X.Button()
+                .ID("CompanyFormbtnSave")
+                .Text(Resources.SaveButton)
+                .Disabled(true)
+                .Icon(Icon.Disk)
+                .Margin(5)
+                .DirectEvents(de =>
+                {
+                    de.Click.Url = Url.Action("AddCompany", "Parameter");
+                    de.Click.EventMask.ShowMask = true;
+                    de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                }),
+
+            X.Button()
+                .Text(Resources.ResetButton)
+                .MarginSpec("0 20 10 10")
+                .OnClientClick("this.up('form').reset();")
+        )
+        .Listeners(
+            ls =>
+            {
+                ls.FieldChange.Handler = "if(App.CompanyForm.isValid()){App.CompanyFormbtnSave.setDisabled(false);}else{App.CompanyFormbtnSave.setDisabled(true);}";
+            }
+        )
+        .Items(
+            X.Container()
+                .Layout(LayoutType.HBox)
+                .MarginSpec("0 0 10")
+                .Items(
+                    X.Component().Width(20)
+                    ,
+                    X.FieldSet()
+                        .Flex(1)
+                        .Title("Identification")
+                        .Layout(LayoutType.Anchor)
+                        .Height(340)
+                        .DefaultAnchor("80%")
+                        .Items(
+                            X.TextField().Name("GlobalPersonID").ID("GlobalPersonID").Hidden(true).Value(ViewBag.Company.GlobalPersonID),
+                            X.TextField().FieldLabel(Resources.PersonName)
+                                .Name("Name")
+                                .MsgTarget(MessageTarget.Side)
+                                .LabelSeparator("<span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                .ID("Name")
+                                .Value(ViewBag.Company.Name)
+                                .BlankText(Resources.PersonName + " " + Resources.RequiredField)
+                                .AllowBlank(false).MinLength(4)
+                            ,
+                            X.NumberField().FieldLabel("Capital")
+                                .Name("CompanyCapital")
+                                .ID("CompanyCapital")
+                                .Value(ViewBag.Company.CompanyCapital)
+                                .MinValue(0)
+                                .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                .AllowBlank(false)
+                             ,    
+                            X.TextField().Hidden(true).Name("Code").Value(ViewBag.Company.CNI+ViewBag.Company.CompanySigle),
+                                X.TextField().FieldLabel(Resources.NumeroContribuable)
+                                            .Name("CNI")
+                                            .MsgTarget(MessageTarget.Side)
+                                            .LabelSeparator("<span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                            .ID("CNI")
+                                            .Value(ViewBag.Company.CNI)
+                                            .BlankText(Resources.RequiredField)
+                                            .AllowBlank(false).MinLength(4)
+                            ,                                                   
+                            X.TextField().FieldLabel(Resources.TradeRegister)
+                                            .Name("CompanyTradeRegister")
+                                            .MsgTarget(MessageTarget.Side)
+                                            .LabelSeparator("<span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                            .ID("CompanyTradeRegister")
+                                            .Value(ViewBag.Company.CompanyTradeRegister)
+                                            .BlankText(Resources.RequiredField)
+                                            .AllowBlank(false).MinLength(4)
+                            ,   
+                            X.TextField().FieldLabel(Resources.Sigle)
+                                            .Name("CompanySigle")
+                                            .MsgTarget(MessageTarget.Side)
+                                            .LabelSeparator("<span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                            .ID("CompanySigle")
+                                            .Value(ViewBag.Company.CompanySigle)
+                                            .BlankText(Resources.RequiredField)
+                                            .AllowBlank(false).MinLength(4)
+                            ,    
+                            X.TextField().FieldLabel("Slogan")
+                                            .Name("CompanySlogan")
+                                            .MsgTarget(MessageTarget.Side)
+                                            .LabelSeparator("<span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                            .ID("CompanySlogan")
+                                            .Value(ViewBag.Company.CompanySlogan)
+                                            .BlankText(Resources.RequiredField)
+                                            .AllowBlank(false).MinLength(4)
+                            ,                                                                              
+                            X.TextField().FieldLabel(Resources.Description)
+                                .Name("Description")
+                                .ID("Description")
+                                .Value(ViewBag.Company.Description)
+                                .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                .BlankText("Vous devez renseigner une description")
+                                .AllowBlank(false)
+                        ),
+                    //company adress
+                    X.FieldSet()
+                        .Flex(1)
+                        .Title(Resources.PersonAdressForm)
+                        .Layout(LayoutType.Anchor)
+                        .DefaultAnchor("80%")
+                        .Height(340)
+                        .Items(
+                            X.TextField().Name("AdressID").ID("AdressID").Hidden(true).Value(ViewBag.Company.AdressID),
+                            X.TextField().FieldLabel(Resources.PersonMobile)
+                             .Name("AdressPhoneNumber")
+                             .Value(ViewBag.Company.Adress.AdressPhoneNumber)
+                             .ID("AdressPhoneNumber"),
+                            X.TextField().FieldLabel(Resources.AdressCellNumber).Name("AdressCellNumber").ID("AdressCellNumber").Value(ViewBag.Company.Adress.AdressCellNumber),
+                            X.TextField().FieldLabel("Email")
+                                .InputType(Ext.Net.InputType.Email)
+                                .Name("AdressEmail").ID("AdressEmail")
+                                .AllowBlank(false)
+                                .ErrorMsgCls("has-error")
+                                .MsgTarget(MessageTarget.Side)
+                                .Value(ViewBag.Company.Adress.AdressEmail)
+                                .VtypeText("Cette adresse email n'est pas valide. Exemple : \"dental-support@fatsodgroup.com\"")
+                                .Vtype("email")
+                                         ,
+                            X.TextField().FieldLabel(Resources.PersonBox).Name("AdressPOBox").ID("AdressPOBox").Value(ViewBag.Company.Adress.AdressPOBox),
+                            X.TextArea().FieldLabel(Resources.AdressFullName).Name("AdressFullName").ID("AdressFullName").Value(ViewBag.Company.Adress.AdressFullName),
+                            X.TextField().FieldLabel("Fax").Name("AdressFax").ID("AdressFax").Value(ViewBag.Company.Adress.AdressFax),
+                            X.ComboBox().Name("Country").FieldLabel(Resources.AdressCountry)
+                                .Items(LoadComponent.Countries)
+                                .AllowBlank(false)
+                                .ID("Country")
+                                .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                .EmptyText("Selectionner un pays")
+                                .Listeners(ls =>
+                                        ls.Select.Handler = "App.Region.setDisabled(false);App.Town.setDisabled(true);App.Quarter.setDisabled(true);App.Region.clearValue();App.Town.clearValue(); App.Quarter.clearValue(); App.Region.getStore().load()"
+                                )
+                                .ForceSelection(true)
+                                //.Value(ViewBag.Company.Adress.Quarter.Town.Region.CountryID)
+                                        ,
+                            X.ComboBox().Name("Region").ID("Region")
+                                .FieldLabel(Resources.AdressRegion)
+                                .AutoSelect(false)
+                                .EmptyText("Selectionner une région")
+                                .AllowBlank(false)
+                                .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                .Disabled(true)
+                                .Listeners(ls =>
+                                {
+                                    ls.Change.Handler = "App.Town.setDisabled(false);";
+                                    ls.Select.Handler = "App.Town.setDisabled(false);App.Town.clearValue(); App.Quarter.clearValue(); App.Town.getStore().load()";
+                                }
+                                )
+                                .ValueField("RegionID").ValueNotFoundText("Aucune région trouvée")//.EmptyText("Chargement...")
+                                .DisplayField("RegionLabel")
+                                .Store(
+                                    X.Store()
+                                        .AutoLoad(false)
+                                        .Model(
+                                        X.Model()
+                                            .IDProperty("RegionID")
+                                            .Fields(
+                                                new ModelField("RegionID", ModelFieldType.String) { Mapping = "RegionID" },
+                                                new ModelField("RegionLabel", ModelFieldType.String) { Mapping = "RegionLabel" }
+                                            )
+                                        )
+                                    .Proxy(
+                                        X.AjaxProxy()
+                                            .Url(Url.Action("Regions","User"))
+                                            .Reader(X.JsonReader().RootProperty("data"))
+                                        )
+                                    .Parameters(ps =>
+                                            ps.Add(new StoreParameter("countryID", "App.Country.getValue()", ParameterMode.Raw))
+                                    )
+
+                                )
+                                .ForceSelection(true)
+                                //.Value(ViewBag.Company.Adress.Quarter.Town.RegionID)
+                                 ,
+                            X.ComboBox().Name("Town").FieldLabel(Resources.AdressTown)
+                                .Listeners(ls =>
+                                {
+                                    ls.Change.Handler = "App.Quarter.setDisabled(false);";
+                                    ls.Select.Handler = "App.Quarter.setDisabled(false);App.Quarter.clearValue(); App.Quarter.getStore().load()";
+                                }
+                                    )
+                                .ID("Town")
+                                .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                .Disabled(true)
+                                .AutoSelect(false)
+                                .EmptyText("Selectionner une ville")
+                                .AllowBlank(false)
+                                .DisplayField("TownLabel")
+                                .ValueField("TownID")
+                                .ValueNotFoundText("No town found")
+                                .Store(
+                                        X.Store()
+                                            .AutoLoad(false)
+                                            .Model(
+                                                X.Model()
+                                                .IDProperty("TownID")
+                                                .Fields(
+                                                    new ModelField("TownID", ModelFieldType.String) { Mapping = "TownID" },
+                                                    new ModelField("TownLabel", ModelFieldType.String) { Mapping = "TownLabel" }
+                                                )
+                                            )
+                                            .Proxy(
+                                                X.AjaxProxy()
+                                                .Url(Url.Action("Towns","User"))
+                                                .Reader(X.JsonReader().RootProperty("data"))
+                                            )
+                                            .Parameters(ps =>
+                                                ps.Add(new StoreParameter("regionID", "App.Region.getValue()", ParameterMode.Raw))
+                                            )
+
+                                    )
+                                   .ForceSelection(true)
+                                   //.Value(ViewBag.Company.Adress.Quarter.TownID)   
+                                ,
+                            X.ComboBox().Name("QuarterID")
+                                .FieldLabel(Resources.AdressQuarter)
+                                .Disabled(true)
+                                .EmptyText("Selectionner un quartier")
+                                .AutoSelect(false)
+                                .LabelSeparator("  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :")
+                                .AllowBlank(false)
+                                .BlankText("Vous devez renseigner un quartier")
+                                .ID("Quarter")
+                                .DisplayField("QuarterLabel")
+                                .ValueField("QuarterID")
+                                .ValueNotFoundText("Aucun quartier trouvé")//.EmptyText("Chargement...")
+                                .Store(
+                                        X.Store()
+                                        .AutoLoad(false)
+                                        .Model(
+                                            X.Model()
+                                            .IDProperty("QuarterID")
+                                                .Fields(
+                                                    new ModelField("QuarterID", ModelFieldType.String) { Mapping = "QuarterID" },
+                                                    new ModelField("QuarterLabel", ModelFieldType.String) { Mapping = "QuarterLabel" }
+                                                )
+                                        )
+                                        .Proxy(
+                                            X.AjaxProxy()
+                                                .Url(Url.Action("Quarters","User"))
+                                                .Reader(X.JsonReader().RootProperty("data"))
+                                        )
+                                        .Parameters(ps =>
+                                            ps.Add(new StoreParameter("townID", "App.Town.getValue()", ParameterMode.Raw))
+                                        )
+
+                                    )
+                                   .ForceSelection(true)
+                                   //.Value(ViewBag.Company.Adress.QuarterID)        
+
+                        )                    
+                    ,
+                    //Company Image
+                   X.FieldSet()
+                    .ID("ImageSection")
+                    .Title("Image representation")
+                    //.Flex(1)
+                    .Width(200)
+                    .Height(340)
+                    .Items(
+                        X.TextField().Name("FileID").ID("FileID").Hidden(true).Value(0)
+                        ,
+                        X.FileUploadField().FieldLabel("Choose image")
+                            .Name("UploadImage").ID("UploadImage")
+                            .LabelAlign(LabelAlign.Top)
+                            .AllowBlank(true) 
+                        ,                        
+                        X.Image()
+                         .ID("ImageID")
+                         .ImageUrl("~/User/File?id=" +ViewBag.CompanyLogoID)
+                         .Hidden(false)
+                         .MarginSpec("0 0 0 20")
+                         .Width(118)
+                         .Height(140)                                                                     
+                    )                    
+                    ,
+                    X.Component().Width(20)
+                )
+        )
+    )
+}

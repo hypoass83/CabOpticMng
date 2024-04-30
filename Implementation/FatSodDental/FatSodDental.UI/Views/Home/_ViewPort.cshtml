@@ -1,0 +1,24 @@
+﻿@{
+    var X = Html.X();
+}
+
+@(
+ X.Viewport()
+        .Layout(LayoutType.Border)
+
+        .ItemsFromPage(this, "~/Views/Home/_North.cshtml")
+
+        .ItemsFromPage(this, "~/Views/Home/_Body.cshtml")
+
+        //.ItemsFromPage(this, "~/Views/Home/_South.cshtml")
+
+        // -- Formulaire caché -- //
+        .ItemsFromPage(this, "~/Views/Home/_Authentification.cshtml")
+
+        .ItemsFromPage(this, "~/Views/Home/_Changer.cshtml")
+
+        //.ItemsFromPage(this, "~/Views/Home/_Menu.cshtml")
+
+        .ItemsFromPage(this, "~/Views/Home/_Nouveau_systeme.cshtml")
+        // ----------------------- //
+)

@@ -1,0 +1,225 @@
+﻿@using Ext.Net.MVC;
+@using Ext.Net.Utilities;
+@using Ext.Net;
+@using FatSodDental.UI.Tools;
+@using FatSod.Security.Entities;
+@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var X = Html.X();
+    var profile = (int)Session["UserProfile"];
+    var user = (int)Session["UserID"];
+    string labelSeparator = "  <span style = \"color : #ff0000; font-size: 1em;\"> * </span> :";
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+
+    String activateValidatePurchase = @"if( App.PurchaseForm.isValid() && App.BusinessDayID.getValue() > 0 )
+                                            {
+                                                App.btnSave.setDisabled(false);
+                                            }else{
+                                                App.btnSave.setDisabled(true);
+                                            }";
+}
+
+@section content
+{
+    @***********************************************************@
+    @(
+
+
+
+
+        //formulaire général
+        //c'est ausi le container qui (contient) le fieldset des éléments de formulaire d'un achat, le formulaire du panier et le tableau représentant le contenu du panier
+
+X.Container()
+        .Layout(LayoutType.HBox)
+        .MarginSpec("-10 0 0 0")
+        .ID("DefaultContainer")
+        .Layout(LayoutType.Fit)
+        .Items(
+
+        X.FormPanel()
+                .ID("GeneralForm")
+                .Frame(true)
+                .MarginSpec("0 0 0 0")
+                .Padding(0)
+                .FieldDefaults(fd => { fd.LabelWidth = 120; fd.LabelStyle = "color:#0094ff;padding-left:4px;"; })
+
+                .Buttons(
+                    X.Button()
+                        .ID("btnSave")
+                        .Text(Resources.OpenBackDate)
+                        .Disabled(true)
+                        .Icon(Icon.Eye)
+                        .DirectEvents(de =>
+                        {
+                            de.Click.Url = Url.Action("OpenBackDate");
+                            de.Click.EventMask.ShowMask = true;
+                            de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                        }),
+
+                    X.Button()
+                        .ID("Cancel1")
+                        .Text(Resources.Cancel)
+                        .MarginSpec("0 20 10 10")
+                        .DirectEvents(de =>
+                        {
+                            de.Click.Url = Url.Action("Reset");
+                            de.Click.Complete = "";
+                            de.Click.EventMask.ShowMask = true;
+                            de.Click.EventMask.Msg = Resources.EventMaskMsg;
+                        })
+
+                )
+            .Items(
+        //Container des éléments de formulaire de la table Purchase
+                X.FormPanel()
+                    .ID("PurchaseForm")
+                    .Layout(LayoutType.Column)
+                    .MarginSpec("10 10 10 10")
+                        .Title(Resources.BDayInformations)
+                        .Listeners(ls =>
+                            {
+                                ls.FieldChange.Handler = activateValidatePurchase;
+                            })
+                    .Items(
+                        X.TextField().Name("BusinessDayID").ID("BusinessDayID").Hidden(true),
+                            X.ComboBox()
+                                .ID("BranchID")
+                                .Name("BranchID")
+                                .FieldLabel(Resources.Branches)
+                                .AllowBlank(false)
+                                .BlankText(Resources.Branches + " " + Resources.RequiredField)
+                                .LabelSeparator(labelSeparator)
+                                .EmptyText(Resources.Select)
+                                .ReadOnly(true)
+                                .DisplayField("BranchName")
+                                .ValueField("BranchID")
+                                .Store(
+                                        X.Store()
+                                        .AutoLoad(true)
+                                        .Model(
+                                            X.Model()
+                                                .IDProperty("BranchIDtore")
+                                                .Fields(
+                                                    new ModelField("BranchID", ModelFieldType.Int) { Mapping = "BranchID" },
+                                                    new ModelField("BranchName", ModelFieldType.String) { Mapping = "BranchName" }
+                                                )
+                                        )
+                                        .Proxy(
+                                            X.AjaxProxy()
+                                                .Url(Url.Action("OpenedBusday"))
+                                                .Reader(X.JsonReader().RootProperty("data"))
+                                        )
+                                    ),
+
+                               X.DateField().FieldLabel("Date")
+                                .AllowBlank(false)
+                                .Name("BDDateOperation")
+                                .ID("PurchaseDate")
+                                .InputType(Ext.Net.InputType.DateTime)
+                                .Format("m/d/Y H:i:s")
+                )
+             )//fin du items du formpanel
+
+
+        )//fin du items du container general
+
+
+    )
+
+    @* Tableau contenant la liste des achats *@
+    @(
+
+ Html.X().GridPanel()
+            .Title(Resources.ClosedBsDays)
+            .ID("PurchaseList")
+            .Layout(LayoutType.Fit)
+            .MarginSpec("10 10 10 10")
+            .Margin(5)
+            .Frame(true)
+            .Collapsible(false)
+            .Store(X.Store()
+                .GroupField("Light")
+                .ID("PurchaseListStore")
+                .RemotePaging(true)
+                .AutoLoad(true)
+                .PageSize(10)
+                .Model(
+                    X.Model()
+                        .IDProperty("PurchaseListModel")
+                            .Fields(
+                                new ModelField() { Name = "BranchName", Type = ModelFieldType.String },
+                                new ModelField() { Name = "BusinessDayID", Type = ModelFieldType.Int },
+                                new ModelField() { Name = "BDDateOperation", Type = ModelFieldType.Date, DateFormat = "dd/mm/yyy", },
+                                new ModelField() { Name = "ClosingDayStarted", Type = ModelFieldType.Boolean },
+                                new ModelField() { Name = "BDStatut", Type = ModelFieldType.Boolean }
+
+                            )
+                )
+                .Proxy(
+                    X.AjaxProxy()
+                    .Url(Url.Action("GetAllBusDayOpen"))
+                    .ActionMethods(ac => ac.Read = HttpMethod.POST)
+                    .Reader(X.JsonReader().RootProperty("data"))
+                )
+                .Sorters(
+                        X.DataSorter()
+                        .Property("BranchName")
+                        .Direction(Ext.Net.SortDirection.ASC)
+                )
+            )
+
+            .ColumnModel(
+            X.Column()
+                .Text(Resources.Branch)
+                .DataIndex("BranchName")
+                .Flex(1),
+
+                X.DateColumn()
+                .Text(Resources.LastOpDate)
+                .DataIndex("BDDateOperation")
+                .Flex(1),
+
+             X.Column()
+                .Text(Resources.IsClDayTasksStarted)
+                .DataIndex("ClosingDayStarted")
+                 //.Renderer("ClosingDayStartedRenderer")
+                     .Flex(1),
+
+            X.Column()
+                .Text("Statut")
+                .DataIndex("BDStatut")
+                //.Renderer("BDStatutRenderer")
+                    .Flex(1),
+    Html.X().ImageCommandColumn()
+                        .Width(30)
+                        .Hidden(LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, profile, CodeValue.Supply.OpenBD_SM.CODE, db))
+                        .Commands(
+                        Html.X().ImageCommand()
+                                .CommandName("Edit")
+                                .IconCls("icon-edit")
+                                .ToolTip(tt => tt.Text = "Modifier ?")
+                        )
+
+                        .DirectEvents(de =>
+                        {
+                            de.Command.Action = "UpdateBSDay";
+                            de.Command.Method = HttpMethod.POST;
+                            de.Command.ExtraParams.Add(new Parameter("PurchaseID", "record.data.BusinessDayID", ParameterMode.Raw));
+                            de.Command.EventMask.ShowMask = true;
+                            de.Command.EventMask.Msg = Resources.EventMaskUpdate;
+                        })
+                )
+                .Plugins(
+                    X.FilterHeader()
+                )
+                    .BottomBar(
+                        X.PagingToolbar()
+                )
+
+
+    )
+}

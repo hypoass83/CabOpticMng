@@ -1,0 +1,152 @@
+﻿@{
+    Layout = null;
+    var X = Html.X();
+}
+@Html.X().ResourceManager().Theme(Theme.Default).ShowWarningOnAjaxFailure(false)
+@*//.ScriptMode(Ext.Net.ScriptMode.Release)*@
+@(
+ X.Window()
+        .Closable(false)
+        .ID("WindowLogin")
+        .DefaultButton("BtLogin")
+        .Resizable(false)
+        .Height(200)
+        .TitleAlign(TitleAlign.Left)
+        .Icon(Icon.Lock)
+        .Title("Login")
+        .Draggable(false)
+        .Width(300)
+        .Modal(false)
+        .BodyPadding(5)
+        .Hidden(false)
+        .AutoRender(false)
+        .Layout(LayoutType.Fit)
+
+        .Items(
+            X.Panel()
+                .Border(false)
+                .Layout(LayoutType.Table)
+                .LayoutConfig(new TableLayoutConfig() { Columns = 2 })
+                .BodyStyle("background-color:transparent;")
+                .Items(
+                        X.Image()
+                         .ID("ImageID")
+                         .Hidden(false)
+                         .ImageUrl("~/Administration/User/File?id=0")
+                         .MarginSpec("0 0 0 20")
+                         .Width(118)
+                         .Height(140)
+                )
+                .Items(
+                    X.FormPanel()
+                        .Layout(LayoutType.Form)
+                        .Border(false)
+                        .BodyStyle("background-color:transparent;")
+                        .Items(
+                            X.Panel()
+                                .Width(140)
+                                .Height(25)
+                                .X(-3)
+                                .Y(5)
+                                .Border(false)
+                                .BodyStyle("background-color:transparent;")
+                                .Layout(LayoutType.VBox)
+                                .BodyPadding(5)
+                                .Defaults(X.Parameter().Name("margins").Value("0 5 0 0").Mode(ParameterMode.Value))
+                                .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Left })
+                                .Items(
+                                    X.Label(FatSod.Ressources.Resources.username)
+                                )
+                        )
+                        .Items(
+                            X.Panel()
+                                .Width(135)
+                                .Height(30)
+                                .X(-3)
+                                .Y(-5)
+                                .Border(false)
+                                .BodyStyle("background-color:transparent;")
+                                .Layout(LayoutType.VBox)
+                                .BodyPadding(5)
+                                .Defaults(
+                                    X.Parameter()
+                                        .Name("margins")
+                                        .Value("0 5 0 0")
+                                        .Mode(ParameterMode.Value))
+                                .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Left })
+                                .Items(
+                                    X.TextField()
+                                        .ID("Code")
+                                        .Focus(true)
+                                        .Width(135)
+                                        .BlankText("Your username is required.")
+                                )
+                        )
+                        .Items(
+                            X.Panel()
+                                .Width(135)
+                                .Height(25)
+                                .X(-3)
+                                .Y(-10)
+                                .Border(false)
+                                .BodyStyle("background-color:transparent;")
+                                .Layout(LayoutType.VBox)
+                                .BodyPadding(5)
+                                .Defaults(
+                                    X.Parameter()
+                                        .Name("margins")
+                                        .Value("0 5 0 0")
+                                        .Mode(ParameterMode.Value))
+                                .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Left })
+                                .Items(
+                                    X.Label(FatSod.Ressources.Resources.password)
+                                )
+                        )
+                        .Items(
+                            X.Panel()
+                                .Width(135)
+                                .Height(30)
+                                .X(-3)
+                                .Y(-20)
+                                .Border(false)
+                                .BodyStyle("background-color:transparent;")
+                                .Layout(LayoutType.VBox)
+                                .BodyPadding(5)
+                                .Defaults(X.Parameter().Name("margins").Value("0 5 0 0").Mode(ParameterMode.Value))
+                                .LayoutConfig(new VBoxLayoutConfig { Align = VBoxAlign.Left })
+                                .Items(
+                                    X.TextField()
+                                        .ID("Password")
+                                        .Width(140)
+                                        .AllowBlank(false)
+                                        .InputType(Ext.Net.InputType.Password)
+                                        .BlankText("Your password is required.")
+                                )
+                        )
+                )
+        )
+        .Buttons(
+            X.Button()
+                .Text("Cancel")
+                .Icon(Icon.Cancel)
+                .Handler("App.WindowLogin.cancel()"),
+            X.Button()
+                .Text("Login")
+                .ID("BtLogin")
+                .Icon(Icon.Accept)
+                .DirectEvents(de =>
+                {
+                    de.Click.FormID = "form";
+                    de.Click.Url = Url.Action("Connect", "Security");
+                    de.Click.ExtraParams.Add(new Parameter("login", "#{Code}.getValue()", ParameterMode.Raw));
+                    de.Click.ExtraParams.Add(new Parameter("password", "#{Password}.getValue()", ParameterMode.Raw));
+                    de.Click.Success = "this.up('window').close();";
+                    de.Click.EventMask.ShowMask = true;
+                    de.Click.EventMask.Msg = "Connexion Load...";
+                    de.Click.EventMask.MinDelay = 3000;
+                    //de.Click.FormID = "#(return this.up('window').down('form');)";
+                }))
+)
+
+
+

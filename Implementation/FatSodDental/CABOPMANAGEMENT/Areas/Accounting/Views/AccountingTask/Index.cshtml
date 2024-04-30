@@ -1,0 +1,514 @@
+﻿@using FatSod.Ressources;
+@using CABOPMANAGEMENT.Tools;
+@using FatSod.DataContext.Initializer;
+
+@model IEnumerable<FatSod.Supply.Entities.AccountingTask>
+
+@{
+    ViewBag.Title = @Resources.UIAccountingTask;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var profile = (Session["UserProfile"] == null) ? 0 : (int)Session["UserProfile"];
+    var user = (Session["UserID"] == null) ? 0 : (int)Session["UserID"];
+
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+<div class="box box-primary box-body">
+    <!--<form id="FormAccountingSection">-->
+    @****************************@
+    @Html.AntiForgeryToken()
+
+    <h6>@Resources.RequireField<code>(*)</code>.</h6>
+
+    <div class="box box-primary box-body">
+        <div class="row">
+            <!-- Left Side Begins Here -->
+            <div class="col-sm-6">
+                @*<div class="panel panel-default">*@
+                <div class="panel-body1">
+                    <fieldset>
+                        <input type="hidden" id="AccountingTaskID" />
+                        <div class="row ipt">
+                            <!-- Branche -->
+                            <div class="col-sm-3">@Resources.UIOperationName<code>(*)</code></div>
+                            <div class="col-sm-9">
+                                <select id="OperationID" class="input-sm form-control"></select>
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <!--AccountingTaskDescription -->
+                            <div class="col-sm-3">@Resources.UIAccountingTaskDescription<code>(*)</code></div>
+                            <div class="col-sm-9" >
+                                <input type="text" style="width:90%" id="AccountingTaskDescription" value="@ViewBag.DefaultAccountingTaskDescription" />
+                            </div>
+                        </div>
+
+                        <div class="row ipt">
+                            <!-- Date Operation -->
+                            <div class="col-sm-3">@Resources.UIAccountingTaskSens<code>(*)</code></div>
+                            <div class="col-sm-9">
+                                <select id="AccountingTaskSens" class="input-sm form-control">
+                                    <option value="0">@Resources.Select</option>
+                                    <option value="CR">@Resources.UIcredit</option>
+                                    <option value="DB">@Resources.UIdebit</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <!-- AccountingSectionID -->
+                            <div class="col-sm-3">@Resources.UIAccountingSectionID<code>(*)</code></div>
+                            <div class="col-sm-9">
+                                <select id="AccountingSectionID" class="input-sm form-control"></select>
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <!-- AccountID -->
+                            <div class="col-sm-3">@Resources.UIAccount</div>
+                            <div class="col-sm-9">
+                                <select id="AccountID" class="input-sm form-control"></select>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+                @*</div>*@
+            </div>
+            <!-- Right Side Begins Here -->
+            <div class="col-sm-6">
+                @*<div class="panel panel-default">*@
+                <div class="panel-body1">
+                    <fieldset>
+
+                        <div class="row ipt">
+                            <!-- VatAccountID -->
+                            <div class="col-sm-3">@Resources.UIVATAccount</div>
+                            <div class="col-sm-9">
+                                <select id="VatAccountID" class="input-sm form-control"></select>
+                            </div>
+                        </div>
+                        <div class="row ipt">
+                            <div class="col-sm-3">@Resources.UIDiscountAccountID</div>
+                            <div class="col-sm-9">
+                                <select  id="DiscountAccountID" class="input-sm form-control" ></select>
+                            </div>
+                        </div>
+
+                        <div class="row ipt">
+                            <div class="col-sm-3">@Resources.UITransportAccountID</div>
+                            <div class="col-sm-9">
+                                <select  id="TransportAccountID" class="input-sm form-control" ></select>
+                            </div>
+                        </div>
+                        
+                    </fieldset>
+                </div>
+                @*</div>*@
+            </div>
+        </div>
+    </div>
+    <div class="box box-primary box-body">
+        <table class="table" id="mainTable">
+            <thead>
+                <tr class="dataTableHead">
+                    <th>
+                        ID
+                    </th>
+                    <th>
+                        @Resources.Code
+                    </th>
+                    <th>
+                        @Resources.Description
+                    </th>
+                    <th>
+                        @Resources.UIAccountingTaskSens
+                    </th>
+                    <th>
+                        @Resources.UIAccountingSectionID
+                    </th>
+                    <th>
+                        @Resources.UIAccount
+                    </th>
+                    <th>
+                        @Resources.UIVATAccount
+                    </th>
+                    <th>
+                        @Resources.UIDiscountAccountID
+                    </th>
+                    <th>
+                        @Resources.UITransportAccountID
+                    </th>
+                    <th>
+                        Action
+                    </th>
+                </tr>
+            </thead>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.AccountingTaskID)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.UIOperationCode)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.AccountingTaskDescription)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.AccountingTaskSens)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.UIAccountingSectionNumber)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.UIAccountNumber)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.UIVatAccountNumber)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.UIDiscountAccountNumber)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.UITransportAccountNumber)
+                    </td>
+                    <td>
+                        <a href=# onclick="EditItem(this)"><span class="glyphicon glyphicon-edit"></span></a> |
+                        <a href=# onclick="DeleteItem(this)"><span class="glyphicon glyphicon-trash"></span></a>
+                    </td>
+                </tr>
+            }
+
+        </table>
+    </div>
+    <div class="box box-primary box-body">
+        <div class="row ipt">
+            <div class="col-sm-4">
+                <button type="button" id="btnCancel" class="btn btn-primary">@Resources.ResetButton</button>
+            </div>
+            <div class="col-sm-8">
+                <button type="submit" class="btn btn-primary" id="btnSubmit">@Resources.SaveButton</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 3px;
+        margin-left: 1px;
+    }
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin: 0;
+        min-width: 0;
+        padding: 10px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #F1F1F1; /*#99bce8; */
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 170px;
+    }
+
+    .panel-body1 {
+        height: 165px;
+        margin-bottom: 2%;
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+</style>
+
+<!--********** JavaScripts **********-->
+<script>
+    // Get the Branch List
+    function populateOperation() {
+        $.get('@Url.Action("populateOperation", "AccountingTask")', {}, function (data) {
+            $('#OperationID').empty();
+            $('#OperationID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#OperationID').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+    // Get the Account section List
+    function populateAccountingSection() {
+        $.get('@Url.Action("populateAccountingSection", "AccountingTask")', {}, function (data) {
+            $('#AccountingSectionID').empty();
+            $('#AccountingSectionID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#AccountingSectionID').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+
+    // Get the gl Account List
+    function populateAccount(AccountingSectionID) {
+        if (AccountingSectionID > 0) {
+            $.get('@Url.Action("GetAccountNumber", "AccountingTask")', { AccountingSectionID: AccountingSectionID }, function (data) {
+                $('#AccountID').empty();
+                $('#AccountID').append($("<option value='0'>@Resources.Select</option>"));
+                $.each(data, function (key, value) {
+                    $('#AccountID').append($("<option></option>").val(value.ID).html(value.Name));
+                });
+            }, 'json');
+        }
+    }
+
+    // Get the tva Account List
+    function populateTVAAccount(OperationID) {
+        if (OperationID > 0) {
+            $.get('@Url.Action("GetVATAccountNumber", "AccountingTask")', { OperationID: OperationID }, function (data) {
+                $('#VatAccountID').empty();
+                $('#VatAccountID').append($("<option value='0'>@Resources.Select</option>"));
+                $.each(data, function (key, value) {
+                    $('#VatAccountID').append($("<option></option>").val(value.ID).html(value.Name));
+                });
+            }, 'json');
+        }
+    }
+
+    // Get the discount Account
+    function populateDiscAccount(OperationID) {
+        if (OperationID > 0) {
+            $.get('@Url.Action("GetDiscountAccount", "AccountingTask")', { OperationID: OperationID }, function (data) {
+                $('#DiscountAccountID').empty();
+                $('#DiscountAccountID').append($("<option value='0'>@Resources.Select</option>"));
+                $.each(data, function (key, value) {
+                    $('#DiscountAccountID').append($("<option></option>").val(value.ID).html(value.Name));
+                });
+            }, 'json');
+        }
+    }
+    // Get the Transport Account
+    function populateTransportAccount(OperationID) {
+        if (OperationID > 0) {
+            $.get('@Url.Action("GetTransPortAccount", "AccountingTask")', { OperationID: OperationID }, function (data) {
+                $('#TransportAccountID').empty();
+                $('#TransportAccountID').append($("<option value='0'>@Resources.Select</option>"));
+                $.each(data, function (key, value) {
+                    $('#TransportAccountID').append($("<option></option>").val(value.ID).html(value.Name));
+                });
+            }, 'json');
+        }
+    }
+
+    function EditItem(obj) {
+
+        var globalID = $(obj).parent().siblings(":first").text();
+        var AccountingSectionID = 0;
+        var OperationID = 0;
+
+        var AccountID = 0;
+        var VatAccountID = 0;
+        var DiscountAccountID = 0;
+        var TransportAccountID = 0;
+
+        $.get('@Url.Action("InitializeFields", "AccountingTask")', { id: parseInt(globalID) }, function (data) {
+            $.each(data, function (key, value) {
+                $('#AccountingTaskID').val(value.AccountingTaskID);
+                $('#OperationID').val(value.OperationID);
+                $('#AccountingTaskDescription').val(value.AccountingTaskDescription);
+                $('#AccountingSectionID').val(value.AccountingSectionID);
+                $('#AccountingTaskSens').val(value.AccountingTaskSens);
+                //
+                VatAccountID=value.VatAccountID;
+                AccountID=value.AccountID;
+                DiscountAccountID=value.DiscountAccountID;
+                TransportAccountID=value.TransportAccountID;
+
+                AccountingSectionID = value.AccountingSectionID;
+                OperationID = value.OperationID;
+            });
+
+            populateAccount(AccountingSectionID);
+            $('#AccountID').val(AccountID);
+            populateTVAAccount(OperationID);
+            $('#VatAccountID').val(VatAccountID);
+            populateDiscAccount(OperationID);
+            $('#DiscountAccountID').val(DiscountAccountID);
+            populateTransportAccount(OperationID);
+            $('#TransportAccountID').val(TransportAccountID);
+        }, 'json');
+
+        
+
+    }
+    function DeleteItem(obj) {
+        if (confirm("@Resources.ConfirmDeleteMessage")) {
+            var globalID = $(obj).parent().siblings(":first").text();
+            //post to the server
+            $(this).val('Please wait...');
+            var data = {
+                ID: parseInt(globalID)
+            }
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("DeleteTask", "AccountingTask")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    alert(d.Message);
+                    location.reload(true);
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                }
+            });
+        }
+
+    }
+
+    $(document).on('ready', function () {
+        $(function () {
+            $(".datepicker").datepicker({
+                format: 'yyyy-mm-dd'
+            });
+        });
+
+        populateOperation();
+
+        //chargement des cptes
+        populateAccountingSection();
+
+        $("#AccountingSectionID").on('change', function () {
+            var AccountingSectionID = $.trim($('#AccountingSectionID').val())
+            populateAccount(AccountingSectionID);
+        });
+        $("#OperationID").on('change', function () {
+            var OperationID = $.trim($('#OperationID').val())
+            populateTVAAccount(OperationID);
+            populateDiscAccount(OperationID);
+            populateTransportAccount(OperationID);
+        });
+
+        $('#mainTable').DataTable();
+
+
+        $("#btnSubmit").on('click', function () {
+            btnSubmit();
+        });
+
+        $('#btnCancel').on('click', function () {
+            location.reload(true);
+        });
+
+
+
+    });
+
+
+
+    function btnSubmit() {
+        var isAllValid = true;
+        if ($('#OperationID').val() == "0") {
+            isAllValid = false;
+            $("#OperationID").addClass("invalid-data");
+        }
+        else {
+            $("#OperationID").addClass("valid-data");
+        }
+
+        if ($('#AccountingTaskDescription').val() == "") {
+            isAllValid = false;
+            $("#AccountingTaskDescription").addClass("invalid-data");
+        }
+        else {
+            $("#AccountingTaskDescription").addClass("valid-data");
+        }
+
+        if ($('#AccountingSectionID').val() == '0') {
+            isAllValid = false;
+            $("#AccountingSectionID").addClass("invalid-data");
+        }
+        else {
+            $("#AccountingSectionID").addClass("valid-data");
+        }
+        
+        if ($('#AccountingTaskSens').val().trim() == '0') {
+            isAllValid = false;
+            $("#AccountingTaskSens").addClass("invalid-data");
+        }
+        else {
+            $("#AccountingTaskSens").addClass("valid-data");
+        }
+
+        var data = {
+            AccountingTaskID: $('#AccountingTaskID').val(),
+            OperationID: $('#OperationID').val(),
+            AccountingTaskDescription: $('#AccountingTaskDescription').val(),
+            AccountingSectionID: $('#AccountingSectionID').val(),
+            VatAccountID: $('#VatAccountID').val(),
+            AccountID: $('#AccountID').val(),
+            DiscountAccountID: $('#DiscountAccountID').val(),
+            AccountingTaskSens: $('#AccountingTaskSens').val(),
+            TransportAccountID: $('#TransportAccountID').val()
+        }
+        $(this).val('Please wait...');
+        if (isAllValid) {
+            $.ajax({
+                url: '@Url.Action("AddAccountingTask", "AccountingTask")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    alert(d.Message);
+                    location.reload(true);
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                },
+                error: function () {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                }
+            });
+        }
+    }
+
+
+</script>

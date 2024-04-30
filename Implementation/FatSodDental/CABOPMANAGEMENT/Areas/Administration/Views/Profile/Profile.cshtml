@@ -1,0 +1,381 @@
+﻿@using FatSod.Ressources;
+
+@using FatSod.DataContext.Initializer;
+@using CABOPMANAGEMENT.Tools;
+
+@model IEnumerable<FatSod.Security.Entities.Profile>
+@{
+    ViewBag.Title = "Profile";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+
+    UInt32 allMenus = 0;
+    UInt32 allSubMenus = 0;
+
+    var profile = (Session["UserProfile"] == null) ? 0 : (int)Session["UserProfile"];
+    var user = (Session["UserID"] == null) ? 0 : (int)Session["UserID"];
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+    var culture = Resources.Culture;
+
+}
+
+<!-- Add New Profile -->
+<div class="box box-primary box-body">
+    <div class="row">
+        <div class="col-sm-6">
+            <h4>@Resources.ProfilePageTitle</h4>
+            <h6>@Resources.RequireField <code>(*)</code></h6>
+        </div>
+    </div>
+    <div class="row">
+        <fieldset class="col-md-6">
+            <legend>@Resources.ProfileFormTitle</legend>
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <div class="row">
+                        <input type="hidden" id="ProfileID" />
+                        <div class="col-sm-4">@Resources.Code<code>(*)</code></div>
+                        <div class="col-sm-8">
+                            <input type="text" id="ProfileCode" class="form-control" /><span class="error">@Resources.RequiredField</span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-4">@Resources.UINom<code>(*)</code></div>
+                        <div class="col-sm-8">
+                            <input type="text" id="ProfileLabel" class="form-control" /><span class="error">@Resources.RequiredField</span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-4">@Resources.Disabled<code>(*)</code></div>
+                        <div class="col-sm-8">
+                            <input type="radio" id="ProfileStateOK" name="optradioActive" value="1" /> @Resources.Yess<br />
+                            <input type="radio" id="ProfileState" name="optradioActive" value="0" checked="checked"/> @Resources.No
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+        <fieldset class="col-md-6">
+            <legend>@Resources.Complement</legend>
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-sm-4">@Resources.Description<code>(*)</code></div>
+                        <div class="col-sm-8">
+                            <textarea id="ProfileDescription" class="form-control"></textarea><span class="error">@Resources.RequiredField</span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-4">@Resources.UserAccessLevel<code>(*)</code></div>
+                        <div class="col-sm-8">
+                            <input type="radio" id="Access4" name="optradioLevel" value="4" /> @Resources.MostHighLevel<br />
+                            <input type="radio" id="Access3" name="optradioLevel" value="3" /> @Resources.HighLevel<br />
+                            <input type="radio" id="Access1" name="optradioLevel" value="1" checked /> @Resources.LowLevel
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+    </div>
+</div>
+
+<!-- Modules - Menus - Submenus -->
+
+<div class="box box-primary box-body">
+    <div class="row">
+        
+        @foreach (var mod in db.Modules.OrderBy(m => m.AppearanceOrder).ToList())
+        {
+            
+            //affichage des module
+            <div class="col-sm-2">
+                @*<span style="color:blue; font-weight: bold;"> @Resources.ResourceManager.GetString(mod.ModuleCode, culture).ToUpper() </span><br />*@
+                <strong style="color: blue">@Resources.ResourceManager.GetString(@mod.ModuleCode, culture).ToUpper()</strong><br />
+                
+                @foreach (var menu in db.Menus.Where(m => m.ModuleID == mod.ModuleID).OrderBy(m => m.AppearanceOrder).ToList())
+                {
+                    var listSubMenuProfile = db.SubMenus.Where(sm => sm.MenuID == menu.MenuID).OrderBy(m => m.AppearanceOrder).ToList();
+                    if (listSubMenuProfile.Count() > 0)
+                    {
+                        <strong style="font-weight: bolder; opacity: 1;">@Resources.ResourceManager.GetString(menu.MenuCode, culture).ToUpper()</strong><br />
+
+                        foreach (var subMenu in listSubMenuProfile)
+                        {
+                            allSubMenus++;
+                            <span><input type="checkbox" id="@String.Concat("SubMenu",@subMenu.SubMenuID)" value="@subMenu.SubMenuID" name="SubMenu" /> @Resources.ResourceManager.GetString(subMenu.SubMenuCode,culture)</span><br />
+                        }
+                    }
+                    else
+                    {
+                        allMenus++;
+                        <span><input type="checkbox" id="@String.Concat("Menu",@menu.MenuID)" value="@menu.MenuID" name="Menu" /> @Resources.ResourceManager.GetString(menu.MenuCode, culture)</span><br />
+                    }
+                }
+            </div>
+        }
+           
+            
+</div>
+    <hr />
+    <div class="row">
+        <!-- Save and Cancel Buttons -->
+        <div class="col-sm-4">
+            <button type="button" id="btnCancel" class="btn btn-primary">@Resources.ResetButton</button>
+        </div>
+        <div class="col-sm-8">
+            <button type="submit" class="btn btn-primary" id="btnSubmit">@Resources.SaveButton</button>
+        </div>
+    </div>
+</div>
+
+<!-- Ajout de la table contenant les data deja enregistrees-->
+<h2>@Resources.ProfileList</h2>
+<div class="box box-body box-primary">
+    <table class="table" id="mainTable">
+        <thead>
+            <tr class="dataTableHead">
+                <th>
+                    ID
+                </th>
+                <th>
+                    @Resources.PersonName
+                </th>
+                <th>
+                    @Resources.Description
+                </th>
+                <th>
+                    @Resources.Code
+                </th>
+                <th>
+                    Pofile Level
+                </th>
+                <th>
+                    Action
+                </th>
+            </tr>
+        </thead>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ProfileID)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ProfileLabel)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ProfileDescription)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ProfileCode)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.PofilLevel)
+                </td>
+                <td>
+                    @if (!LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, @profile, CodeValue.Security.Profile.CODE, db))
+                    {<a href=# onclick="UpdateItem(@item.ProfileID)"><span class="glyphicon glyphicon-edit"></span></a> }|
+                    @if (!LoadAction.IsSubMenuActionAble(MenuAction.DELETE, @profile, CodeValue.Security.Profile.CODE, db))
+                    {<a href=# onclick="DeleteItem(@item.ProfileID)"><span class="glyphicon glyphicon-trash"></span></a> }
+                    
+                </td>
+            </tr>
+        }
+
+    </table>
+</div>
+
+
+<style>
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin: 0;
+        min-width: 0;
+        padding: 10px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 35%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+
+    
+</style>
+
+<script type="text/javascript">
+   
+
+    $(document).on('ready', function () {
+        $('#mainTable').DataTable();
+        $('#btnCancel').on('click', function () {
+            location.reload(true);
+        });
+        $('#btnSubmit').on('click', function () {
+            valideProfilUser();
+        });
+    })
+    var arrayMenu = [];
+    var arraySubMenu = [];
+
+    function valideProfilUser()
+    {
+        var isAllValid = true;
+
+        if ($('#ProfileCode').val().trim() == '') {
+            isAllValid = false;
+            $('#ProfileCode').addClass("invalid-data");
+        }
+        else {
+            $('#ProfileCode').addClass("valid-data");
+        }
+        if ($('#ProfileLabel').val().trim() == '') {
+            isAllValid = false;
+            $('#ProfileLabel').addClass("invalid-data");
+        }
+        else {
+            $('#ProfileLabel').addClass("valid-data");
+        }
+        if ($('#ProfileDescription').val().trim() == '') {
+            isAllValid = false;
+            $('#ProfileDescription').addClass("invalid-data");
+        }
+        else {
+            $('#ProfileDescription').addClass("valid-data");
+        }
+
+        var checkboxesMenu = document.querySelectorAll('input[type=checkbox][name=Menu]:checked')
+
+        for (var i = 0; i < checkboxesMenu.length; i++) {
+            arrayMenu.push(checkboxesMenu[i].value)
+        }
+
+        var checkboxesSubMenu = document.querySelectorAll('input[type=checkbox][name=SubMenu]:checked')
+
+        for (var i = 0; i < checkboxesSubMenu.length; i++) {
+            arraySubMenu.push(checkboxesSubMenu[i].value)
+        }
+        if (isAllValid) {
+            var data = {
+                ProfileDescription: $('#ProfileDescription').val(),
+                ProfileLabel: $('#ProfileLabel').val(),
+                ProfileCode: $('#ProfileCode').val(),
+                ProfileID: $('#ProfileID').val(),
+                ProfileState: $('input[name=optradioActive]:checked').val(),
+                PofilLevel: $('input[name=optradioLevel]:checked').val(),
+                defaultSubMenu: arraySubMenu, @*@allSubMenus,*@
+                defaultMenu: arrayMenu, @*@allMenus,*@
+            }
+            $(this).val('Please wait...');
+
+
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("Add", "Profile")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        location.reload(true);
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                },
+                error: function () {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                }
+            });
+        }
+    }
+
+    function UpdateItem(obj) {
+        var globalID = obj;
+        //initialisation des checkbox
+        var checkboxes = document.querySelectorAll('input[type=checkbox]:checked')
+        for (var i = 0; i < checkboxes.length; i++) {
+            $('input[type=checkbox]').prop('checked', false);
+        }
+        $.get('@Url.Action("CheckedMenus", "Profile")', { ID: parseInt(globalID) }, function (data) {
+            $.each(data, function (key, value) {
+                $('#ProfileID').val(value.ProfileID);
+                $('#ProfileCode').val(value.ProfileCode);
+                $('#ProfileLabel').val(value.ProfileLabel);
+                $('#ProfileDescription').val(value.ProfileDescription);
+                $('input[name=optradioLevel][value="' + value.RadioAccess + '"]').prop('checked', true);
+                $('input[name=optradioActive][value="' + value.RadioProfileState + '"]').prop('checked', true);
+                $.each(value.ModelCheckMenus, function (keyMenu, valueMenu) {
+                    $('input[id="' + valueMenu.CheckMenuName + '"][value="' + valueMenu.CheckMenuID + '"]').prop('checked', true);
+                });
+                $.each(value.ModelCheckSubMenus, function (keySubMenu, valueSubMenu) {
+                    $('input[id="' + valueSubMenu.CheckSubMenuName + '"][value="' + valueSubMenu.CheckSubMenuID + '"]').prop('checked', true);
+                });
+            });
+        }, 'json');
+    }
+
+    function DeleteItem(obj) {
+        if (confirm("@Resources.ConfirmDeleteMessage")) {
+            var globalID = obj;
+            //post to the server
+            $(this).val('Please wait...');
+            var data = {
+                ID: parseInt(globalID)
+            }
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("Delete", "Profile")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        location.reload(true);
+                        clearForm();
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                }
+            });
+        }
+
+    }
+</script>

@@ -1,0 +1,1065 @@
+﻿@using FatSod.Ressources;
+@using FatSod.DataContext.Initializer;
+@using CABOPMANAGEMENT.Tools;
+
+@*@model IEnumerable<FatSod.Supply.Entities.Customer>*@
+@{
+    ViewBag.Title = @Resources.FormCustomerAddTitle;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var profile = (Session["UserProfile"] == null) ? 0 : (int)Session["UserProfile"];
+    var user = (Session["UserID"] == null) ? 0 : (int)Session["UserID"];
+    var db = new FatSod.DataContext.Concrete.EFDbContext();
+}
+
+<div class="box box-primary box-body">
+    <div class="panel panel-default">
+        <div class="panel-body1">
+            <div class="row">
+                <div class="row ipt1">
+                    <div class="col-sm-3" style="margin-left:50px;">@Resources.UIBeginDate</div>
+                    <div class="col-sm-2" style="margin-left:-100px;">
+                        <input class="form-control datepicker" id="BeginDate" type="text" placeholder="choose Begin date" value="@ViewBag.BusnessDayDate">
+                        <input type="hidden" id="CurrentDate" value="@ViewBag.BusnessDayDate" />
+                    </div>
+                    <div class="col-sm-3">@Resources.UIEndDate</div>
+                    <div class="col-sm-2" style="margin-left:-100px;">
+                        <input class="form-control datepicker checkDateNoGraterThanToday" id="EndDate" type="text" placeholder="choose End date" value="@ViewBag.BusnessDayDate">
+                    </div>
+                    <div class="col-sm-2">
+                        <button type="button" class="btn btn-primary btn-success" id="btnDisplayCustomer">@Resources.LoadCustomer</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--<div class="col-sm-4">-->
+        @*<button type="button" id="btnNewCustomer" class="btn btn-primary btn-success">@Resources.NewCustomer</button>*@
+        <!--</div>
+    <div class="col-sm-3" style="text-align:center">
+        <button type="button" class="btn btn-primary btn-success" id="btnDisplayCustomer">@Resources.LoadAllCustomer</button>
+    </div>-->
+    </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>@Resources.RequireField <code>(*)</code>.</h6>
+                </div>
+            </div>
+            <div class="row" id="mainform">
+                <fieldset class="col-md-4" id="fieldset1">
+                    <legend>@Resources.PersonIdentificationForm</legend>
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <input type="hidden" id="GlobalPersonID" />
+                            <input type="hidden" id="Branch" value="@ViewBag.CurrentBranch" />
+                            <input type="hidden" id="PersonType" value="1" />
+
+
+
+                            <div class="row ipt" id="NameF">
+                                <div class="col-sm-4">@Resources.PersonName<code>(*)</code></div>
+                                <div class="col-sm-8">
+                                    <input type="text" id="Name" class="input-sm form-control" />
+                                </div>
+                            </div>
+                            <div class="row ipt" id="DescriptionF">
+                                <div class="col-sm-4" id="DescriptionLabelID">@Resources.PersonSurname<code>(*)</code></div>
+                                <div class="col-sm-8">
+                                    <input type="text" id="Description" class="input-sm form-control" />
+                                </div>
+                            </div>
+                            <div class="row ipt" id="CNIF">
+                                <div class="col-sm-4" id="CNILabelID">@Resources.CustoID<code>(*)</code></div>
+                                <div class="col-sm-8">
+                                    <input type="text" id="CNI" class="input-sm form-control" />
+                                </div>
+                            </div>
+                            <div class="row ipt" id="SexIDF">
+                                <div class="col-sm-4">@Resources.PersonSex</div>
+                                <div class="col-sm-8">
+                                    <input type="radio" name="SexID" id="Masculin" value="1" checked="checked" /> @Resources.Male
+                                    <input type="radio" name="SexID" id="Feminin" value="2" /> @Resources.Female
+                                </div>
+                            </div>
+                            <div class="row ipt">
+                                <div class="col-sm-4">@Resources.DateOfBirth<code>(*)</code></div>
+                                <div class="col-sm-4">
+                                    <input type="text" id="DateOfBirth" class="input-sm form-control datepicker" />
+                                </div>
+                                <div class="col-sm-1" style="margin-left:-15px">Age</div>
+                                <div class="col-sm-3">
+                                    <input type="text" id="CustomerAge" class="input-sm form-control" readonly />
+                                </div>
+                            </div>
+                            <div class="row ipt" id="IsBillCustomerF">
+                                <div class="col-sm-4">@Resources.IsBillCustomer</div>
+                                <div class="col-sm-8">
+                                    <input type="radio" name="IsBillCustomer" id="True" value="1" /> @Resources.Yess
+                                    <input type="radio" name="IsBillCustomer" id="False" value="0" checked="checked" /> @Resources.No
+                                </div>
+                            </div>
+                            <div class="row ipt" id="PreferredLanguage">
+                                <div class="col-sm-4">@Resources.Language<code>(*)</code></div>
+                                <div class="col-sm-4">
+                                    @Resources.English <input type="checkbox" name="PreferredLanguage" id="PreferredLanguage_EN" value="EN" />
+                                </div>
+                                <div class="col-sm-4">
+                                    @Resources.French <input type="checkbox" name="PreferredLanguage" id="PreferredLanguage_FR" value="FR" />
+                                </div>
+                            </div>
+                            <div class="row ipt" id="ProfessionF">
+                                <div class="col-sm-4" id="ProfessionID">Profession</div>
+                                <div class="col-sm-8">
+                                    <input type="text" id="Profession" class="input-sm form-control" />
+                                </div>
+                            </div>
+                            @*<div class="row ipt" id="CustomerStatusF">
+                                    <div class="col-sm-4" id="CustomerStatusID">@Resources.CustomerStatus</div>
+                                    <div class="col-sm-8">
+                                        <input type="text" id="CustomerStatus" class="input-sm form-control" readonly />
+                                    </div>
+                                </div>*@
+                        </div>
+                    </div>
+                </fieldset>
+                <!-- Adress -->
+                <fieldset class="col-md-4" id="fieldset2">
+                    <legend>@Resources.PersonAdressForm</legend>
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <input type="hidden" id="AdressID" />
+                            <div class="row ipt">
+                                <div class="col-sm-4">@Resources.PersonMobile<code>(*)</code></div>
+                                <div class="col-sm-8">
+                                    <input type="text" id="AdressPhoneNumber" class="input-sm form-control" />
+                                </div>
+                            </div>
+                            <div class="row ipt">
+                                <div class="col-sm-4">@Resources.AdressEmail</div>
+                                <div class="col-sm-8">
+                                    <input type="text" id="AdressEmail" class="input-sm form-control" />
+                                </div>
+                            </div>
+                            <div class="row ipt">
+                                <div class="col-sm-4">@Resources.PersonBox</div>
+                                <div class="col-sm-8">
+                                    <input type="text" id="AdressPOBox" class="input-sm form-control" />
+                                </div>
+                            </div>
+                            <div class="row ipt">
+                                <div class="col-sm-4">Fax</div>
+                                <div class="col-sm-8">
+                                    <input type="text" id="AdressFax" class="input-sm form-control" />
+                                </div>
+                            </div>
+                            <div class="row ipt">
+                                <div class="col-sm-4">@Resources.AdressCountry<code>(*)</code></div>
+                                <div class="row">
+                                    <div class="col-sm-7">
+                                        <select id="Country" class="form-control"></select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row ipt">
+                                <div class="col-sm-4">@Resources.AdressRegion<code>(*)</code></div>
+                                <div class="row">
+                                    <div class="col-sm-7">
+                                        <select id="Region" class="form-control"></select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row ipt">
+                                <div class="col-sm-4">@Resources.AdressTown<code>(*)</code></div>
+                                <div class="row">
+                                    <div class="col-sm-7">
+                                        <select id="Town" class="form-control"></select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4">@Resources.AdressQuarter<code>(*)</code></div>
+                                <div class="row">
+                                    <div class="col-sm-7">
+                                        <select id="Quarter" class="form-control"></select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+                <!-- User Login Parameter -->
+                <fieldset class="col-md-4" id="fieldset3">
+                    <legend>@Resources.CustomerCountFormTitle</legend>
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+
+                            <div class="row ipt">
+                                <div class="col-sm-4">@Resources.CustomerNumber</div>
+                                <div class="col-sm-8">
+                                    <input type="text" id="CustomerNumber" class="input-sm form-control" readonly />
+                                </div>
+                            </div>
+
+                            <div class="row ipt">
+                                <div class="col-sm-4">@Resources.CollectifAccount<code>(*)</code></div>
+                                <div class="row">
+                                    <div class="col-sm-7">
+                                        <select id="Account" class="form-control"></select><br />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row ipt">
+                                <div class="col-sm-4">@Resources.Marqueter<code>(*)</code></div>
+                                <div class="row">
+                                    <div class="col-sm-7">
+                                        <select id="GestionnaireID" class="form-control"></select><br />
+                                    </div>
+                                </div>
+                                <input type="hidden" id="LimitAmount" value="0" />
+                                <input type="file" id="UploadImage" value="~/User/File?id=0" />
+                                <input type="hidden" id="FileID" value="0" />
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+
+            </div><br />
+            <div class="row">
+                <div class="col-sm-2">
+                    <button type="button" id="btnCancel" class="btn btn-primary btn-danger">@Resources.ResetButton</button>
+                </div>
+                <div class="col-sm-2">
+                    <button type="submit" class="btn btn-primary btn-success" id="btnSubmit">@Resources.SaveButton</button>
+                </div>
+                <div class="col-md-4">
+                    <h6>@Resources.LastCustomerID :</h6>
+                </div>
+                <div class="col-md-2">
+                    <input type="text" id="LastCustomerID" class="input-sm form-control" readonly />
+                </div>
+            </div>
+        </div>
+
+        <!-- Ajout de la table contenant les data deja enregistrees-->
+        <h2>@Resources.CustomerList</h2>
+        <div class="box box-body box-primary">
+            <table class="table" id="mainTable">
+                <thead>
+                    <tr class="dataTableHead">
+                        <th>
+                            ID
+                        </th>
+                        <th>
+                            @Resources.CNI
+                        </th>
+                        <th>
+                            @Resources.PersonName
+                        </th>
+                        <th>
+                            @Resources.PersonSurname
+                        </th>
+                        <th>
+                            @Resources.PersonMobile
+                        </th>
+                        @*<th>
+                                Email
+                            </th>*@
+                        <th>
+                            @Resources.AdressQuarter
+                        </th>
+                        <th>
+                            @Resources.CustomerStatus
+                        </th>
+                        <th>
+                            @Resources.CustomerNumber
+                        </th>
+                        <th>
+                            @Resources.RegisterDate
+                        </th>
+                        <th>
+                            House?
+                        </th>
+                        <th>
+                            Insured?
+                        </th>
+                        @*<th>
+                                @Resources.Value
+                            </th>*@
+                        <th>
+                            Action
+                        </th>
+                    </tr>
+                </thead>
+                @*@foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.CNI)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Name)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Description)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Adress.AdressPhoneNumber)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Adress.AdressEmail)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Adress.Quarter.QuarterLabel)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Account.AccountLabel)
+                            </td>
+                            <td>
+                                @if (!LoadAction.IsMenuActionAble(MenuAction.UPDATE, @profile, CodeValue.Sale.Customer.CODECLT, db))
+                                {<a href=# onclick="UpdateItem(@item.GlobalPersonID)"><span class="glyphicon glyphicon-edit"></span></a> }|
+                                @if (!LoadAction.IsMenuActionAble(MenuAction.DELETE, @profile, CodeValue.Sale.Customer.CODECLT, db))
+                                {<a href=# onclick="DeleteItem(@item.GlobalPersonID)"><span class="glyphicon glyphicon-trash"></span></a> }
+
+                            </td>
+                        </tr>
+                    }*@
+
+            </table>
+        </div>
+
+        <!-- Css Begins Here -->
+
+        <style>
+            .invalid-data {
+                border: 1px solid red;
+            }
+
+            .valid-data {
+                border: 1px solid #ccc;
+            }
+
+            .ipt {
+                margin-bottom: 6px;
+            }
+
+            .ipt1 {
+                margin-bottom: 6px;
+                margin-top:5px;
+            }
+
+            #img-upload {
+                width: 100%;
+            }
+
+            /*Adding some css for looks good*/
+            span.error {
+                display: block;
+                visibility: hidden;
+                color: red;
+                font-size: 90%;
+            }
+
+            #after_manual_posting_yes {
+                margin-right: 15px;
+            }
+
+            fieldset {
+                border: 1px solid #ddd !important;
+                margin: 0;
+                min-width: 0;
+                padding: 10px;
+                position: relative;
+                border-radius: 4px;
+                background-color: #99bce8;
+                padding-left: 10px !important;
+            }
+
+            .panel-body {
+                height: 350px;
+            }
+
+            .panel-body1 {
+                height: 50px;
+            }
+
+            legend {
+                font-size: 14px;
+                font-weight: bold;
+                margin-bottom: 0px;
+                width: 70%;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                padding: 5px 5px 5px 10px;
+                background-color: #ffffff;
+            }
+        </style>
+
+        <!--********** JavaScripts **********-->
+        <script>
+
+
+    // Get the CollectifAccounts List
+    function populateCollectifAccounts() {
+        $.get('@Url.Action("CollectifAccounts", "Customer")', { code: '@CodeValue.Accounting.DefaultCodeAccountingSection.CODECLIENT' }, function (data) {
+            $('#Account').empty();
+            $('#Account').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#Account').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+    // Get the Country List
+    function populateCountry() {
+        $.get('@Url.Action("populateCountry", "Customer")', {}, function (data) {
+            $('#Country').empty();
+            $('#Country').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#Country').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+
+    // Get the Users List
+    function populateUsers() {
+        $.get('@Url.Action("populateUsers", "Customer")', {}, function (data) {
+            $('#GestionnaireID').empty();
+            $('#GestionnaireID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#GestionnaireID').append($("<option></option>").val(value.ID).html(value.Name));
+            });
+        }, 'json');
+    }
+
+    function populateRegionBy(_countryId, Region) {
+
+        $('#Region').append($("<option value='0'>@Resources.Select</option>"));
+
+        if (_countryId>0) {
+            $('#Region').prop('disabled', false);
+            $.get('@Url.Action("populateRegion", "Customer")', { countryId: _countryId }, function (data) {
+                $('#Region').empty();
+                $('#Region').append($("<option value='0'>@Resources.Select</option>"));
+                $.each(data, function (key, value) {
+                    $('#Region').append($("<option></option>").val(value.ID).html(value.Name));
+                });
+                if (Region > 0) $('#Region').val(Region);
+            }, 'json');
+        }
+
+    }
+
+
+    function populateTownBy(_regionId,Town) {
+
+        $('#Town').append($("<option value='0'>@Resources.Select</option>"));
+
+
+        if (_regionId>0) {
+            $('#Town').prop('disabled', false);
+            $.get('@Url.Action("populateTown", "Customer")', { regionId: _regionId }, function (data) {
+                $('#Town').empty();
+                $('#Town').append($("<option value='0'>@Resources.Select</option>"));
+                $.each(data, function (key, value) {
+                    $('#Town').append($("<option></option>").val(value.ID).html(value.Name));
+                });
+                if (Town>0) $('#Town').val(Town);
+            }, 'json');
+        }
+
+    }
+
+    function populateQuarterListBy(_townId, Quarter) {
+        $('#Quarter').append($("<option value='0'>@Resources.Select</option>"));
+
+        if (_townId>0) {
+            $('#Quarter').prop('disabled', false);
+            $.get('@Url.Action("populateQuarterList", "Customer")', { townId: _townId }, function (data) {
+                $('#Quarter').empty();
+                $('#Quarter').append($("<option value='0'>@Resources.Select</option>"));
+                $.each(data, function (key, value) {
+                    $('#Quarter').append($("<option></option>").val(value.ID).html(value.Name));
+                });
+                if (Quarter > 0) $('#Quarter').val(Quarter);
+            }, 'json');
+        }
+
+    }
+
+    function clearForm() {
+        $('#Name').val('');
+        $('#Description').val('');
+        $('#CNI').val('');
+        $('#Profession').val('');
+
+        //$('#CustomerStatus').val('');
+        $('#AdressPhoneNumber').val('');
+        $('#AdressEmail').val('');
+        $('#AdressPOBox').val('');
+        $('#AdressFax').val('');
+        $('#Country').val('0');
+        $('#Region').val('0');
+        $('#Town').val('0');
+        $('#Quarter').val('0');
+
+        $('#CustomerNumber').val('');
+        $('#LastCustomerID').val('');
+        $('#Account').val('0');
+        $('#GestionnaireID').val('0');
+
+        $('#AdressID').val('');
+
+        $('#DateOfBirth').val('');
+        $('#CustomerAge').val('');
+        // $('#PreferredLanguage').val('EN');
+        $("#PreferredLanguage_EN").prop("checked", false);
+        $("#PreferredLanguage_FR").prop("checked", false);
+
+        $('#GlobalPersonID').val('0');
+
+        loadCustomerNumber();
+
+
+    }
+
+    function loadCustomerNumber ()
+    {
+        var branch = $('#Branch').val();
+        //chargement detail
+        $.get('@Url.Action("InitTrnNumber", "Customer")', { BranchID: branch }, function (data) {
+            $.each(data, function (key, value) {
+                $('#CustomerNumber').val(value.CustomerNumber);
+                $('#CNI').val(value.CustomerNumber);
+                $('#LastCustomerID').val(value.LastCustomerID);
+            });
+        }, 'json');
+    }
+
+    function desableform()
+    {
+        $('#fieldset1').prop('disabled', true)
+        $('#fieldset2').prop('disabled', true)
+        $('#fieldset3').prop('disabled', true)
+
+    }
+    function enableform() {
+        $('#fieldset1').prop('disabled', false)
+        $('#fieldset2').prop('disabled', false)
+        $('#fieldset3').prop('disabled', false)
+    }
+
+    $(document).on('ready', function () {
+        $('#UploadImage').hide();
+        //$('#IsBillCustomerF').hide();
+
+        //datepicker
+        $(function () {
+            $(".datepicker").datepicker({
+                format: 'yyyy-mm-dd'
+            });
+        });
+
+        ////datepicker
+        var todaysDate = new Date(); // $('#CurrentDate').val(); //
+        
+        $("#DateOfBirth").blur(function () {
+            var DateOfBirth = $('#DateOfBirth').val();
+
+            var curyear = todaysDate.getFullYear(); // parseInt(todaysDate.substring(1, 4))
+            //alert(curyear);
+            var dobyear = parseInt(DateOfBirth.substring(0, 4));
+            //alert(dobyear);
+            var CustomerAge = curyear - dobyear; // todaysDate.getFullYear() - dobyear;
+            //alert(CustomerAge)
+            $('#CustomerAge').val(CustomerAge);
+        });
+
+        var BeginDate = $("#BeginDate").val();
+        var d = new Date();
+        if ($("#BeginDate").val() == "") {
+            BeginDate = d.getFullYear() + "/" + d.getMonth() + "/" + d.getDay();
+        }
+
+        var EndDate = $("#EndDate").val();
+        var d = new Date();
+        if ($("#EndDate").val() == "") {
+            EndDate = d.getFullYear() + "/" + d.getMonth() + "/" + d.getDay();
+        }
+
+        GetAllCustomers(false, BeginDate, EndDate);
+
+        $('#btnDisplayCustomer').on('click', function () {
+            clearForm();
+            GetAllCustomers(true, $("#BeginDate").val(), $("#EndDate").val());
+        });
+        $("#Description").blur(function () {
+            var Name = $('#Name').val();
+            var Description = $('#Description').val();
+            //var checkName = checkIfNameExist(Name, Description);
+            //if (checkName=="True")
+            //{
+            //    if (confirm("This Name already exist in the system!!! Do you want to create a new customer ?"))
+            //    {
+            //        alert("Yes")
+            //    }
+            //    else
+            //    {
+            //        alert("No")
+            //    }
+            //}
+
+            @*//post data to server
+            $.ajax({
+                url: '@Url.Action("Add", "Customer")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        //location.reload(true);
+                        //clear form
+                        clearForm();
+                        GetAllCustomersPerDay(true);
+                        //GetAllCustomers(true);
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                },
+                error: function () {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                }
+            });*@
+        });
+
+        populateCountry();
+        $('#Country').on('change', function () {
+            var Country = $('#Country').val();
+            var Region = $('#Region').val();
+            populateRegionBy(Country, Region);
+        });
+        $('#Region').on('change', function () {
+            var Region = $('#Region').val();
+            var Town = $('#Town').val();
+            populateTownBy(Region, Town);
+        });
+        $('#Town').on('change', function () {
+            var Town = $('#Town').val();
+            var Quarter = $('#Quarter').val();
+            populateQuarterListBy(Town, Quarter);
+        });
+        populateUsers();
+
+        populateCollectifAccounts();
+
+        loadCustomerNumber();
+        //GetAllCustomersPerDay(false);
+
+
+
+        $('#btnCancel').on('click', function () {
+            clearForm();
+        });
+
+        //$('#mainTable').DataTable();
+
+        $('#btnSubmit').on('click', function () {
+            valideCreateCustomer();
+        });
+
+
+        $("input:checkbox").on('click', function () {
+            // in the handler, 'this' refers to the box clicked on
+            var $box = $(this);
+            if ($box.is(":checked")) {
+                // the name of the box is retrieved using the .attr() method
+                // as it is assumed and expected to be immutable
+                var group = "input:checkbox[name='" + $box.attr("name") + "']";
+                // the checked state of the group/box on the other hand will change
+                // and the current value is retrieved using .prop() method
+                $(group).prop("checked", false);
+                $box.prop("checked", true);
+            } else {
+                $box.prop("checked", false);
+            }
+        });
+    });
+
+    //chargement des customers
+        function GetAllCustomers(test, BeginDate, EndDate) {
+
+        if (test)
+        {
+            $('#mainTable').dataTable().fnDestroy();
+        }
+        var oTable = $('#mainTable');
+
+        oTable = $('#mainTable').dataTable({
+
+            fixedColumns: true,
+            "paging": true,
+            "pageLength": 10,
+            "lengthMenu": [[10,20, 30, -1], [10, 20, 30, "All"]],
+            "searching": true,
+            "ordering": true,
+            "pagingType": "full_numbers",
+            // Ajax call
+            "ajax": {
+                "url": "@Url.Action("ModelRptListOfCustomer", "Customer")",
+                //"type": "GET",
+                "datatype": "json",
+                "data": { BeginDate: BeginDate, EndDate: EndDate }
+            },
+            // Ajax call
+            @*"ajax": "@Url.Action("ModelRptListOfCustomer", "Customer")",*@
+            //"dom": '<"toolbar">frtip',
+            "columns": [
+                { "data": "GlobalPersonID", "width": "1%" },
+                { "data": "CNI", "width": "8%" },
+                { "data": "Name", "width": "19%" },
+                { "data": "Description", "width": "14%" },
+                { "data": "AdressPhoneNumber", "width": "10%" },
+                { "data": "QuarterLabel", "width": "15%" },
+                { "data": "CustomerValue", "width": "5%" },
+                { "data": "CustomerNumber", "width": "10%" },
+                { "data": "DateRegister", "width": "10%" },
+                { "data": "IsInHouseCustomer", "width": "5%" },
+                { "data": "IsBillCustomer", "width": "5%" },
+                //{ "data": "CustomerValue", "width": "5%" },
+                {// this is Actions Column
+                    mRender: function (data, type, row) {
+
+                        var deleteOption = '@LoadAction.IsMenuActionAble(MenuAction.DELETE, @profile, CodeValue.Sale.Customer.CODECLT, db)';
+                        var T_deleteOption = (deleteOption == 'False') ? '<a href=# class="editor_remove" onclick="DeleteItem(' + row.GlobalPersonID + ')"><span class="glyphicon glyphicon-trash"></span></a>' : '';
+
+                        var updateOption = '@LoadAction.IsMenuActionAble(MenuAction.UPDATE, @profile, CodeValue.Sale.Customer.CODECLT, db)';
+                        var T_updateOption = (updateOption == 'False') ? '<a href="#" class="editor_remove" onclick="UpdateItem(' + row.GlobalPersonID + ')"><span class="glyphicon glyphicon-edit"></a>' : '';
+
+                        return T_updateOption + " | " + T_deleteOption;
+                    }
+                }
+            ],
+            "fnRowCallback": function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                if (aData.CustomerValue == 'VIP') {
+                    $(nRow).addClass('vip');
+                }
+                // colorIndex += 1;
+            }
+    });
+    }
+
+    //chargement des customers
+    function GetAllCustomersPerDay(test) {
+
+        if (test)
+        {
+            $('#mainTable').dataTable().fnDestroy();
+        }
+        var oTable = $('#mainTable');
+
+        oTable = $('#mainTable').dataTable({
+
+            fixedColumns: true,
+            "paging": true,
+            "pageLength": 10,
+            "lengthMenu": [[10,20, 30, -1], [10, 20, 30, "All"]],
+            "searching": true,
+            "ordering": true,
+            "pagingType": "full_numbers",
+            // Ajax call
+            "ajax": "@Url.Action("ModelRptListOfCustomerPerDay", "Customer")",
+            //"dom": '<"toolbar">frtip',
+            "columns": [
+                { "data": "GlobalPersonID", "width": "1%" },
+                { "data": "CNI", "width": "8%" },
+                { "data": "Name", "width": "19%" },
+                { "data": "Description", "width": "14%" },
+                { "data": "AdressPhoneNumber", "width": "10%" },
+                { "data": "QuarterLabel", "width": "15%" },
+                { "data": "CustomerValue", "width": "5%" },
+                { "data": "CustomerNumber", "width": "10%" },
+                { "data": "DateRegister", "width": "10%" },
+                { "data": "IsInHouseCustomer", "width": "5%" },
+                { "data": "IsBillCustomer", "width": "5%" },
+                {// this is Actions Column
+                    mRender: function (data, type, row) {
+
+                        var deleteOption = '@LoadAction.IsMenuActionAble(MenuAction.DELETE, @profile, CodeValue.Sale.Customer.CODECLT, db)';
+                        var T_deleteOption = (deleteOption == 'False') ? '<a href=# class="editor_remove" onclick="DeleteItem(' + row.GlobalPersonID + ')"><span class="glyphicon glyphicon-trash"></span></a>' : '';
+
+                        var updateOption = '@LoadAction.IsMenuActionAble(MenuAction.UPDATE, @profile, CodeValue.Sale.Customer.CODECLT, db)';
+                        var T_updateOption = (updateOption == 'False') ? '<a href="#" class="editor_remove" onclick="UpdateItem(' + row.GlobalPersonID + ')"><span class="glyphicon glyphicon-edit"></a>' : '';
+
+                        return T_updateOption + " | " + T_deleteOption;
+                    }
+                }
+            ]
+    });
+    }
+
+    function valideCreateCustomer()
+    {
+        var isAllValid = true;
+
+        var language = $('input[name=PreferredLanguage]:checked').val();
+        if (language != "FR" && language != "EN" ) {
+            isAllValid = false;
+            $('#PreferredLanguage').addClass("invalid-data");
+            alert('Please select a valid Language(English Or French) for Customer ');
+        }
+
+        if ($('#Name').val().trim() == '') {
+            isAllValid = false;
+            $('#Name').addClass("invalid-data");
+        }
+        else {
+            $('#Name').addClass("valid-data");
+        }
+
+        if ($('#DateOfBirth').val().trim() == '') {
+            isAllValid = false;
+            $('#DateOfBirth').addClass("invalid-data");
+        }
+        else {
+            $('#DateOfBirth').addClass("valid-data");
+        }
+
+        if ($('#CustomerNumber').val().trim() == '') {
+            isAllValid = false;
+            $('#CustomerNumber').addClass("invalid-data");
+        }
+        else {
+            $('#CustomerNumber').addClass("valid-data");
+        }
+
+        if ($('#AdressPhoneNumber').val().trim() == '') {
+            isAllValid = false;
+            $('#AdressPhoneNumber').addClass("invalid-data");
+        }
+        else {
+            $('#AdressPhoneNumber').addClass("valid-data");
+        }
+
+        if ($('#Description').val().trim() == '') {
+            isAllValid = false;
+            $('#Description').addClass("invalid-data");
+        }
+        else {
+            $('#Description').addClass("valid-data");
+        }
+
+        if ($('#CustomerNumber').val().trim() == '') {
+            isAllValid = false;
+            $('#CustomerNumber').addClass("invalid-data");
+        }
+        else {
+            $('#CustomerNumber').addClass("valid-data");
+        }
+
+        if ($('#CNI').val().trim() == '') {
+            isAllValid = false;
+            $('#CNI').addClass("invalid-data");
+        }
+        else {
+            $('#CNI').addClass("valid-data");
+        }
+
+        if ($('#Country').val() == '0') {
+            isAllValid = false;
+            $('#Country').addClass("invalid-data");
+        }
+        else {
+            $('#Country').addClass("valid-data");
+        }
+        if ($('#Account').val() == "0") {
+            isAllValid = false;
+            $('#Account').addClass("invalid-data");
+        }
+        else {
+            $('#Account').addClass("valid-data");
+        }
+        if ($('#GestionnaireID').val() == "0" || $('#GestionnaireID').val() == null) {
+            isAllValid = false;
+            $('#GestionnaireID').addClass("invalid-data");
+        }
+        else {
+            $('#GestionnaireID').addClass("valid-data");
+        }
+
+        if ($('#Quarter').val() == '0') {
+            isAllValid = false;
+            $('#Quarter').addClass("invalid-data");
+        }
+        else {
+            $('#Quarter').addClass("valid-data");
+        }
+        if ($('#Town').val() == '0') {
+            isAllValid = false;
+            $('#Town').addClass("invalid-data");
+        }
+        else {
+            $('#Town').addClass("valid-data");
+        }
+        if ($('#Region').val() == '0') {
+            isAllValid = false;
+            $('#Region').addClass("invalid-data");
+        }
+        else {
+            $('#Region').addClass("valid-data");
+        }
+
+        if (isAllValid) {
+            var data = {
+                AdressID:$('#AdressID').val(),
+                GlobalPersonID: $('#GlobalPersonID').val(),
+                PersonType:$('#PersonType').val(),
+                Name:$('#Name').val(),
+                Description: $('#Description').val(),
+                SexID: $('input[name=SexID]:checked').val(),
+                IsBillCustomer: $('input[name=IsBillCustomer]:checked').val(),
+                CNI: $('#CNI').val(),
+                Profession:$('#Profession').val(),
+                AdressPhoneNumber:$('#AdressPhoneNumber').val(),
+                AdressEmail:$('#AdressEmail').val(),
+                AdressPOBox:$('#AdressPOBox').val(),
+                AdressFax:$('#AdressFax').val(),
+                Country:$('#Country').val(),
+                Region:$('#Region').val(),
+                Town:$('#Town').val(),
+                Quarter:$('#Quarter').val(),
+                DateOfBirth: $('#DateOfBirth').val(),
+                Account:$('#Account').val(),
+                GestionnaireID: $('#GestionnaireID').val(),
+                CustomerNumber: $('#CustomerNumber').val(),
+                UploadImage: $('#UploadImage').val(),
+                PreferredLanguage: $('input[name=PreferredLanguage]:checked').val()
+            }
+            $(this).val('Please wait...');
+
+            //alert($('#GlobalPersonID').val())
+
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("Add", "Customer")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        GetAllCustomers(true, $("#BeginDate").val(), $("#EndDate").val());
+                        //GetAllCustomersPerDay(true);
+                        clearForm();
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                },
+                error: function () {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                }
+            });
+        }
+    }
+
+
+    function UpdateItem(obj)
+    {
+        var globalID = obj;
+
+        var Country = 0;
+        var Region = 0;
+        var Town = 0;
+        var Quarter = 0;
+
+        $.get('@Url.Action("InitializeFields", "Customer")', { ID: parseInt(globalID) }, function (data) {
+            $.each(data, function (key, value) {
+                $('#GestionnaireID').val(value.GestionnaireID);
+                $('input[name=IsBillCustomer][value="' + value.IsBillCustomer + '"]').prop('checked', true);
+                $('#Account').val(value.Account);
+                $('#CustomerNumber').val(value.CustomerNumber);
+                $('input[name=PreferredLanguage][value="' + value.PreferredLanguage + '"]').prop('checked', true);
+                Country = value.Country;
+                Region = value.Region;
+                Town = value.Town;
+                Quarter = value.Quarter;
+
+                $('#PersonType').val(value.PersonType);
+                $('#AdressFax').val(value.AdressFax);
+                $('#AdressPhoneNumber').val(value.AdressPhoneNumber);
+                $('#AdressEmail').val(value.AdressEmail);
+                $('#AdressPOBox').val(value.AdressPOBox);
+                $('#AdressID').val(value.AdressID);
+                $('input[name=SexID][value="' + value.SexID + '"]').prop('checked', true);
+                $('#CNI').val(value.CNI);
+                $('#Profession').val(value.Profession);
+
+                $('#Description').val(value.Description);
+                $('#GlobalPersonID').val(value.GlobalPersonID);
+                $('#Name').val(value.Name);
+                $('#DateOfBirth').val(value.DateOfBirth);
+                $('#CustomerAge').val(value.CustomerAge);
+
+                //$('#CustomerStatus').val(value.CustomerStatus);
+
+            });
+
+            $('#Country').val(Country);
+            populateRegionBy(Country, Region);
+            $('#Region').val(Region);
+            populateTownBy(Region, Town);
+            $('#Town').val(Town);
+            populateQuarterListBy(Town, Quarter);
+            $('#Quarter').val(Quarter);
+
+        }, 'json');
+
+
+    }
+    function DeleteItem(obj) {
+        if (confirm("Do you want to Delete ?")) {
+            var globalID = obj;
+            //post to the server
+            $(this).val('Please wait...');
+            var data = {
+                ID: parseInt(globalID)
+            }
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("Delete", "Customer")',
+                type: "POST",
+                data: JSON.stringify(data),
+                dataType: "JSON",
+                contentType: "application/json",
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        location.reload(true);
+                        clearForm();
+                        //GetAllCustomersPerDay(true);
+                        GetAllCustomers(true, $("#BeginDate").val(), $("#EndDate").val());
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                    $('#btnSubmit').val('@Resources.SaveButton');
+                }
+            });
+        }
+
+    }
+        </script>

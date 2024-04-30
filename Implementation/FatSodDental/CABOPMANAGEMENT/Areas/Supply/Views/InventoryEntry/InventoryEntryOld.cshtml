@@ -1,0 +1,721 @@
+﻿@using FatSod.Ressources;
+@using FatSod.Supply.Entities;
+@using FatSod.DataContext.Initializer;
+
+@{
+    ViewBag.Title = @Resources.inventoryDirectoryList;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (TempData["Message"] != null)
+{
+    @Html.Raw(TempData["Message"])
+}
+<div class="box box-primary box-body">
+    <div class="row">
+        <div class="col-md-12">
+            <fieldset>
+                <div class="panel panel-default">
+                    <div class="panel-body2">
+
+                        <table class="table" id="mainTable">
+                            <thead>
+                                <tr class="dataTableHead">
+                                    <th>ID</th>
+                                    <th>@Resources.Branches</th>
+                                    <th>@Resources.Reference</th>
+                                    <th>@Resources.CreationDate</th>
+                                    <th>@Resources.Description</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+
+                        </table>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <fieldset style="margin-top:-25px">
+                <div class="panel panel-default">
+                    <div class="panel-body3">
+                        <input class="form-control number" id="InventoryDirectoryID" name="InventoryDirectoryID" type="hidden">
+                        <div class="row ipt" style="margin-left:1px;">
+                            <div class="col-sm-2">@Resources.Branches</div>
+                            <div class="col-sm-3" style="margin-left:-90px;">
+                                <input class="form-control" id="BranchID" name="BranchID" readonly />
+                            </div>
+                            <div class="col-sm-2" style="margin-left:-10px;">@Resources.Reference</div>
+                            <div class="col-sm-3" style="margin-left:-90px;">
+                                <input class="form-control" id="InventoryDirectoryReference" name="InventoryDirectoryReference" readonly>
+                            </div>
+                            <div class="col-sm-2" style="margin-left:-10px;">@Resources.AutorizedBy</div>
+                            <div class="col-sm-3" style="margin-left:-90px;">
+                                <select class="form-control" id="AutorizedByID" name="AutorizedByID"> </select>
+                            </div>
+                        </div>
+                        <div class="row ipt" style="margin-left:1px;">
+                            <div class="col-sm-2">@Resources.CreationDate</div>
+                            <div class="col-sm-3" style="margin-left:-90px;">
+                                <input class="form-control" id="InventoryDirectoryCreationDate" name="InventoryDirectoryCreationDate" type="text" readonly>
+                            </div>
+                            <div class="col-sm-2" style="margin-left:-10px;">@Resources.UIDateOperation</div>
+                            <div class="col-sm-3" style="margin-left:-90px;">
+                                <input class="form-control" id="InventoryDirectoryDate" name="InventoryDirectoryDate" type="text" readonly />
+                            </div>
+                            <div class="col-sm-2" style="margin-left:-10px;">@Resources.Description</div>
+                            <div class="col-sm-3" style="margin-left:-90px;">
+                                <textarea class="form-control" id="InventoryDirectoryDescription" name="InventoryDirectoryDescription" type="text" readonly></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </fieldset>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+            <fieldset style="margin-right:-35px;">
+                <div class="panel panel-default">
+                    <div class="panel-body4">
+                        <table class="table" id="CommandlineTable">
+                            <thead>
+                                <tr class="dataTableHead">
+                                    <th>ID</th>
+                                    <th>@Resources.Designation</th>
+                                    <th>@Resources.Localization</th>
+                                    <th>@Resources.Quantity</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+        <div class="col-md-3">
+            <fieldset>
+                <div class="panel panel-default">
+                    <div class="panel-body4">
+
+                        <input class="form-control number" id="TMPID" type="hidden">
+                        <input class="form-control number" id="InventoryDirectoryLineID" type="hidden">
+                        <div class="row ipt" style="margin-top:10px;margin-left:5px;">
+                            <div class="col-sm-12">
+                                <input class="form-control number" id="ProductID" type="hidden" readonly>
+                                <input class="form-control number" id="ProductLabelID" type="text" readonly>
+                            </div>
+                        </div>
+                        <div class="row ipt" style="margin-top:10px;margin-left:5px;">
+                            <div class="col-sm-12">
+                                <input class="form-control number" id="LocalizationID" type="hidden" readonly>
+                                <input class="form-control number" id="LocalizationLabelID" type="text" readonly>
+                            </div>
+                        </div>
+                        <div class="row ipt" style="margin-top:10px;margin-left:5px;">
+                            <div class="col-sm-5">@Resources.OldStockQuantity</div>
+                            <div class="col-sm-5">
+                                <input class="form-control" id="OldStockQuantity" type="text" readonly />
+                            </div>
+                        </div>
+
+                        <div class="row ipt" style="margin-left:5px;">
+                            <div class="col-sm-5">@Resources.StockQuantity</div>
+                            <div class="col-sm-5">
+                                <input class="form-control NumbersAndDecimal" id="NewStockQuantity" type="number" />
+                            </div>
+                        </div>
+                        <div class="row  ipt" style="margin-left:5px;">
+                            <div class="col-sm-5">@Resources.NewStockQuantity</div>
+                            <div class="col-sm-5">
+                                <input class="form-control" id="StockDifference" type="text" readonly />
+                            </div>
+                        </div>
+
+                        <div class="row" style="margin-top:0px">
+                            <div class="col-sm-5" style="margin-left:10%">
+                                <button id="ReduceBtn" class="btn btn-primary btn-danger">@Resources.ValidateButton</button>
+                            </div>
+                            <div class="col-sm-5">
+                                <button id="Cancel2" class="btn btn-primary btn-success">@Resources.Cancel</button>
+                            </div>
+
+
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+        <div class="col-md-5">
+            <fieldset style="margin-left:-25px;">
+                <div class="panel panel-default">
+                    <div class="panel-body4">
+                        <table class="table" id="CommandlineTableNew">
+                            <thead>
+                                <tr class="dataTableHead">
+                                    <th>ID</th>
+                                    <th>@Resources.Designation</th>
+                                    <th>@Resources.Localization</th>
+                                    <th>@Resources.OldStock</th>
+                                    <th>@Resources.AddedStock</th>
+                                    <th>@Resources.NewQty</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+
+    <div class="row" style="margin-top:0px">
+        <div class="col-sm-2" style="margin-left:10%">
+            <button id="btnCancel" class="btn btn-primary btn-danger">@Resources.ResetButton</button>
+        </div>
+        <div class="col-sm-2">
+            <button id="btnSubmit" class="btn btn-primary btn-success">@Resources.SaveButton</button>
+        </div>
+        <div class="col-sm-2">
+        </div>
+
+        <div class="col-sm-2">
+            <button id="btnPrint" class="btn btn-primary" onclick="location.href='@Url.Action("RptDeliverOrder", "ReportsHome", new { area = "" })'"><i class="fa fa-print"></i> @Resources.UIPrint</button>
+        </div>
+
+    </div>
+</div>
+
+<!-- Css Begins Here -->
+
+<style>
+    .invalid-data {
+        border: 1px solid red;
+    }
+
+    .valid-data {
+        border: 1px solid #ccc;
+    }
+
+    .ipt {
+        margin-bottom: 6px;
+    }
+
+    #img-upload {
+        width: 100%;
+    }
+
+    /*Adding some css for looks good*/
+    span.error {
+        display: block;
+        visibility: hidden;
+        color: red;
+        font-size: 90%;
+    }
+
+    #after_manual_posting_yes {
+        margin-right: 15px;
+    }
+
+    fieldset {
+        border: 1px solid #ddd !important;
+        margin-left: 10px;
+        min-width: 0;
+        padding: 10px;
+        position: relative;
+        border-radius: 4px;
+        background-color: #99bce8;
+        padding-left: 10px !important;
+    }
+
+    .panel-body {
+        height: 70px;
+    }
+
+    .panel-bodyfielset1 {
+        height: 100px;
+    }
+
+    .panel-bodyfielset2 {
+        height: 50px;
+    }
+
+    .panel-body1 {
+        height: 80px;
+        margin-top: 5px;
+    }
+
+    .panel-body2 {
+        height: 200px;
+        margin-top: 10px;
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+
+    .panel-body3 {
+        height: 75px;
+        margin-top: 5px;
+    }
+
+    legend {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 0px;
+        width: 70%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 5px 5px 5px 10px;
+        background-color: #ffffff;
+    }
+
+    .panel-body4 {
+        height: 310px;
+        margin-left: 0px;
+        margin-top: 0px;
+    }
+</style>
+
+<script>
+
+    // Get the user List
+    function populateUsers() {
+        $.get('@Url.Action("populateUsers", "InventoryEntry")', {}, function (data) {
+            $('#AutorizedByID').empty();
+            $('#AutorizedByID').append($("<option value='0'>@Resources.Select</option>"));
+            $.each(data, function (key, value) {
+                $('#AutorizedByID').append($("<option></option>").val(value.GlobalPersonID).html(value.UserFullName));
+            });
+        }, 'json');
+    }
+
+    function enablebutton()
+    {
+        $('#btnPrint').prop('disabled', false);
+    }
+    function disablebutton() {
+        $('#btnPrint').prop('disabled', true);
+    }
+
+
+    //chargement des commandes a valider
+    function GetAllCommand(test) {
+
+        if (test)
+        {
+            $('#mainTable').dataTable().fnDestroy();
+        }
+        var oTable = $('#mainTable');
+
+        oTable = $('#mainTable').dataTable({
+
+            fixedColumns: true,
+            "paging": true,
+            "pageLength": 3,
+            "lengthMenu": [[3, 5, 10, -1], [3, 5, 10, "All"]],
+            "searching": true,
+            "ordering": true,
+            "pagingType": "full_numbers",
+            // Ajax call
+            "ajax": "@Url.Action("InventoryDirectoriesModel", "InventoryEntry")",
+            "dom": '<"toolbar">frtip',
+            "columns": [
+                { "data": "InventoryDirectoryID", "width": "1%" },
+                { "data": "Branch" },
+                { "data": "InventoryDirectoryReference" },
+                { "data": "InventoryDirectoryCreationDate" },
+                { "data": "InventoryDirectoryDescription" },
+                {// this is Actions Column
+                    mRender: function (data, type, row) {
+                        return '<a href="#" class="editor_remove" onclick="UpdateItem(' + row.InventoryDirectoryID + ')"><span class="glyphicon glyphicon-edit"></span></a>'
+                    }
+                }
+            ]
+        });
+        var brefresh = '<a href="#" class="btn btn-primary" style="margin-left:40%;" onclick="RefreshGrid()"><span class="fa fa-refresh"></span></a>'
+        $("div.toolbar").html(brefresh);
+    }
+
+    function clearInitializeCommandFields()
+    {
+        $('#BranchID').val('');
+        $('#InventoryDirectoryID').val('');
+        $('#InventoryDirectoryReference').val('');
+        $('#InventoryDirectoryDescription').val('');
+        $('#InventoryDirectoryDate').val('');
+        $('#InventoryDirectoryCreationDate').val('');
+        clearClickCommandFields();
+    }
+
+    function clearClickCommandFields() {
+
+        $('#ProductID').val('');
+        $('#LocalizationID').val('');
+        $('#ProductLabelID').val('');
+        $('#LocalizationLabelID').val('');
+        $('#OldStockQuantity').val('0');
+        $('#NewStockQuantity').val('0');
+        $('#StockDifference').val('0');
+    }
+    function DeleteItem(obj) {
+        var globalID = obj;
+
+        $.get('@Url.Action("InitializeIDLineFieldsByIIDL", "InventoryEntry")', { InventoryDirectoryLineID: parseInt(globalID) }, function (data) {
+            $.each(data, function (key, value) {
+                $('#TMPID').val(value.TMPID);
+                $('#InventoryDirectoryLineID').val(value.InventoryDirectoryLineID);
+                $('#ProductID').val(value.ProductID);
+                $('#LocalizationID').val(value.LocalizationID);
+                $('#OldStockQuantity').val(value.OldStockQuantity);
+                $('#NewStockQuantity').val(value.NewStockQuantity);
+                $('#StockDifference').val(value.StockDifference);
+                $('#ProductLabelID').val(value.ProductLabelID);
+                $('#LocalizationLabelID').val(value.LocalizationLabelID);
+            });
+        }, 'json');
+
+        //disablebutton();
+    }
+
+    function RemoveSRLine(obj)
+    {
+        var data = {
+            TMPID: obj
+        }
+        //var data = obj;
+
+        //post data to server
+        $.ajax({
+            url: '@Url.Action("RemoveSRLine", "InventoryEntry")',
+            type: "POST",
+            data: JSON.stringify(data), //formData, //formData,//
+            dataType: "JSON",
+            contentType: "application/json",
+            success: function (d) {
+                //check is successfully save to database
+                if (d.status == true) {
+                    GetCommandline(true);
+                    GetFinalCommandline(true);
+                    enablebutton();
+                }
+                else {
+                    alert(d.Message);
+                }
+            },
+            error: function (response) {
+                alert('Error. Please try again.');
+            }
+        });
+
+    }
+    function UpdateItem(obj) {
+        var globalID = obj;
+
+        $.get('@Url.Action("InitializeFields", "InventoryEntry")', { InventoryDirectoryID: parseInt(globalID) }, function (data) {
+            $.each(data, function (key, value) {
+                $('#BranchID').val(value.BranchID);
+                $('#InventoryDirectoryReference').val(value.InventoryDirectoryReference);
+                $('#InventoryDirectoryCreationDate').val(value.InventoryDirectoryCreationDate);
+                $('#InventoryDirectoryDescription').val(value.InventoryDirectoryDescription);
+                $('#InventoryDirectoryDate').val(value.InventoryDirectoryDate);
+                $('#InventoryDirectoryID').val(value.InventoryDirectoryID);
+                GetCommandline(true)
+            });
+        }, 'json');
+
+        disablebutton();
+
+    }
+    //chargement d'une commandes d'un client
+    function GetCommandline(test) {
+
+        if (test)
+        {
+            $('#CommandlineTable').dataTable().fnDestroy();
+        }
+        var oTable = $('#CommandlineTable');
+
+        oTable = $('#CommandlineTable').dataTable({
+            fixedColumns: true,
+            "paging": true,
+            "pageLength": 4,
+            "lengthMenu": [[4, 8, 12, -1], [4, 8, 12, "All"]],
+            "searching": false,
+            "ordering": true,
+            "pagingType": "full_numbers",
+            // Ajax call
+            "ajax": "@Url.Action("InitialInventoryDirectoryLines", "InventoryEntry")",
+            "columnDefs": [
+                    { "visible": false, "targets": 0 }
+            ],
+            "columns": [
+                { "data": "InventoryDirectoryLineID", "width": "1%" },
+                { "data": "ProductLabel","width": "50%" },
+                { "data": "LocalizationLabel"},
+                { "data": "OldStockQuantity"},
+                {// this is Actions Column
+                    mRender: function (data, type, row) {
+                        return '<a href="#" class="editor_remove" onclick="DeleteItem(' + row.InventoryDirectoryLineID + ')"><span class="glyphicon glyphicon-edit"></span></a>'
+                    }
+                }
+            ]
+        });
+    }
+
+
+
+    function AddFinalInventoryDirectoryLine() {
+        var isAllValid = true;
+        if ($('#ProductID').val().trim() == '') {
+            isAllValid = false;
+            $("#ProductLabelID").addClass("invalid-data");
+        }
+        else {
+            $("#ProductLabelID").addClass("valid-data");
+        }
+        if ($('#LocalizationID').val().trim() == '') {
+            isAllValid = false;
+            $("#LocalizationLabelID").addClass("invalid-data");
+        }
+        else {
+            $("#LocalizationLabelID").addClass("valid-data");
+        }
+        if ($('#StockDifference').val().trim() == '0' || $('#StockDifference').val().trim() == '') {
+            isAllValid = false;
+            $("#NewStockQuantity").addClass("invalid-data");
+        }
+        else {
+            $("#NewStockQuantity").addClass("valid-data");
+        }
+        if ($('#TMPID').val().trim() == '') {
+            isAllValid = false;
+        }
+        if ($('#InventoryDirectoryLineID').val().trim() == '') {
+            isAllValid = false;
+        }
+        if (isAllValid) {
+            var data = {
+                TMPID: $('#TMPID').val().trim(),
+                InventoryDirectoryLineID: $('#InventoryDirectoryLineID').val().trim(),
+                ProductID: $('#ProductID').val().trim(),
+                LocalizationID: $('#LocalizationID').val().trim(),
+                OldStockQuantity: $('#OldStockQuantity').val().trim(),
+                NewStockQuantity: $('#NewStockQuantity').val().trim()
+            }
+            $(this).val('Please wait...');
+
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("AddFinalInventoryDirectoryLine", "InventoryEntry")',
+                type: "POST",
+                data: JSON.stringify(data), //formData, //formData,//
+                dataType: "JSON",
+                contentType: "application/json",
+                //contentType: false,
+                //processData: false,
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        //alert(d.Message);
+                        //reinitialisation des champs
+                        clearClickCommandFields();
+                        GetCommandline(true);
+                        GetFinalCommandline(true);
+                        enablebutton();
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                }
+            });
+        }
+    }
+
+    //chargement d'une commandes d'un client
+    function GetFinalCommandline(test) {
+
+        if (test)
+        {
+            $('#CommandlineTableNew').dataTable().fnDestroy();
+        }
+        var oTable = $('#CommandlineTableNew');
+
+        oTable = $('#CommandlineTableNew').dataTable({
+            fixedColumns: true,
+            "paging": true,
+            "pageLength": 4,
+            "lengthMenu": [[4, 8, 12, -1], [4, 8, 12, "All"]],
+            "searching": false,
+            "ordering": true,
+            "pagingType": "full_numbers",
+            "columnDefs": [
+                    { "visible": false, "targets": 0 }
+            ],
+            // Ajax call
+            "ajax": "@Url.Action("FinalInventoryDirectoryLines", "InventoryEntry")",
+
+            "columns": [
+                { "data": "TMPID", "width": "1%" },
+                { "data": "ProductLabel", "width": "50%" },
+                { "data": "LocalizationLabel"},
+                { "data": "OldStockQuantity" },
+                { "data": "NewStockQuantity" },
+                { "data": "StockDifference" },
+                {// this is Actions Column
+                    mRender: function (data, type, row) {
+                        return '<a href="#" class="editor_remove" onclick="RemoveSRLine(' + row.TMPID + ')"><span class="glyphicon glyphicon-trash"></span></a>'
+                    }
+                }
+            ]
+    });
+    }
+
+    function CloseInventoryDirectory()
+    {
+
+        var isAllValid = true;
+        var d = new Date();
+
+
+        if ($('#BranchID').val().trim() == '') {
+            isAllValid = false;
+        }
+        if ($('#InventoryDirectoryID').val().trim() == '') {
+            isAllValid = false;
+        }
+
+        if ($('#AutorizedByID').val() == "0") {
+            isAllValid = false;
+            $("#AutorizedByID").addClass("invalid-data");
+        }
+        else {
+            $("#AutorizedByID").addClass("valid-data");
+        }
+
+        if ($('#InventoryDirectoryReference').val() == '') {
+            isAllValid = false;
+            $("#InventoryDirectoryReference").addClass("invalid-data");
+        }
+        else {
+            $("#InventoryDirectoryReference").addClass("valid-data");
+        }
+        if ($('#InventoryDirectoryCreationDate').val() == '') {
+            isAllValid = false;
+            $("#InventoryDirectoryCreationDate").addClass("invalid-data");
+        }
+        else {
+            $("#InventoryDirectoryCreationDate").addClass("valid-data");
+        }
+
+        if ($('#InventoryDirectoryDate').val() == '') {
+            isAllValid = false;
+            $("#InventoryDirectoryDate").addClass("invalid-data");
+        }
+        else {
+            $("#InventoryDirectoryDate").addClass("valid-data");
+        }
+
+        if ($('#InventoryDirectoryDescription').val() == '') {
+            isAllValid = false;
+            $("#InventoryDirectoryDescription").addClass("invalid-data");
+        }
+        else {
+            $("#InventoryDirectoryDescription").addClass("valid-data");
+        }
+
+        if (isAllValid) {
+
+
+            var data = {
+
+                BranchID: $('#BranchID').val(),
+                InventoryDirectoryReference: $('#InventoryDirectoryReference').val(),
+                InventoryDirectoryCreationDate: $('#InventoryDirectoryCreationDate').val().trim(),
+                RegisteredByID: $('#AutorizedByID').val(),
+                InventoryDirectoryDate: $('#InventoryDirectoryDate').val().trim(),
+                InventoryDirectoryDescription: $('#InventoryDirectoryDescription').val().trim(),
+                InventoryDirectoryID:$('#InventoryDirectoryID').val().trim()
+            }
+            $(this).val('Please wait...');
+
+            //post data to server
+            $.ajax({
+                url: '@Url.Action("CloseInventoryDirectory", "InventoryEntry")',
+                type: "POST",
+                data: JSON.stringify(data), //formData, //formData,//
+                dataType: "JSON",
+                contentType: "application/json",
+                //contentType: false,
+                //processData: false,
+                success: function (d) {
+                    //check is successfully save to database
+                    if (d.status == true) {
+                        //will send status from server side
+                        alert(d.Message);
+                        //reinitialisation des champs
+                        clearInitializeCommandFields();
+                        GetAllCommand(true);
+                        GetFinalCommandline(true);
+                        enablebutton();
+                    }
+                    else {
+                        alert(d.Message);
+                    }
+                },
+                error: function (response) {
+                    alert('Error. Please try again.');
+                }
+            });
+        }
+
+    }
+    function RefreshGrid()
+    {
+        clearInitializeCommandFields();
+        GetAllCommand(true);
+        GetFinalCommandline(true);
+        enablebutton();
+    }
+    $(document).on('ready', function () {
+
+        populateUsers();
+        GetAllCommand(false);
+
+        //chargement des ventes selectionnees
+        GetCommandline(false);
+        GetFinalCommandline(false);
+
+        $('#NewStockQuantity').on('keyup', function () {
+            StockDifference();
+        });
+        $('#btnCancel').on('click', function () {
+            location.reload(true);
+        });
+        $('#ReduceBtn').on('click', function () {
+            AddFinalInventoryDirectoryLine();
+        });
+
+        $('#Cancel2').on('click', function () {
+            clearClickCommandFields();
+        });
+
+        $('#btnSubmit').on('click', function () {
+            CloseInventoryDirectory();
+        });
+
+    });
+
+    function StockDifference()
+    {
+        var NewStockQuantity = parseFloat($('#NewStockQuantity').val());
+        var OldStockQuantity = parseFloat($('#OldStockQuantity').val());
+        $('#StockDifference').val(NewStockQuantity + OldStockQuantity)
+    }
+
+</script>
