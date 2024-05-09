@@ -165,23 +165,18 @@
 
                         }
                     </tbody>
-                    @*<tfoot>
-                            <tr>
-                                <td colspan="2"></td>
-                                <td><span><b>Total HT</b></span></td>
-                                <td></td>
-                                <td><span><b>@Model.TotalAmount</b></span></td>
-                            </tr>
-                        </tfoot>*@
+                    
                 </table>
             </div>
 
         </div>
     </div>
     <div class="row">
-        <div class="col-xs-12 table-responsive">
+        <div class="col-xs-12 table-responsive"  style="margin-top:-10px;">
             <div class="col-xs-8">
-                
+                <br />
+                <br />
+                <span>Edited by @Model.Operator</span>
             </div>
             <div class="col-xs-4">
                 <table>
@@ -208,14 +203,22 @@
 
         </div>
     </div>
-
-    <div class="row no-print">
-        <div class="col-xs-4">
-            <a href="#" onclick="window.focus(); window.print(); window.close();" target="_blank" class="btn btn-primary"><i class="fa fa-print"></i> Print</a>
-            <a href="Request.UrlReferrer" class="btn btn-warning"><i class="fa fa-angle-left"></i>@Resources.previous</a>
+    <div class="row">
+        <div class="col-xs-12 table-responsive">
+            <div class="col-xs-8">
+                <i>Arrete cette proforma à la somme de : <b>@Model.MontantLettreFr FCFA</b></i><br /><br />
+            </div>
+            <div class="col-xs-4"></div>
         </div>
-
     </div>
+
+            <div class="row no-print">
+                <div class="col-xs-4">
+                    <a href="#" onclick="window.focus(); window.print(); window.close();" target="_blank" class="btn btn-primary"><i class="fa fa-print"></i> Print</a>
+                    <a href="Request.UrlReferrer" class="btn btn-warning"><i class="fa fa-angle-left"></i>@Resources.previous</a>
+                </div>
+
+            </div>
 
 </section>
 
@@ -226,14 +229,16 @@
         }
 
     .gceb {
-        background: #4D4C4C;
+        background-color: #E6E7E9 !important;
         margin: auto;
         border-spacing: 5px 5px;
         text-align: left;
-        color: white;
-        padding: 5px 5px 0px 5px;
+        color: black !important;
+        padding: 5px 5px 15px 5px;
         border: 2px solid black;
-        width: 100%;
+        width: 150px;
+        height: 20px;
+        margin: 0px 0px 0px 0px;
     }
 
         #totals {
@@ -328,8 +333,12 @@
                 height: 99%;
                 -webkit-print-color-adjust: exact !important;
             }
-            
-        }
+            .gceb {
+                background-color: #E6E7E9 !important;
+                color: black !important;
+                -webkit-print-color-adjust: exact !important;
+            }
+            }
 </style>
 
 
