@@ -137,9 +137,9 @@
                         <tr>
                             <th><span><b>DESIGNATION</b></span></th>
                             <th><span><b>QTE</b></span></th>
-                            <th><span><b>P.U.H.T</b></span></th>
-                            <th><span><b>%</b></span></th>
-                            <th><span><b>MONTANT H.T</b></span></th>
+                            <th style="text-align:right"><span><b>P.U.H.T</b></span></th>
+                            <th style="text-align:right"><span><b>%</b></span></th>
+                            <th style="text-align:right"><span><b>MONTANT H.T</b></span></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -152,13 +152,13 @@
                                 <td style="text-align:center">
                                     <span>@item.Qte</span>
                                 </td>
-                                <td style="text-align:center">
+                                <td style="text-align: right">
                                     <span>@item.PUHT</span>
                                 </td>
-                                <td style="text-align:center">
+                                <td style="text-align: right">
                                     <span>@item.PercRed</span>
                                 </td>
-                                <td style="text-align:center">
+                                <td style="text-align:right">
                                     <span>@item.MntHT</span>
                                 </td>
                             </tr>
@@ -183,19 +183,19 @@
                     <tbody>
                         <tr>
                             <td><span><b>Total HT</b></span></td>
-                            <td><span><b>@Model.TotalAmount.ToString("N0")</b></span></td>
+                            <td style="text-align: right"><span><b>@Model.TotalAmount.ToString("N0")</b></span></td>
                         </tr>
                         <tr>
                             <td><span><b>Remise</b></span></td>
-                            <td><span><b>0</b></span></td>
+                            <td style="text-align: right"><span><b>0</b></span></td>
                         </tr>
                         <tr>
                             <td><span><b>Taxe</b></span></td>
-                            <td><span><b>0</b></span></td>
+                            <td style="text-align: right"><span><b>0</b></span></td>
                         </tr>
                         <tr>
                             <td><span><b>Net</b></span></td>
-                            <td><span><b>@Model.TotalAmount.ToString("N0")</b></span></td>
+                            <td style="text-align: right"><span><b>@Model.TotalAmount.ToString("N0")</b></span></td>
                         </tr>
                     </tbody>
                 </table>
