@@ -906,10 +906,10 @@ namespace CABOPMANAGEMENT.Controllers
                                     Field1 = "Rx Date",
                                     Field2 = currentOrder.CustomerOrderDate.ToString("dd/MM/yyyyy"),
                                     Oeil = c.OeilDroiteGauche.ToString(),
-                                    Sphere = (orderlensproduct.LensNumber.LensNumberSphericalValue == null || orderlensproduct.LensNumber.LensNumberSphericalValue == "") ? "//" : orderlensproduct.LensNumber.LensNumberSphericalValue,
-                                    Cylindre = (orderlensproduct.LensNumber.LensNumberCylindricalValue == null || orderlensproduct.LensNumber.LensNumberCylindricalValue == "") ? "//" : orderlensproduct.LensNumber.LensNumberCylindricalValue,
-                                    Axe = (c.Axis == null || c.Axis == "") ? "//" : c.Axis,
-                                    Add = (orderlensproduct.LensNumber.LensNumberAdditionValue == null || orderlensproduct.LensNumber.LensNumberAdditionValue == "") ? "//" : orderlensproduct.LensNumber.LensNumberAdditionValue
+                                    Sphere = (orderlensproduct.LensNumber.LensNumberSphericalValue == null || orderlensproduct.LensNumber.LensNumberSphericalValue == "") ? "" : orderlensproduct.LensNumber.LensNumberSphericalValue,
+                                    Cylindre = (orderlensproduct.LensNumber.LensNumberCylindricalValue == null || orderlensproduct.LensNumber.LensNumberCylindricalValue == "") ? "" : orderlensproduct.LensNumber.LensNumberCylindricalValue,
+                                    Axe = (c.Axis == null || c.Axis == "") ? "" : c.Axis,
+                                    Add = (orderlensproduct.LensNumber.LensNumberAdditionValue == null || orderlensproduct.LensNumber.LensNumberAdditionValue == "") ? "" : orderlensproduct.LensNumber.LensNumberAdditionValue
                                 });
 
                                 LstDetailSales.Add(
@@ -943,10 +943,10 @@ namespace CABOPMANAGEMENT.Controllers
                                     Field1 = "Rx Expired",
                                     Field2 = currentOrder.CustomerOrderDate.ToString("dd/MM/yyyyy"),
                                     Oeil = c.OeilDroiteGauche.ToString(),
-                                    Sphere = (orderlensproduct.LensNumber.LensNumberSphericalValue == null || orderlensproduct.LensNumber.LensNumberSphericalValue == "") ? "//" : orderlensproduct.LensNumber.LensNumberSphericalValue,
-                                    Cylindre = (orderlensproduct.LensNumber.LensNumberCylindricalValue == null || orderlensproduct.LensNumber.LensNumberCylindricalValue == "") ? "//" : orderlensproduct.LensNumber.LensNumberCylindricalValue,
-                                    Axe = (c.Axis == null || c.Axis == "") ? "//" : c.Axis,
-                                    Add = (orderlensproduct.LensNumber.LensNumberAdditionValue == null || orderlensproduct.LensNumber.LensNumberAdditionValue == "") ? "//" : orderlensproduct.LensNumber.LensNumberAdditionValue
+                                    Sphere = (orderlensproduct.LensNumber.LensNumberSphericalValue == null || orderlensproduct.LensNumber.LensNumberSphericalValue == "") ? "" : orderlensproduct.LensNumber.LensNumberSphericalValue,
+                                    Cylindre = (orderlensproduct.LensNumber.LensNumberCylindricalValue == null || orderlensproduct.LensNumber.LensNumberCylindricalValue == "") ? "" : orderlensproduct.LensNumber.LensNumberCylindricalValue,
+                                    Axe = (c.Axis == null || c.Axis == "") ? "" : c.Axis,
+                                    Add = (orderlensproduct.LensNumber.LensNumberAdditionValue == null || orderlensproduct.LensNumber.LensNumberAdditionValue == "") ? "" : orderlensproduct.LensNumber.LensNumberAdditionValue
                                 });
 
                                 LstDetailSales.Add(
@@ -987,10 +987,10 @@ namespace CABOPMANAGEMENT.Controllers
                                     Field1 = "Rx Date",
                                     Field2 = currentOrder.CustomerOrderDate.ToString("dd/MM/yyyyy"),
                                     Oeil = c.OeilDroiteGauche.ToString(),
-                                    Sphere = (orderlensproduct.LensNumber.LensNumberSphericalValue == null || orderlensproduct.LensNumber.LensNumberSphericalValue == "") ? "//" : orderlensproduct.LensNumber.LensNumberSphericalValue,
-                                    Cylindre = (orderlensproduct.LensNumber.LensNumberCylindricalValue == null || orderlensproduct.LensNumber.LensNumberCylindricalValue == "") ? "//" : orderlensproduct.LensNumber.LensNumberCylindricalValue,
-                                    Axe = (c.Axis == null || c.Axis == "") ? "//" : c.Axis,
-                                    Add = (orderlensproduct.LensNumber.LensNumberAdditionValue == null || orderlensproduct.LensNumber.LensNumberAdditionValue == "") ? "//" : orderlensproduct.LensNumber.LensNumberAdditionValue
+                                    Sphere = (orderlensproduct.LensNumber.LensNumberSphericalValue == null || orderlensproduct.LensNumber.LensNumberSphericalValue == "") ? "" : orderlensproduct.LensNumber.LensNumberSphericalValue,
+                                    Cylindre = (orderlensproduct.LensNumber.LensNumberCylindricalValue == null || orderlensproduct.LensNumber.LensNumberCylindricalValue == "") ? "" : orderlensproduct.LensNumber.LensNumberCylindricalValue,
+                                    Axe = (c.Axis == null || c.Axis == "") ? "" : c.Axis,
+                                    Add = (orderlensproduct.LensNumber.LensNumberAdditionValue == null || orderlensproduct.LensNumber.LensNumberAdditionValue == "") ? "" : orderlensproduct.LensNumber.LensNumberAdditionValue
                                 });
 
                                 LstDetailSales.Add(
@@ -1025,10 +1025,10 @@ namespace CABOPMANAGEMENT.Controllers
                                     Field1 = "Rx Expired",
                                     Field2 = currentOrder.CustomerOrderDate.ToString("dd/MM/yyyyy"),
                                     Oeil = c.OeilDroiteGauche.ToString(),
-                                    Sphere = (orderlensproduct.LensNumber.LensNumberSphericalValue == null || orderlensproduct.LensNumber.LensNumberSphericalValue == "") ? "//" : orderlensproduct.LensNumber.LensNumberSphericalValue,
-                                    Cylindre = (orderlensproduct.LensNumber.LensNumberCylindricalValue == null || orderlensproduct.LensNumber.LensNumberCylindricalValue == "") ? "//" : orderlensproduct.LensNumber.LensNumberCylindricalValue,
-                                    Axe = (c.Axis == null || c.Axis == "") ? "//" : c.Axis,
-                                    Add = (orderlensproduct.LensNumber.LensNumberAdditionValue == null || orderlensproduct.LensNumber.LensNumberAdditionValue == "") ? "//" : orderlensproduct.LensNumber.LensNumberAdditionValue
+                                    Sphere = (orderlensproduct.LensNumber.LensNumberSphericalValue == null || orderlensproduct.LensNumber.LensNumberSphericalValue == "") ? "" : orderlensproduct.LensNumber.LensNumberSphericalValue,
+                                    Cylindre = (orderlensproduct.LensNumber.LensNumberCylindricalValue == null || orderlensproduct.LensNumber.LensNumberCylindricalValue == "") ? "" : orderlensproduct.LensNumber.LensNumberCylindricalValue,
+                                    Axe = (c.Axis == null || c.Axis == "") ? "" : c.Axis,
+                                    Add = (orderlensproduct.LensNumber.LensNumberAdditionValue == null || orderlensproduct.LensNumber.LensNumberAdditionValue == "") ? "" : orderlensproduct.LensNumber.LensNumberAdditionValue
                                 });
 
                                 LstDetailSales.Add(

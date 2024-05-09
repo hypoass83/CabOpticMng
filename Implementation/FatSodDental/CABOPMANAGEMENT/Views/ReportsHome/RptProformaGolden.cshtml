@@ -8,10 +8,24 @@
 
 
 <section class="invoice" style="font-size:1.05em">
+    <!-- title row -->
+    <div class="row" style="height:115px;">
+
+    </div>
+    <!-- info row -->
+    <div class="row">
+        <div class="col-xs-12 invoice-title" style="text-align:center">
+
+        </div>
+    </div>
+    <br />
+    <br />
+    <br />
+    <br />
 
     <div class="row invoice-info">
         <div class="col-xs-6" style="margin: 15px 0px;">
-            <strong><b>PROFORMA</b></strong><br />
+            <h4 style="margin:0px 15px;"><b>PROFORMA</b></h4><br />
         </div>
         <div class="col-xs-6" style="text-align: right;margin-top: 10px;">
             <div class="row" style="margin-right: 1px;">
@@ -24,7 +38,7 @@
 
     <div class="row">
         <div class="col-xs-12 table-responsive">
-            <div class="col-xs-6">
+            <div class="col-xs-8">
                 <div class="gceb">
                     <strong><b>Concerné</b></strong>
                 </div>
@@ -53,7 +67,7 @@
                     </tbody>
                 </table>
             </div>
-            <div class="col-xs-6">
+            <div class="col-xs-4">
 
             </div>
 
@@ -129,7 +143,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var item in Model.DetailSales.OrderBy(c=>c.LineNumber))
+                        @foreach (var item in Model.DetailSales.OrderBy(c => c.LineNumber))
                         {
                             <tr>
                                 <td>
@@ -150,6 +164,44 @@
                             </tr>
 
                         }
+                    </tbody>
+                    @*<tfoot>
+                            <tr>
+                                <td colspan="2"></td>
+                                <td><span><b>Total HT</b></span></td>
+                                <td></td>
+                                <td><span><b>@Model.TotalAmount</b></span></td>
+                            </tr>
+                        </tfoot>*@
+                </table>
+            </div>
+
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12 table-responsive">
+            <div class="col-xs-8">
+                
+            </div>
+            <div class="col-xs-4">
+                <table>
+                    <tbody>
+                        <tr>
+                            <td><span><b>Total HT</b></span></td>
+                            <td><span><b>@Model.TotalAmount.ToString("N0")</b></span></td>
+                        </tr>
+                        <tr>
+                            <td><span><b>Remise</b></span></td>
+                            <td><span><b>0</b></span></td>
+                        </tr>
+                        <tr>
+                            <td><span><b>Taxe</b></span></td>
+                            <td><span><b>0</b></span></td>
+                        </tr>
+                        <tr>
+                            <td><span><b>Net</b></span></td>
+                            <td><span><b>@Model.TotalAmount.ToString("N0")</b></span></td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -230,7 +282,7 @@
 
     table {
         font-family: Arial, Helvetica, sans-serif;
-        font-size: medium;
+        font-size: small;
         font-weight: 500;
         border-collapse: collapse;
         width: 100%;
