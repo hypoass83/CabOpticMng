@@ -10,7 +10,7 @@
 <section class="invoice" style="font-size:1.05em">
 
     <div class="row invoice-info">
-        <div class="col-xs-6" style="margin-top: 10px;">
+        <div class="col-xs-6" style="margin: 15px 0px;">
             <strong><b>PROFORMA</b></strong><br />
         </div>
         <div class="col-xs-6" style="text-align: right;margin-top: 10px;">
@@ -81,34 +81,79 @@
                     <tbody>
                         @foreach (var item in Model.RxPrescription)
                         {
-                        <tr>
-                            <td>
-                                <span><b>@item.Field1</b></span>
-                            </td>
-                            <td>
-                                <span><b>@item.Field2</b></span>
-                            </td>
-                            <td style="text-align:center">
-                                <span><b>@item.Oeil</b></span>
-                            </td>
-                            <td style="text-align:center">
-                                <span><b>@item.Sphere</b></span>
-                            </td>
-                            <td style="text-align:center">
-                                <span><b>@item.Cylindre</b></span>
-                            </td>
-                            <td style="text-align:center">
-                                <span><b>@item.Axe</b></span>
-                            </td>
-                            <td style="text-align:center">
-                                <span><b>@item.Add</b></span>
-                            </td>
-                        </tr> 
+                            <tr>
+                                <td>
+                                    <span>@item.Field1</span>
+                                </td>
+                                <td>
+                                    <span>@item.Field2</span>
+                                </td>
+                                <td style="text-align:center">
+                                    <span>@item.Oeil</span>
+                                </td>
+                                <td style="text-align:center">
+                                    <span>@item.Sphere</span>
+                                </td>
+                                <td style="text-align:center">
+                                    <span>@item.Cylindre</span>
+                                </td>
+                                <td style="text-align:center">
+                                    <span>@item.Axe</span>
+                                </td>
+                                <td style="text-align:center">
+                                    <span>@item.Add</span>
+                                </td>
+                            </tr>
+
                         }
-                        </tbody>
+                    </tbody>
                 </table>
             </div>
-           
+
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12 table-responsive">
+            <div class="col-xs-12">
+                <div class="gceb">
+                    <strong><b>Detail</b></strong>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th><span><b>DESIGNATION</b></span></th>
+                            <th><span><b>QTE</b></span></th>
+                            <th><span><b>P.U.H.T</b></span></th>
+                            <th><span><b>%</b></span></th>
+                            <th><span><b>MONTANT H.T</b></span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.DetailSales.OrderBy(c=>c.LineNumber))
+                        {
+                            <tr>
+                                <td>
+                                    <span>@item.Designation</span>
+                                </td>
+                                <td style="text-align:center">
+                                    <span>@item.Qte</span>
+                                </td>
+                                <td style="text-align:center">
+                                    <span>@item.PUHT</span>
+                                </td>
+                                <td style="text-align:center">
+                                    <span>@item.PercRed</span>
+                                </td>
+                                <td style="text-align:center">
+                                    <span>@item.MntHT</span>
+                                </td>
+                            </tr>
+
+                        }
+                    </tbody>
+                </table>
+            </div>
+
         </div>
     </div>
 
@@ -133,6 +178,10 @@
         margin: auto;
         border-spacing: 5px 5px;
         text-align: left;
+        color: white;
+        padding: 5px 5px 0px 5px;
+        border: 2px solid black;
+        width: 100%;
     }
 
         #totals {
@@ -181,31 +230,31 @@
 
     table {
         font-family: Arial, Helvetica, sans-serif;
-        /*font-size: smaller;
-            font-weight: 500;*/
+        font-size: medium;
+        font-weight: 500;
         border-collapse: collapse;
         width: 100%;
         border: 2px solid black;
-        margin: 0px 0px 10px 10px;
+        margin: 0px 0px 10px 0px;
     }
 
-        td {
-            
-            text-decoration: none;
-            color: black;
-            margin: 10px 10px 10px 10px;
-            text-align: left;
-            border:0px solid transparent;
-        }
+    td {
+        text-decoration: none;
+        color: black;
+        margin: 0px 0px 0px 0px;
+        text-align: left;
+        border: 0px solid transparent;
+        padding: 5px 5px 0px 5px;
+    }
 
         tr:hover {
             background-color: seashell;
         }
 
     th {
-        /*text-decoration: none;*/
-        margin: 10px 10px 10px 10px;
-        /*background: #4D4C4C !important;*/
+        text-decoration: none;
+        margin: 0px 0px 0px 0px;
+        padding: 5px 5px 0px 5px;
         color: black;
         text-align: center;
         border: 0px solid transparent;

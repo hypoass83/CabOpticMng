@@ -50,7 +50,7 @@ namespace CABOPMANAGEMENT.Models
         public double TotalFrame { get; set; }
 
         public virtual ICollection<RxPrescription> RxPrescription { get; set; }
-        //public virtual ICollection<DetailFrame> DetailFrames { get; set; }
+        public virtual ICollection<DetailSales> DetailSales { get; set; }
         
     }
 }

@@ -829,7 +829,7 @@ namespace CABOPMANAGEMENT.Controllers
                 @ViewBag.CompanyLogoID = Company.GlobalPersonID;
 
                 List<RxPrescription> LstRxPrescription = new List<RxPrescription>();
-                //List<DetailFrame> DetailFrameline = new List<DetailFrame>();
+                List<DetailSales> LstDetailSales = new List<DetailSales>();
 
                 ModelRptProformaInvoice model = new ModelRptProformaInvoice();
 
@@ -848,56 +848,54 @@ namespace CABOPMANAGEMENT.Controllers
 
                     foreach (CustomerOrderLine c in lstOrderLine)
                     {
-                        //OrderLens lensproduct = db.OrderLenses.Where(ol => ol.ProductID == c.ProductID).FirstOrDefault();
+                        string lenscate = (c.SupplyingName == null) ? c.Product.Category.CategoryDescription : c.SupplyingName;
+
                         Product lensproduct = db.Products.Find(c.ProductID);
-                        /*if (lensproduct is GenericProduct) //frame
+                        if (lensproduct is GenericProduct) //frame
                         {
                             i += 1;
                             TotalFrame = TotalFrame + c.LineAmount;
-                            DetailFrameline.Add(
-                                new DetailFrame
+                            LstDetailSales.Add(
+                                new DetailSales
                                 {
-                                    DetailFrameID = i,
-                                    FrameName = "Marque : " + c.marque,
-                                    FrameAmount = "",
-                                    FrameUnitPrice = "",
-                                    Marque = c.marque,
-                                    Reference = c.reference,
-                                    Materiere = c.FrameCategory,
-                                    FrameQuantity = "0" + c.LineQuantity.ToString()
+                                    LineNumber = 0,
+                                    Designation = Resources.frame,
+                                    Qte = "",
+                                    PUHT = "",
+                                    PercRed = "",
+                                    MntHT = ""
                                 });
                             i += 1;
-                            DetailFrameline.Add(
-                                new DetailFrame
+                            LstDetailSales.Add(
+                                new DetailSales
                                 {
-                                    DetailFrameID = i,
-                                    FrameName = "Reference : " + c.reference,
-                                    FrameAmount = c.LineAmount.ToString("N0"),
-                                    FrameUnitPrice = c.LineUnitPrice.ToString("N0"),
-                                    Marque = c.marque,
-                                    Reference = c.reference,
-                                    Materiere = c.FrameCategory,
-                                    FrameQuantity = ""
+                                    LineNumber = 1,
+                                    Designation = c.marque + " " + c.reference,
+                                    Qte = c.LineQuantity.ToString("N0"),
+                                    PUHT = c.LineUnitPrice.ToString("N0"),
+                                    PercRed = "0",
+                                    MntHT = c.LineAmount.ToString("N0")
                                 });
-                            i += 1;
-                            DetailFrameline.Add(
-                                new DetailFrame
-                                {
-                                    DetailFrameID = i,
-                                    FrameName = "Matiere : " + c.FrameCategory,
-                                    FrameAmount = "",
-                                    FrameUnitPrice = "",
-                                    Marque = c.marque,
-                                    Reference = c.reference,
-                                    Materiere = c.FrameCategory,
-                                    FrameQuantity = ""
-                                });
-                        }*/
+                            
+                        }
                         if (lensproduct is OrderLens) // orderlens
                         {
+                            LstDetailSales.Add(
+                                new DetailSales
+                                {
+                                    LineNumber = 3,
+                                    Designation = "",
+                                    Qte = "",
+                                    PUHT = "",
+                                    PercRed = "",
+                                    MntHT = ""
+                                });
+
                             OrderLens orderlensproduct = db.OrderLenses.Where(ol => ol.ProductID == c.ProductID).FirstOrDefault();
                             j += 1;
                             TotalLens = TotalLens + c.LineAmount;
+                            
+
                             if (j == 1)
                             {
                                 k += 1;
@@ -913,6 +911,28 @@ namespace CABOPMANAGEMENT.Controllers
                                     Axe = (c.Axis == null || c.Axis == "") ? "//" : c.Axis,
                                     Add = (orderlensproduct.LensNumber.LensNumberAdditionValue == null || orderlensproduct.LensNumber.LensNumberAdditionValue == "") ? "//" : orderlensproduct.LensNumber.LensNumberAdditionValue
                                 });
+
+                                LstDetailSales.Add(
+                                new DetailSales
+                                {
+                                    LineNumber = 4,
+                                    Designation = Resources.lenses,
+                                    Qte = "",
+                                    PUHT = "",
+                                    PercRed = "",
+                                    MntHT = ""
+                                });
+                                LstDetailSales.Add(
+                                new DetailSales
+                                {
+                                    LineNumber = 5,
+                                    Designation = c.OeilDroiteGauche.ToString() + " " + lenscate,
+                                    Qte = c.LineQuantity.ToString("N0"),
+                                    PUHT = c.LineUnitPrice.ToString("N0"),
+                                    PercRed = "0",
+                                    MntHT = c.LineAmount.ToString("N0")
+                                });
+
                             }
                             else { 
                                 k += 1;
@@ -928,10 +948,32 @@ namespace CABOPMANAGEMENT.Controllers
                                     Axe = (c.Axis == null || c.Axis == "") ? "//" : c.Axis,
                                     Add = (orderlensproduct.LensNumber.LensNumberAdditionValue == null || orderlensproduct.LensNumber.LensNumberAdditionValue == "") ? "//" : orderlensproduct.LensNumber.LensNumberAdditionValue
                                 });
+
+                                LstDetailSales.Add(
+                                new DetailSales
+                                {
+                                    LineNumber = 6,
+                                    Designation = c.OeilDroiteGauche.ToString() + " " + lenscate,
+                                    Qte = c.LineQuantity.ToString("N0"),
+                                    PUHT = c.LineUnitPrice.ToString("N0"),
+                                    PercRed = "0",
+                                    MntHT = c.LineAmount.ToString("N0")
+                                });
                             }
                         }
                         if (lensproduct is Lens) // stock lens
                         {
+                            LstDetailSales.Add(
+                                new DetailSales
+                                {
+                                    LineNumber = 3,
+                                    Designation = "",
+                                    Qte = "",
+                                    PUHT = "",
+                                    PercRed = "",
+                                    MntHT = ""
+                                });
+
                             Lens orderlensproduct = db.Lenses.Where(ol => ol.ProductID == c.ProductID).FirstOrDefault();
                             j += 1;
                             TotalLens = TotalLens + c.LineAmount;
@@ -950,6 +992,28 @@ namespace CABOPMANAGEMENT.Controllers
                                     Axe = (c.Axis == null || c.Axis == "") ? "//" : c.Axis,
                                     Add = (orderlensproduct.LensNumber.LensNumberAdditionValue == null || orderlensproduct.LensNumber.LensNumberAdditionValue == "") ? "//" : orderlensproduct.LensNumber.LensNumberAdditionValue
                                 });
+
+                                LstDetailSales.Add(
+                                new DetailSales
+                                {
+                                    LineNumber = 4,
+                                    Designation = Resources.lenses,
+                                    Qte = "",
+                                    PUHT = "",
+                                    PercRed = "",
+                                    MntHT = ""
+                                });
+
+                                LstDetailSales.Add(
+                                new DetailSales
+                                {
+                                    LineNumber = 5,
+                                    Designation = c.OeilDroiteGauche.ToString() + " " + lenscate,
+                                    Qte = c.LineQuantity.ToString("N0"),
+                                    PUHT = c.LineUnitPrice.ToString("N0"),
+                                    PercRed = "0",
+                                    MntHT = c.LineAmount.ToString("N0")
+                                });
                             }
                             else
                             { 
@@ -965,6 +1029,17 @@ namespace CABOPMANAGEMENT.Controllers
                                     Cylindre = (orderlensproduct.LensNumber.LensNumberCylindricalValue == null || orderlensproduct.LensNumber.LensNumberCylindricalValue == "") ? "//" : orderlensproduct.LensNumber.LensNumberCylindricalValue,
                                     Axe = (c.Axis == null || c.Axis == "") ? "//" : c.Axis,
                                     Add = (orderlensproduct.LensNumber.LensNumberAdditionValue == null || orderlensproduct.LensNumber.LensNumberAdditionValue == "") ? "//" : orderlensproduct.LensNumber.LensNumberAdditionValue
+                                });
+
+                                LstDetailSales.Add(
+                                new DetailSales
+                                {
+                                    LineNumber = 6,
+                                    Designation = c.OeilDroiteGauche.ToString() + " " + lenscate,
+                                    Qte = c.LineQuantity.ToString("N0"),
+                                    PUHT = c.LineUnitPrice.ToString("N0"),
+                                    PercRed = "0",
+                                    MntHT = c.LineAmount.ToString("N0")
                                 });
                             }
     
@@ -999,7 +1074,7 @@ namespace CABOPMANAGEMENT.Controllers
                     model.TotalFrame = TotalFrame;
 
                     model.RxPrescription = LstRxPrescription;
-                    //model.DetailFrames = DetailFrameline;
+                    model.DetailSales = LstDetailSales;
 
                     model.Agency = currentOrder.Branch.Adress.Quarter.Town.TownLabel;
 
