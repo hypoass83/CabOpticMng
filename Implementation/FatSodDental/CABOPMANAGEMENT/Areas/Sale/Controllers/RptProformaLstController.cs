@@ -11,6 +11,7 @@ using System.Linq;
 using System.Web.Mvc;
 using FatSod.DataContext.Repositories;
 using FastSod.Utilities.Util;
+using System.Web.Configuration;
 
 namespace CABOPMANAGEMENT.Areas.Sale.Controllers
 {
@@ -45,6 +46,8 @@ namespace CABOPMANAGEMENT.Areas.Sale.Controllers
                 DateTime currentDateOp = UserBusDays.FirstOrDefault().BDDateOperation;
                 ViewBag.CurrentBranch = UserBusDays.FirstOrDefault().BranchID;
                 ViewBag.BusnessDayDate = UserBusDays.FirstOrDefault().BDDateOperation.ToString("yyyy-MM-dd");// businessDay.BDDateOperation;
+
+                ViewBag.currentcompany = WebConfigurationManager.AppSettings["AppNameP"];
 
                 return View();
             }

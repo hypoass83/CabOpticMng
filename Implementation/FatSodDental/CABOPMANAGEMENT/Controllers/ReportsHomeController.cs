@@ -14,6 +14,7 @@ using System.Web.Mvc;
 using CABOPMANAGEMENT.Filters;
 using CABOPMANAGEMENT.Tools;
 using CABOPMANAGEMENT.ViewModel;
+using CABOPMANAGEMENT.Models;
 
 namespace CABOPMANAGEMENT.Controllers
 {
@@ -795,8 +796,227 @@ namespace CABOPMANAGEMENT.Controllers
             }
             var model = modelRptProformaInvoice();
 
+            ViewBag.Date = DateTime.Now.ToString("dd/MM/yyyy");
             return View(model);
         }
+
+        #region RptProformaGolden
+
+        public ActionResult RptProformaGolden(int? CustomerOrderID)
+        {
+            if (CustomerOrderID.HasValue && CustomerOrderID != null && CustomerOrderID > 0)
+            {
+                Session["Receipt_CommandID"] = CustomerOrderID;
+            }
+            var model = modelRptProformaGoldenInvoice();
+
+            ViewBag.Date = DateTime.Now.ToString("dd/MM/yyyy");
+            return View(model);
+        }
+
+        public ModelRptProformaInvoice modelRptProformaGoldenInvoice()
+        {
+            try
+            {
+
+                int i = 0, j = 0, k = 0;
+                double totalAmount = 0d;
+                double TotalLens = 0d;
+                double TotalFrame = 0d;
+
+                int CommandID = (Session["Receipt_CommandID"] == null) ? 0 : (int)Session["Receipt_CommandID"];
+
+                @ViewBag.CompanyLogoID = Company.GlobalPersonID;
+
+                List<RxPrescription> LstRxPrescription = new List<RxPrescription>();
+                //List<DetailFrame> DetailFrameline = new List<DetailFrame>();
+
+                ModelRptProformaInvoice model = new ModelRptProformaInvoice();
+
+
+                if (CommandID > 0)
+                {
+
+                    CustomerOrder currentOrder = db.CustomerOrders.Find(CommandID);
+                    //recuperation detail mnt
+                    List<CustomerOrderLine> lstOrderLine = db.CustomerOrderLines.Where(sl => sl.CustomerOrderID == currentOrder.CustomerOrderID).ToList();
+                    totalAmount = (lstOrderLine.Count > 0) ? Util.ExtraPrices(lstOrderLine.Select(c => c.LineAmount).Sum(), currentOrder.RateReduction, currentOrder.RateDiscount, currentOrder.Transport, currentOrder.VatRate).TotalTTC : 0; //montant du verre
+                    //FatSod.Ressources.Resources.Culture = System.Globalization.CultureInfo.GetCultureInfo("fr-FR");
+                    string montantLettre = LoadComponent.Int2Lettres((Int32)totalAmount).ToUpper();
+                    string montantLettreEn = NumberConverter.Spell((long)totalAmount).ToUpper();
+                    //LoadComponent.NumToWordBD((long)totalAmount).ToUpper();
+
+                    foreach (CustomerOrderLine c in lstOrderLine)
+                    {
+                        //OrderLens lensproduct = db.OrderLenses.Where(ol => ol.ProductID == c.ProductID).FirstOrDefault();
+                        Product lensproduct = db.Products.Find(c.ProductID);
+                        /*if (lensproduct is GenericProduct) //frame
+                        {
+                            i += 1;
+                            TotalFrame = TotalFrame + c.LineAmount;
+                            DetailFrameline.Add(
+                                new DetailFrame
+                                {
+                                    DetailFrameID = i,
+                                    FrameName = "Marque : " + c.marque,
+                                    FrameAmount = "",
+                                    FrameUnitPrice = "",
+                                    Marque = c.marque,
+                                    Reference = c.reference,
+                                    Materiere = c.FrameCategory,
+                                    FrameQuantity = "0" + c.LineQuantity.ToString()
+                                });
+                            i += 1;
+                            DetailFrameline.Add(
+                                new DetailFrame
+                                {
+                                    DetailFrameID = i,
+                                    FrameName = "Reference : " + c.reference,
+                                    FrameAmount = c.LineAmount.ToString("N0"),
+                                    FrameUnitPrice = c.LineUnitPrice.ToString("N0"),
+                                    Marque = c.marque,
+                                    Reference = c.reference,
+                                    Materiere = c.FrameCategory,
+                                    FrameQuantity = ""
+                                });
+                            i += 1;
+                            DetailFrameline.Add(
+                                new DetailFrame
+                                {
+                                    DetailFrameID = i,
+                                    FrameName = "Matiere : " + c.FrameCategory,
+                                    FrameAmount = "",
+                                    FrameUnitPrice = "",
+                                    Marque = c.marque,
+                                    Reference = c.reference,
+                                    Materiere = c.FrameCategory,
+                                    FrameQuantity = ""
+                                });
+                        }*/
+                        if (lensproduct is OrderLens) // orderlens
+                        {
+                            OrderLens orderlensproduct = db.OrderLenses.Where(ol => ol.ProductID == c.ProductID).FirstOrDefault();
+                            j += 1;
+                            TotalLens = TotalLens + c.LineAmount;
+                            if (j == 1)
+                            {
+                                k += 1;
+                                LstRxPrescription.Add(
+                                new RxPrescription
+                                {
+                                    LineNumber = k,
+                                    Field1 = "Rx Date",
+                                    Field2 = currentOrder.CustomerOrderDate.ToString("dd/MM/yyyyy"),
+                                    Oeil = c.OeilDroiteGauche.ToString(),
+                                    Sphere = (orderlensproduct.LensNumber.LensNumberSphericalValue == null || orderlensproduct.LensNumber.LensNumberSphericalValue == "") ? "//" : orderlensproduct.LensNumber.LensNumberSphericalValue,
+                                    Cylindre = (orderlensproduct.LensNumber.LensNumberCylindricalValue == null || orderlensproduct.LensNumber.LensNumberCylindricalValue == "") ? "//" : orderlensproduct.LensNumber.LensNumberCylindricalValue,
+                                    Axe = (c.Axis == null || c.Axis == "") ? "//" : c.Axis,
+                                    Add = (orderlensproduct.LensNumber.LensNumberAdditionValue == null || orderlensproduct.LensNumber.LensNumberAdditionValue == "") ? "//" : orderlensproduct.LensNumber.LensNumberAdditionValue
+                                });
+                            }
+                            else { 
+                                k += 1;
+                                LstRxPrescription.Add(
+                                new RxPrescription
+                                {
+                                    LineNumber = k,
+                                    Field1 = "Rx Expired",
+                                    Field2 = currentOrder.CustomerOrderDate.ToString("dd/MM/yyyyy"),
+                                    Oeil = c.OeilDroiteGauche.ToString(),
+                                    Sphere = (orderlensproduct.LensNumber.LensNumberSphericalValue == null || orderlensproduct.LensNumber.LensNumberSphericalValue == "") ? "//" : orderlensproduct.LensNumber.LensNumberSphericalValue,
+                                    Cylindre = (orderlensproduct.LensNumber.LensNumberCylindricalValue == null || orderlensproduct.LensNumber.LensNumberCylindricalValue == "") ? "//" : orderlensproduct.LensNumber.LensNumberCylindricalValue,
+                                    Axe = (c.Axis == null || c.Axis == "") ? "//" : c.Axis,
+                                    Add = (orderlensproduct.LensNumber.LensNumberAdditionValue == null || orderlensproduct.LensNumber.LensNumberAdditionValue == "") ? "//" : orderlensproduct.LensNumber.LensNumberAdditionValue
+                                });
+                            }
+                        }
+                        if (lensproduct is Lens) // stock lens
+                        {
+                            Lens orderlensproduct = db.Lenses.Where(ol => ol.ProductID == c.ProductID).FirstOrDefault();
+                            j += 1;
+                            TotalLens = TotalLens + c.LineAmount;
+                            if (j == 1)
+                            {
+                                k += 1;
+                                LstRxPrescription.Add(
+                                new RxPrescription
+                                {
+                                    LineNumber = k,
+                                    Field1 = "Rx Date",
+                                    Field2 = currentOrder.CustomerOrderDate.ToString("dd/MM/yyyyy"),
+                                    Oeil = c.OeilDroiteGauche.ToString(),
+                                    Sphere = (orderlensproduct.LensNumber.LensNumberSphericalValue == null || orderlensproduct.LensNumber.LensNumberSphericalValue == "") ? "//" : orderlensproduct.LensNumber.LensNumberSphericalValue,
+                                    Cylindre = (orderlensproduct.LensNumber.LensNumberCylindricalValue == null || orderlensproduct.LensNumber.LensNumberCylindricalValue == "") ? "//" : orderlensproduct.LensNumber.LensNumberCylindricalValue,
+                                    Axe = (c.Axis == null || c.Axis == "") ? "//" : c.Axis,
+                                    Add = (orderlensproduct.LensNumber.LensNumberAdditionValue == null || orderlensproduct.LensNumber.LensNumberAdditionValue == "") ? "//" : orderlensproduct.LensNumber.LensNumberAdditionValue
+                                });
+                            }
+                            else
+                            { 
+                                k += 1;
+                                LstRxPrescription.Add(
+                                new RxPrescription
+                                {
+                                    LineNumber = k,
+                                    Field1 = "Rx Expired",
+                                    Field2 = currentOrder.CustomerOrderDate.ToString("dd/MM/yyyyy"),
+                                    Oeil = c.OeilDroiteGauche.ToString(),
+                                    Sphere = (orderlensproduct.LensNumber.LensNumberSphericalValue == null || orderlensproduct.LensNumber.LensNumberSphericalValue == "") ? "//" : orderlensproduct.LensNumber.LensNumberSphericalValue,
+                                    Cylindre = (orderlensproduct.LensNumber.LensNumberCylindricalValue == null || orderlensproduct.LensNumber.LensNumberCylindricalValue == "") ? "//" : orderlensproduct.LensNumber.LensNumberCylindricalValue,
+                                    Axe = (c.Axis == null || c.Axis == "") ? "//" : c.Axis,
+                                    Add = (orderlensproduct.LensNumber.LensNumberAdditionValue == null || orderlensproduct.LensNumber.LensNumberAdditionValue == "") ? "//" : orderlensproduct.LensNumber.LensNumberAdditionValue
+                                });
+                            }
+    
+                        }
+                    }
+                    model.ModelRptProformaInvoiceID = 1;
+                    model.Reference = currentOrder.CustomerOrderNumber;
+                    model.ProformaDate = currentOrder.CustomerOrderDate;
+                    model.Title = "Proforma Invoice";
+                    model.TitleFr = "Facture Proforma";
+
+                    model.CompanyName = Company.Name;
+                    model.CompanyAdress = "Head Quater : " + Company.Adress.Quarter.Town.Region.RegionLabel + " - " + Company.Adress.Quarter.Town.TownLabel;
+                    model.CompanyTel = "Tel: " + Company.Adress.AdressPhoneNumber;
+                    model.CompanyCNI = "NO CONT : " + Company.CNI;
+                    model.Operator = CurrentUser.Name + " " + CurrentUser.Description;
+
+                    model.CustomerName = currentOrder.CustomerName;
+                    model.InsurreName = (currentOrder.InsurreName == null || currentOrder.InsurreName == "") ? currentOrder.CustomerName : currentOrder.InsurreName;
+                    model.CustomerPhone = currentOrder.PhoneNumber;
+                    model.CustomerCompany = currentOrder.CompanyName;
+                    model.CustomerDoctor = currentOrder.MedecinTraitant;
+                    model.PrescriptionDate = currentOrder.CustomerOrderDate;
+
+                    model.TotalAmount = totalAmount;
+
+                    model.DeviseLabel = currentOrder.Devise.DeviseLabel;
+                    model.MontantLettreFr = montantLettre;
+                    model.MontantLettreEn = montantLettreEn;
+
+                    model.TotalLens = TotalLens;
+                    model.TotalFrame = TotalFrame;
+
+                    model.RxPrescription = LstRxPrescription;
+                    //model.DetailFrames = DetailFrameline;
+
+                    model.Agency = currentOrder.Branch.Adress.Quarter.Town.TownLabel;
+
+                }
+
+                return model;
+
+            }
+            catch (Exception ex)
+            {
+                RedirectToAction("Index", "Home");
+                throw;
+            }
+        }
+
+        #endregion
+
         public ActionResult RptFacture()
         {
             //Resources.Culture = CultureInfo.GetCultureInfo("fr-FR");

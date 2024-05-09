@@ -6046,6 +6046,15 @@ namespace FatSod.Ressources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to  .
+        /// </summary>
+        public static string of {
+            get {
+                return ResourceManager.GetString("of", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Old Designation.
         /// </summary>
         public static string OldDesignation {

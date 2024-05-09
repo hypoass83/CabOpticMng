@@ -8,6 +8,7 @@
     var profile = (Session["UserProfile"] == null) ? 0 : (int)Session["UserProfile"];
     var user = (Session["UserID"] == null) ? 0 : (int)Session["UserID"];
     var db = new FatSod.DataContext.Concrete.EFDbContext();
+    
 }
 
 @if (TempData["Message"] != null)
@@ -251,7 +252,8 @@
                 {// this is Actions Column
                     mRender: function (data, type, row) {
                         var printOption = '@LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, @profile, CodeValue.Sale.Report.RptProformaLst, db)';
-                        var showPrint = (printOption == 'False') ? '<a href="@Url.Action("RptProforma", "ReportsHome", new { Area = "", CustomerOrderID = -1 })" class="editor_remove"><span class="glyphicon glyphicon-print"></span></a>' : '';
+                        var currentcompany = '@ViewBag.currentcompany';
+                        var showPrint = (printOption == 'False') ? (currentcompany=='GOLDEN') ? '<a href="@Url.Action("RptProformaGolden", "ReportsHome", new { Area = "", CustomerOrderID = -1 })" class="editor_remove"><span class="glyphicon glyphicon-print"></span></a>' : '<a href="@Url.Action("RptProforma", "ReportsHome", new { Area = "", CustomerOrderID = -1 })" class="editor_remove"><span class="glyphicon glyphicon-print"></span></a>' : '';
                         showPrint = showPrint.replace("-1", row.CustomerOrderID);
 
                         return showPrint ;

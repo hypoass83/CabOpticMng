@@ -1,0 +1,238 @@
+﻿@using FatSod.Ressources;
+
+@model CABOPMANAGEMENT.Models.ModelRptProformaInvoice
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Facture Proforma";
+}
+
+
+<section class="invoice" style="font-size:1.05em">
+
+    <div class="row invoice-info">
+        <div class="col-xs-6" style="margin-top: 10px;">
+            <strong><b>PROFORMA</b></strong><br />
+        </div>
+        <div class="col-xs-6" style="text-align: right;margin-top: 10px;">
+            <div class="row" style="margin-right: 1px;">
+                <strong><b>@Model.Agency @Resources.of, @ViewBag.Date</b></strong><br />
+                <strong><b>@Model.Reference</b></strong><br />
+            </div>
+
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xs-12 table-responsive">
+            <div class="col-xs-6">
+                <div class="gceb">
+                    <strong><b>Concerné</b></strong>
+                </div>
+                <table>
+                    <tbody>
+                        <tr>
+                            <td>Patient</td>
+                            <td>@Model.CustomerName</td>
+                        </tr>
+                        <tr>
+                            <td>Societé</td>
+                            <td>@Model.CustomerCompany</td>
+                        </tr>
+                        <tr>
+                            <td>Télephone</td>
+                            <td>@Model.CustomerPhone</td>
+                        </tr>
+                        <tr>
+                            <td>Medecin</td>
+                            <td>@Model.CustomerDoctor</td>
+                        </tr>
+                        <tr>
+                            <td>Date Prescription</td>
+                            <td>@Model.ProformaDate.ToString("dd/MM/yyyy")</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-xs-6">
+
+            </div>
+
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xs-12 table-responsive">
+            <div class="col-xs-12">
+                <div class="gceb">
+                    <strong><b>Rx Prescription</b></strong>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="text-align:left">Docteur:</th>
+                            <th style="text-align:left">@Model.CustomerDoctor</th>
+                            <th>Oeil</th>
+                            <th>Sphere</th>
+                            <th>Cylindre</th>
+                            <th>Axe</th>
+                            <th>Add</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.RxPrescription)
+                        {
+                        <tr>
+                            <td>
+                                <span><b>@item.Field1</b></span>
+                            </td>
+                            <td>
+                                <span><b>@item.Field2</b></span>
+                            </td>
+                            <td style="text-align:center">
+                                <span><b>@item.Oeil</b></span>
+                            </td>
+                            <td style="text-align:center">
+                                <span><b>@item.Sphere</b></span>
+                            </td>
+                            <td style="text-align:center">
+                                <span><b>@item.Cylindre</b></span>
+                            </td>
+                            <td style="text-align:center">
+                                <span><b>@item.Axe</b></span>
+                            </td>
+                            <td style="text-align:center">
+                                <span><b>@item.Add</b></span>
+                            </td>
+                        </tr> 
+                        }
+                        </tbody>
+                </table>
+            </div>
+           
+        </div>
+    </div>
+
+    <div class="row no-print">
+        <div class="col-xs-4">
+            <a href="#" onclick="window.focus(); window.print(); window.close();" target="_blank" class="btn btn-primary"><i class="fa fa-print"></i> Print</a>
+            <a href="Request.UrlReferrer" class="btn btn-warning"><i class="fa fa-angle-left"></i>@Resources.previous</a>
+        </div>
+
+    </div>
+
+</section>
+
+    <!-- Css Begins Here -->
+<style type="text/css" media="all">
+        .invoice {
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        }
+
+    .gceb {
+        background: #4D4C4C;
+        margin: auto;
+        border-spacing: 5px 5px;
+        text-align: left;
+    }
+
+        #totals {
+            background-color: lightseagreen;
+            color: white;
+        }
+
+        #empty {
+            background-color: white;
+        }
+
+        .text-right {
+            text-align: right;
+            position: relative;
+        }
+
+        .text-left {
+            text-align: left;
+            position: absolute;
+            padding-bottom: 10px;
+        }
+
+        .invalid-data {
+            border: 1px solid red;
+        }
+
+        .valid-data {
+            border: 1px solid #ccc;
+        }
+
+        .ipt {
+            margin-bottom: 6px;
+        }
+
+        #img-upload {
+            width: 100%;
+        }
+
+        /*Adding some css for looks good*/
+        span.error {
+            display: block;
+            visibility: hidden;
+            color: red;
+            font-size: 90%;
+        }
+
+    table {
+        font-family: Arial, Helvetica, sans-serif;
+        /*font-size: smaller;
+            font-weight: 500;*/
+        border-collapse: collapse;
+        width: 100%;
+        border: 2px solid black;
+        margin: 0px 0px 10px 10px;
+    }
+
+        td {
+            
+            text-decoration: none;
+            color: black;
+            margin: 10px 10px 10px 10px;
+            text-align: left;
+            border:0px solid transparent;
+        }
+
+        tr:hover {
+            background-color: seashell;
+        }
+
+    th {
+        /*text-decoration: none;*/
+        margin: 10px 10px 10px 10px;
+        /*background: #4D4C4C !important;*/
+        color: black;
+        text-align: center;
+        border: 0px solid transparent;
+    }
+
+        a:after {
+            display: none !important;
+        }
+
+        @@page {
+            size: 210mm 297mm portrait;
+            margin: 20px 20px 10px 10px;
+            overflow: hidden;
+        }
+        
+
+        @@media print {
+            html, body {
+                height: 99%;
+                -webkit-print-color-adjust: exact !important;
+            }
+            
+        }
+</style>
+
+
+
+
+
+

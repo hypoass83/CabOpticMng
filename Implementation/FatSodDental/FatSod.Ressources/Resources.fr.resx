@@ -3720,4 +3720,7 @@
   <data name="SMSMNG" xml:space="preserve">
     <value>GESTION SMS</value>
   </data>
+  <data name="of" xml:space="preserve">
+    <value>le</value>
+  </data>
 </root>
