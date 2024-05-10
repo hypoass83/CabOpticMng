@@ -778,6 +778,11 @@ namespace FatSod.Supply.Entities
             return custOrdLine;
         }*/
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="stockName"></param>
+        /// <returns></returns>
         public static bool IsLensProgressive(string stockName)
         {
             bool res = false;
@@ -2259,6 +2264,12 @@ namespace FatSod.Supply.Entities
             return cols;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="currentProduct"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public static Lens CreateLens(Lens currentProduct, EFDbContext context)
         {
             Lens product = context.Lenses.FirstOrDefault(pdt => pdt.ProductCode == currentProduct.ProductCode);

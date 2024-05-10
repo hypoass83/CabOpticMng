@@ -12,6 +12,7 @@ using System.Web.Mvc;
 using FatSod.DataContext.Repositories;
 using FastSod.Utilities.Util;
 using CABOPMANAGEMENT.Areas.Sale.Models;
+using System.Web.Configuration;
 
 namespace CABOPMANAGEMENT.Areas.Sale.Controllers
 {
@@ -53,6 +54,7 @@ namespace CABOPMANAGEMENT.Areas.Sale.Controllers
                 ViewBag.CurrentBranch = UserBusDays.FirstOrDefault().BranchID;
                 ViewBag.BusnessDayDate = UserBusDays.FirstOrDefault().BDDateOperation.ToString("yyyy-MM-dd");// businessDay.BDDateOperation;
 
+                ViewBag.currentcompany = WebConfigurationManager.AppSettings["AppNameP"];
 
                 //ViewBag.CurrentTill = userTill.TillID;
 

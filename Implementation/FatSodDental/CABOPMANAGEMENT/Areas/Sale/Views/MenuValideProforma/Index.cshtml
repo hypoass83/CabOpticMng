@@ -286,7 +286,7 @@
             <button id="btnCancel" class="btn btn-primary btn-danger">@Resources.Cancel</button>
         </div>
         <div class="col-sm-2" style="margin-left:-80px;">
-            <button id="btnProforma" class="btn btn-primary" onclick="location.href='@Url.Action("RptProforma", "ReportsHome", new { area = "" })'"><i class="fa fa-print"></i> @Resources.PrintProforma</button>
+            <button id="btnProforma" class="btn btn-primary" onclick="printProforma()"><i class="fa fa-print"></i> @Resources.PrintProforma</button>
         </div>
         <div class="col-sm-2">
             <button id="btnSubmit" class="btn btn-primary btn-success">@Resources.ValidateButton</button>
@@ -294,13 +294,13 @@
        
 
         <div class="col-sm-2" style="margin-left:-60px;">
-            <button id="btnDeliveryOrder" class="btn btn-primary" onclick="location.href='@Url.Action("RptFacture", "ReportsHome", new { area = "" })'"><i class="fa fa-print"></i> @Resources.Printfacture (FR)</button>
+            <button id="btnDeliveryOrder" class="btn btn-primary" onclick="printFacture()"><i class="fa fa-print"></i> @Resources.Printfacture</button>
         </div>
-        <div class="col-sm-2">
+        @*<div class="col-sm-2">
             <button id="btnDeliveryOrderEn" class="btn btn-primary" onclick="location.href='@Url.Action("RptFactureEN", "ReportsHome", new { area = "" })'"><i class="fa fa-print"></i> @Resources.Printfacture (EN)</button>
-        </div>
+        </div>*@
         <div class="col-sm-2">
-            <button id="btnReceipt" class="btn btn-primary" onclick="location.href='@Url.Action("RptBordero", "ReportsHome", new { area = ""})'"><i class="fa fa-print"></i> @Resources.PrintBordDep</button>
+            <button id="btnReceipt" class="btn btn-primary" onclick="printBordero()"><i class="fa fa-print"></i> @Resources.PrintBordDep</button>
         </div>
     </div>
 </div>
@@ -517,6 +517,33 @@
 
         const netapayer =  parseInt($('#Plafond').val()) - (parseInt($('#Plafond').val())* parseFloat($("#Remise").val())) /100
         $('#NetAPayer').val(netapayer);
+    }
+
+    function printProforma() {
+        var currentcompany = '@ViewBag.currentcompany';
+        if (currentcompany.includes("GOLDEN")) {
+            location.href = '@Url.Action("RptProformaGolden", "ReportsHome", new { area = "" })';
+        } else {
+            location.href = '@Url.Action("RptProforma", "ReportsHome", new { area = "" })';
+        }
+    }
+
+    function printFacture() {
+        var currentcompany = '@ViewBag.currentcompany';
+        if (currentcompany.includes("GOLDEN")) {
+            location.href = '@Url.Action("RptFactureGolden", "ReportsHome", new { area = "" })';
+        } else {
+            location.href = '@Url.Action("RptFacture", "ReportsHome", new { area = "" })';
+        }
+    }
+
+    function printBordero() {
+        var currentcompany = '@ViewBag.currentcompany';
+        if (currentcompany.includes("GOLDEN")) {
+            location.href = '@Url.Action("RptBorderoGolden", "ReportsHome", new { area = "" })';
+        } else {
+            location.href = '@Url.Action("RptBordero", "ReportsHome", new { area = "" })';
+        }
     }
 
     //chargement des commandes a valider

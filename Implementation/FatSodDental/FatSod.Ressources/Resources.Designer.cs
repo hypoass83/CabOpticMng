@@ -2626,6 +2626,15 @@ namespace FatSod.Ressources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Rx Expired Date.
+        /// </summary>
+        public static string DateExpiration {
+            get {
+                return ResourceManager.GetString("DateExpiration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Date Of Birth.
         /// </summary>
         public static string DateOfBirth {

@@ -3723,4 +3723,7 @@
   <data name="of" xml:space="preserve">
     <value> </value>
   </data>
+  <data name="DateExpiration" xml:space="preserve">
+    <value>Rx Expired Date</value>
+  </data>
 </root>

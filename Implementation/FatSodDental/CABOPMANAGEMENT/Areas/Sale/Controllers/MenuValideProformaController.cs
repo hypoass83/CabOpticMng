@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
+using System.Web.Configuration;
 
 namespace CABOPMANAGEMENT.Areas.Sale.Controllers
 {
@@ -62,7 +63,9 @@ namespace CABOPMANAGEMENT.Areas.Sale.Controllers
                 DateTime currentDateOp = bdDay.FirstOrDefault().BDDateOperation;
                 ViewBag.CurrentBranch = bdDay.FirstOrDefault().BranchID;
                 ViewBag.BusnessDayDate = bdDay.FirstOrDefault().BDDateOperation.ToString("yyyy-MM-dd");// businessDay.BDDateOperation;
-                
+
+                ViewBag.currentcompany = WebConfigurationManager.AppSettings["AppNameP"];
+
                 Session["BusnessDayDate"] =currentDateOp;
                 int deviseID = (Session["DefaultDeviseID"] == null) ? 0 : (int)Session["DefaultDeviseID"];
                 if (deviseID <= 0)

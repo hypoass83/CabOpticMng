@@ -1,9 +1,9 @@
 ﻿@using FatSod.Ressources;
 
-@model CABOPMANAGEMENT.Models.ModelRptProformaInvoice
+@model CABOPMANAGEMENT.Models.ModelRptFacture
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewBag.Title = "Facture Proforma";
+    ViewBag.Title = "Facture";
 }
 
 
@@ -21,16 +21,14 @@
     <br />
     <br />
     <br />
-    <br />
 
     <div class="row invoice-info">
         <div class="col-xs-6" style="margin: 15px 0px;">
-            <h4 style="margin:0px 15px;"><b>PROFORMA</b></h4><br />
+            <h4 style="margin:0px 15px;"><b>FACTURE : @Model.Ref</b></h4><br />
         </div>
         <div class="col-xs-6" style="text-align: right;margin-top: 10px;">
             <div class="row" style="margin-right: 1px;">
-                <strong><b>@Model.Agency @Resources.of, @ViewBag.Date</b></strong><br />
-                <strong><b>@Model.Reference</b></strong><br />
+                <span><b>@Model.Title.Trim()</b></span>, <span>@Model.SaleDateHours.ToString("dd/MM/yyyy HH:mm:ss")</span>
             </div>
 
         </div>
@@ -38,38 +36,65 @@
 
     <div class="row">
         <div class="col-xs-12 table-responsive">
-            <div class="col-xs-8">
+            <div class="col-xs-5">
                 <div class="gceb">
-                    <strong><b>Concerné</b></strong>
+                    <strong><b>Tiers Payant</b></strong>
                 </div>
                 <table>
                     <tbody>
                         <tr>
-                            <td>Patient</td>
-                            <td>@Model.CustomerName</td>
+                            <td>Assurance</td>
+                            <td>@Model.CustomerAccount</td>
                         </tr>
                         <tr>
-                            <td>Societé</td>
-                            <td>@Model.CustomerCompany</td>
+                            <td>Niu</td>
+                            <td></td>
                         </tr>
                         <tr>
-                            <td>Télephone</td>
-                            <td>@Model.CustomerPhone</td>
+                            <td>Reem</td>
+                            <td></td>
                         </tr>
                         <tr>
-                            <td>Medecin</td>
-                            <td>@Model.CustomerDoctor</td>
+                            <td>BP</td>
+                            <td></td>
                         </tr>
                         <tr>
-                            <td>Date Prescription</td>
-                            <td>@Model.ProformaDate.ToString("dd/MM/yyyy")</td>
+                            <td>Localisation</td>
+                            <td></td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-            <div class="col-xs-4">
-
+            <div class="col-xs-7">
+                <div class="gceb">
+                    <strong><b>Assuré</b></strong>
+                </div>
+                <table>
+                    <tbody>
+                        <tr>
+                            <td>Assuré</td>
+                            <td>@Model.CustomerName</td>
+                        </tr>
+                        <tr>
+                            <td>Entreprise</td>
+                            <td>@Model.InsureCompanyName</td>
+                        </tr>
+                        <tr>
+                            <td>No BPC</td>
+                            <td>@Model.NumBPCDate</td>
+                        </tr>
+                        <tr>
+                            <td>Patient</td>
+                            <td>@Model.InsurreName</td>
+                        </tr>
+                        <tr>
+                            <td>Relation</td>
+                            <td>@Model.Relation</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
+
 
         </div>
     </div>
@@ -84,7 +109,7 @@
                     <thead>
                         <tr>
                             <th style="text-align:left">Docteur:</th>
-                            <th style="text-align:left">@Model.CustomerDoctor</th>
+                            <th style="text-align:left">@Model.MedecinTraitant</th>
                             <th>Oeil</th>
                             <th>Sphere</th>
                             <th>Cylindre</th>
@@ -93,7 +118,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var item in Model.RxPrescription)
+                        @foreach (var item in Model.LstRxPrescription)
                         {
                             <tr>
                                 <td>
@@ -143,7 +168,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var item in Model.DetailSales.OrderBy(c => c.LineNumber))
+                        @foreach (var item in Model.LstDetailSales.OrderBy(c => c.LineNumber))
                         {
                             <tr>
                                 <td>
@@ -206,7 +231,7 @@
     <div class="row">
         <div class="col-xs-12 table-responsive">
             <div class="col-xs-8">
-                <i>Arrete cette proforma à la somme de : <b>@Model.MontantLettreFr FCFA</b></i><br /><br />
+                <i>Arrete cette proforma à la somme de : <b>@Model.MontantLettre FCFA</b></i><br /><br />
             </div>
             <div class="col-xs-4"></div>
         </div>

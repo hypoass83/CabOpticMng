@@ -238,22 +238,47 @@ namespace FatSod.DataContext.Repositories
             }
 
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="person"></param>
+        /// <param name="UserConect"></param>
+        /// <param name="OperationDate"></param>
+        /// <param name="BranchID"></param>
+        /// <returns></returns>
         public Person Create2User(Person person, int UserConect, DateTime OperationDate, int BranchID)
         {
             try
             {
                 using (TransactionScope ts = new TransactionScope())
                 {
-                    var existuser = context.Users.SingleOrDefault(u=>u.UserLogin== ((User)person).UserLogin);
-                    if (existuser == null)
+                    if (!person.IsConnected)
                     {
-                        context.People.Add(person);
-                        context.SaveChanges();
+                        var existuser = context.Users.SingleOrDefault(u => u.Code == ((User)person).Code);
+                        if (existuser == null)
+                        {
+                            context.People.Add(person);
+                            context.SaveChanges();
+                        }
+                        else
+                        {
+                            throw new Exception("This Code already exist ");
+                        }
                     }
                     else
                     {
-                        throw new Exception("This userlogin already exist ");
+                        var existuser = context.Users.SingleOrDefault(u => u.UserLogin == ((User)person).UserLogin);
+                        if (existuser == null)
+                        {
+                            context.People.Add(person);
+                            context.SaveChanges();
+                        }
+                        else
+                        {
+                            throw new Exception("This userlogin already exist ");
+                        }
                     }
+                    
                     //EcritureSneack
                     IMouchar opSneak = new MoucharRepository(context);
                     bool res = opSneak.InsertOperation(UserConect, "SUCCESS", "INSERT USER NAME " + person.Name, "Create2User", OperationDate, BranchID);

@@ -52,6 +52,7 @@ namespace FatSod.Supply.Entities
         public bool IsFrameDamaged { get; set; }
 
         public double LensLineQuantity { get; set; }
+        
 
         //information sur le cadre
         public int FrameProductID { get; set; }

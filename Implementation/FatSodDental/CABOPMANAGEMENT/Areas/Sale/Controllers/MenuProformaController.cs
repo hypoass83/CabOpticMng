@@ -11,6 +11,7 @@ using FatSod.Ressources;
 using CABOPMANAGEMENT.Filters;
 using FatSod.DataContext.Repositories;
 using CABOPMANAGEMENT.Tools;
+using System.Web.Configuration;
 
 namespace CABOPMANAGEMENT.Areas.Sale.Controllers
 {
@@ -69,8 +70,10 @@ namespace CABOPMANAGEMENT.Areas.Sale.Controllers
                 }
                 DateTime busDays = bdDay.FirstOrDefault().BDDateOperation;
 
-                ViewBag.BusnessDayDate = busDays;
+                ViewBag.BusnessDayDate = busDays.ToString("dd-MM-yyyy");
                 ViewBag.CurrentBranch = bdDay.FirstOrDefault().BranchID;
+                ViewBag.DateExpiration = busDays.AddYears(1).ToString("dd-MM-yyyy");
+                ViewBag.currentcompany = WebConfigurationManager.AppSettings["AppNameP"];
 
                 Session["customerOrderLines"] = new List<CustomerOrderLine>();
             
@@ -83,6 +86,7 @@ namespace CABOPMANAGEMENT.Areas.Sale.Controllers
                 {
                     InjectUserConfigInSession();
                 }
+
 
                 return View();
             }

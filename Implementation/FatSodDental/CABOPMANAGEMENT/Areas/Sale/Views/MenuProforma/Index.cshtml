@@ -131,12 +131,6 @@
                             </div>
                         </div>
 
-                        @*<div class="row ipt">
-                        <div class="col-sm-5">@Resources.TreatmentDate<code>(*)</code></div>
-                        <div class="col-sm-7">
-                        <input type="text" id="TreatmentDate" class="input-sm form-control datepicker" />
-                        </div>
-                        </div>*@
 
                         <div class="row ipt">
                             <div class="col-sm-5">@Resources.Marqueter<code>(*)</code></div>
@@ -144,12 +138,12 @@
                                 <select id="GestionnaireID" class="form-control"></select>
                             </div>
                         </div>
-                        <div class="row ipt">
+                        @*<div class="row ipt">
                             <div class="col-sm-5">@Resources.Seller<code>(*)</code></div>
                             <div class="col-sm-7">
                                 <select id="SellerID" class="form-control"></select>
                             </div>
-                        </div>
+                        </div>*@
                         <div class="row ipt" id="PreferredLanguage">
                             <div class="col-sm-5">@Resources.Language<code>(*)</code></div>
                             <div class="col-sm-3">
@@ -360,7 +354,7 @@
                                         </div>
                                         <div class="col-sm-1" style="margin-left:-25px;">
                                             <input type="text" id="REAxis"
-                                                class="input-sm form-control NumbersAndDecimal">
+                                                   class="input-sm form-control NumbersAndDecimal">
                                         </div>
                                         <div class="col-sm-1" style="margin-left:-25px;">
                                             <input type="text" id="REAddition" class="input-sm form-control">
@@ -375,10 +369,11 @@
                                             <input type="number" id="REPrice" class="input-sm form-control">
                                         </div>
                                         <input type="hidden" id="REIndex"
-                                            class="input-sm form-control NumbersAndDecimal">
+                                               class="input-sm form-control NumbersAndDecimal">
                                         <div class="col-sm-2" style="width:10px;margin-left:-25px;margin-top:-1px;">
-                                            <button type="submit" class="btn btn-primary" id="btnApplyREToLE"><span
-                                                    class="glyphicon glyphicon-chevron-down"></span></button>
+                                            <button type="submit" class="btn btn-primary" id="btnApplyREToLE">
+                                                <span class="glyphicon glyphicon-chevron-down"></span>
+                                            </button>
                                         </div>
                                     </div>
 
@@ -394,7 +389,7 @@
                                         </div>
                                         <div class="col-sm-1" style="margin-left:-25px;">
                                             <input type="text" id="LEAxis"
-                                                class="input-sm form-control NumbersAndDecimal">
+                                                   class="input-sm form-control NumbersAndDecimal">
                                         </div>
                                         <div class="col-sm-1" style="margin-left:-25px;">
                                             <input type="text" id="LEAddition" class="input-sm form-control">
@@ -409,28 +404,37 @@
                                             <input type="number" id="LEPrice" class="input-sm form-control">
                                         </div>
                                         <input type="hidden" id="LEIndex"
-                                            class="input-sm form-control NumbersAndDecimal">
+                                               class="input-sm form-control NumbersAndDecimal">
                                         <div class="col-sm-2" style="width:10px;margin-left:-25px;">
-                                            <button type="submit" class="btn btn-primary" id="btnApplyLEToRE"><span
-                                                    class="glyphicon glyphicon-chevron-up"></span></button>
+                                            <button type="submit" class="btn btn-primary" id="btnApplyLEToRE">
+                                                <span class="glyphicon glyphicon-chevron-up"></span>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <div class="row ipt">
-                                        <div class="col-sm-4">@Resources.LensPriceSimple <code>(*)</code></div>
-                                        <div class="col-sm-4">
+                                        <div class="col-sm-5">@Resources.LensPriceSimple <code>(*)</code></div>
+                                        <div class="col-sm-7">
                                             <input type="number" min="0" id="LensPrice" class="input-sm form-control"
-                                                readonly />
+                                                   readonly />
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <div class="row ipt">
-                                        <div class="col-sm-4">@Resources.Quantity <code>(*)</code></div>
-                                        <div class="col-sm-4">
+                                        <div class="col-sm-5">@Resources.Quantity <code>(*)</code></div>
+                                        <div class="col-sm-7">
                                             <input type="number" min="1" id="LensLineQuantity"
-                                                class="input-sm form-control" />
+                                                   class="input-sm form-control" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="row ipt">
+                                        <div class="col-sm-5">@Resources.DateExpiration <code>(*)</code></div>
+                                        <div class="col-sm-7">
+                                            <input type="text" id="DateExpiration" value="@ViewBag.DateExpiration" class="input-sm form-control datepicker" />
                                         </div>
                                     </div>
                                 </div>
@@ -459,11 +463,14 @@
         @*<div class="col-sm-2">
         <button id="btnProformaDetail" class="btn btn-primary" onclick="location.href='@Url.Action("RptProformaDetail",
         "ReportsHome", new { area = ""})'"><i class="fa fa-print"></i> @Resources.PrintProformaDetail</button>
-        </div>*@
+        </div>
+            location.href='@Url.Action("RptProforma", "ReportsHome", new { area = "" })'
+            *@
         <div class="col-sm-2">
             <button id="btnDeliveryOrder" class="btn btn-primary"
-                onclick="location.href='@Url.Action("RptProforma", "ReportsHome", new { area = "" })'"><i
-                    class="fa fa-print"></i> @Resources.PrintProforma</button>
+                    onclick="printProforma()">
+                <i class="fa fa-print"></i> @Resources.PrintProforma
+            </button>
         </div>
         <div class="col-sm-1">
         </div>
@@ -685,9 +692,9 @@
         //header
         $("#CustomerOrderID").val('0');
         $("#ProductLocalizationID").val('0');
-        
+
         $("#GestionnaireID").val('0');
-        $("#SellerID").val('0');
+        //$("#SellerID").val('0');
 
         $('#Customer').val('');
         $('#CustomerName').val('');
@@ -775,7 +782,14 @@
     }
 
 
-
+    function printProforma() {
+        var currentcompany = '@ViewBag.currentcompany';
+        if (currentcompany.includes("GOLDEN")) {
+            location.href = '@Url.Action("RptProformaGolden", "ReportsHome", new { area = "" })';
+        } else {
+            location.href = '@Url.Action("RptProforma", "ReportsHome", new { area = "" })';
+        }
+    }
 
 
     $(document).on('ready', function () {
@@ -799,7 +813,7 @@
         populateBranch();
         populateAssurance();
         populateUsers();
-        populateSelerUsers();
+        //populateSelerUsers();
         getListofDepositLocations();
 
         //chargement des company
@@ -1169,7 +1183,7 @@
     }
 
     // Get the Seller Users List
-    function populateSelerUsers() {
+    @*function populateSelerUsers() {
         $.get('@Url.Action("populateSellerUsers", "MenuProforma")', {}, function (data) {
             $('#SellerID').empty();
             $('#SellerID').append($("<option value='0'>@Resources.Select</option>"));
@@ -1177,7 +1191,7 @@
                 $('#SellerID').append($("<option></option>").val(value.ID).html(value.Name));
             });
         }, 'json');
-    }
+    }*@
 
     function EyePriceChange() {
         var LEPrice = ($('#LEPrice').val() == '') ? 0 : parseFloat($('#LEPrice').val());
@@ -1215,13 +1229,13 @@
             $('#DateOfBirth').addClass("valid-data");
         }
 
-        //if ($('#TreatmentDate').val().trim() == '') {
-        //    isAllValid = false;
-        //    $('#TreatmentDate').addClass("invalid-data");
-        //}
-        //else {
-        //    $('#TreatmentDate').addClass("valid-data");
-        //}
+        if ($('#DateExpiration').val().trim() == '') {
+            isAllValid = false;
+            $('#DateExpiration').addClass("invalid-data");
+        }
+        else {
+            $('#DateExpiration').addClass("valid-data");
+        }
 
 
         //si le cadre n'est pas clique
@@ -1251,23 +1265,23 @@
                 var LECylinder = $('#LECylinder').val();
                 var LEAddition = $('#REAddition').val()
 
-                //Verifier si le nombre de cote de verre remplit concorde avec la quantiter entrer ( par example remplire RE et LE voudrait impliquer que la quantiter doit etre paire) 
+                //Verifier si le nombre de cote de verre remplit concorde avec la quantiter entrer ( par example remplire RE et LE voudrait impliquer que la quantiter doit etre paire)
 
                 // cette variable contiendra le nombre de coter remplit par l'usager ( sachant ce nombre est d'au plus 2 )
                 let numberOfLensFilledSides = 0;
 
-                // si une des proprieter de RE a une valeur valide alors on considere que l'usager a remplire RE et on incremente le nombre de coter remplit 
+                // si une des proprieter de RE a une valeur valide alors on considere que l'usager a remplire RE et on incremente le nombre de coter remplit
                 if ((RESphere != null && RESphere.length >= 4) || (RECylinder != null && RECylinder.length >= 4) || (REAddition != null && REAddition.length >= 4))
                     numberOfLensFilledSides++
 
-                // si une des proprieter de LE a une valeur valide alors on considere que l'usager a remplire LE et on incremente le nombre de coter remplit 
+                // si une des proprieter de LE a une valeur valide alors on considere que l'usager a remplire LE et on incremente le nombre de coter remplit
                 if ((LESphere != null && LESphere.length >= 4) || (LECylinder != null && LECylinder.length >= 4) || (LEAddition != null && LEAddition.length >= 4))
                     numberOfLensFilledSides++
 
                 // la quantiter entrer par l'usager
                 var LensLineQuantity = ($('#LensLineQuantity').val() == '') ? 0 : parseFloat($('#LensLineQuantity').val());
 
-                // je verifie si la quantiter modulo le nombre de ligne remplir est different de 0 ( sachant numberOfLensFilledSides est soit egal a 1 ou 2  ) 
+                // je verifie si la quantiter modulo le nombre de ligne remplir est different de 0 ( sachant numberOfLensFilledSides est soit egal a 1 ou 2  )
                 if (numberOfLensFilledSides != 0 && LensLineQuantity % numberOfLensFilledSides != 0) {
                     isAllValid = false;
                     alert("Please make sure the quantity entered is concording with the filled lens property")
@@ -1377,23 +1391,23 @@
                 var LECylinder = $('#LECylinder').val();
                 var LEAddition = $('#REAddition').val()
 
-                //Verifier si le nombre de cote de verre rempli concorde avec la quantiter ( par example remplire RE et LE voudrait impliquer que la quantiter est paire) 
+                //Verifier si le nombre de cote de verre rempli concorde avec la quantiter ( par example remplire RE et LE voudrait impliquer que la quantiter est paire)
 
                 // cette variable contiendra le nombre de coter remplit par l'usager ( sachant ce nombre est d'au plus 2 )
                 let numberOfLensFilledSides = 0;
 
-                // si une des proprieter de RE a une valeur valide alors on considere que l'usager a remplire RE et on incremente le nombre de coter remplit  
+                // si une des proprieter de RE a une valeur valide alors on considere que l'usager a remplire RE et on incremente le nombre de coter remplit
                 if ((RESphere != null && RESphere.length >= 4) || (RECylinder != null && RECylinder.length >= 4) || (REAddition != null && REAddition.length >= 4))
                     numberOfLensFilledSides++
 
-                // si une des proprieter de LE a une valeur valide alors on considere que l'usager a remplire LE et on incremente le nombre de coter remplit 
+                // si une des proprieter de LE a une valeur valide alors on considere que l'usager a remplire LE et on incremente le nombre de coter remplit
                 if ((LESphere != null && LESphere.length >= 4) || (LECylinder != null && LECylinder.length >= 4) || (LEAddition != null && LEAddition.length >= 4))
                     numberOfLensFilledSides++
 
                 // la quantiter entrer par l'usager
                 var LensLineQuantity = ($('#LensLineQuantity').val() == '') ? 0 : parseFloat($('#LensLineQuantity').val());
 
-                // je verifie si la quantiter modulo le nombre de ligne remplir est different de 0 ( sachant numberOfLensFilledSides est soit egal a 1 ou 2  ) 
+                // je verifie si la quantiter modulo le nombre de ligne remplir est different de 0 ( sachant numberOfLensFilledSides est soit egal a 1 ou 2  )
                 if (numberOfLensFilledSides != 0 && LensLineQuantity % numberOfLensFilledSides != 0) {
                     isAllValid = false;
                     alert("Please make sure the quantity entered is concording with the filled lens property")
@@ -1469,13 +1483,13 @@
             $('#GestionnaireID').addClass("valid-data");
         }
 
-        if ($('#SellerID').val() == "0") {
-            isAllValid = false;
-            $('#SellerID').addClass("invalid-data");
-        }
-        else {
-            $('#SellerID').addClass("valid-data");
-        }
+        //if ($('#SellerID').val() == "0") {
+        //    isAllValid = false;
+        //    $('#SellerID').addClass("invalid-data");
+        //}
+        //else {
+        //    $('#SellerID').addClass("valid-data");
+        //}
 
         if ($('#LocalizationID').val() == "0") {
             isAllValid = false;
@@ -1550,7 +1564,7 @@
 
                 AssureurID: $('#AssureurID').val().trim(),
                 GestionnaireID: $('#GestionnaireID').val(),
-                SellerID: $('#SellerID').val(),
+                //SellerID: $('#SellerID').val(),
                 LieuxdeDepotBorderoID: $('#LieuxdeDepotBorderoID').val(),
                 heureVente: $('#heureVente').val().trim(),
                 FrameCategory: $('#FrameCategory').val().trim(),
@@ -1599,7 +1613,7 @@
                 LensPrice: $.trim($('#LensPrice').val()),
                 //price detail
                 TotalPriceTTC: $.trim($('#LineUnitPrice').val()),
-                /*TreatmentDate: $('#TreatmentDate').val()*/
+                DateExpiration: $('#DateExpiration').val()
 
 
             }

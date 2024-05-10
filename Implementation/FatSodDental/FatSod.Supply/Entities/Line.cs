@@ -29,7 +29,6 @@ namespace FatSod.Supply.Entities
 		// pour dire si oui(1) ou non(-1) un cadre vient de la salle VIP
 		public int IsVIPRoom { get; set; }
 
-
 		//propriétés non persistantes
 
 		[NotMapped]

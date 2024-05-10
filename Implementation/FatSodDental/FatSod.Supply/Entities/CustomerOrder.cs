@@ -155,6 +155,10 @@ namespace FatSod.Supply.Entities
         public double MntValideBordero { get; set; }
         public bool isMntValideBordero { get; set; }
 
+        public DateTime? DateExpiration { get; set; }
+
+        public DateTime ? DateBPC { get; set; }
+        public string Relation { get; set; }
 
         [NotMapped]
         public int TotalPriceHT { get; set; }
