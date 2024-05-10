@@ -286,7 +286,11 @@
                     mRender: function (data, type, row)
                     {
                         var printOption = '@LoadAction.IsSubMenuActionAble(MenuAction.UPDATE, @profile, CodeValue.Sale.Report.RptRegularizeBill, db)';
-                        var showPrint=(printOption=='False') ? '<a href="@Url.Action("RptFactureValidate", "ReportsHome", new { Area = "", CustomerOrderID = -1 })" class="editor_remove"><span class="glyphicon glyphicon-print"></span></a>':'';
+                        var currentcompany = '@ViewBag.currentcompany';
+                        var showPrint = (printOption == 'False') ? (currentcompany.includes("GOLDEN")) ? '<a href="@Url.Action("RptFactureGolden", "ReportsHome", new { Area = "", CustomerOrderID = -1 })" class="editor_remove"><span class="glyphicon glyphicon-print"></span></a>' : '<a href="@Url.Action("RptFactureValidate", "ReportsHome", new { Area = "", CustomerOrderID = -1 })" class="editor_remove"><span class="glyphicon glyphicon-print"></span></a>' : '';
+                        showPrint = showPrint.replace("-1", row.CustomerOrderID);
+
+                        @*var showPrint = (printOption == 'False') ? '<a href="@Url.Action("RptFactureValidate", "ReportsHome", new { Area = "", CustomerOrderID = -1 })" class="editor_remove"><span class="glyphicon glyphicon-print"></span></a>' : '';*@
                         showPrint = showPrint.replace("-1", row.CustomerOrderID);
                         return showPrint;
                     }
@@ -298,7 +302,7 @@
             ]
 
         });
-        
+
     }
 
 

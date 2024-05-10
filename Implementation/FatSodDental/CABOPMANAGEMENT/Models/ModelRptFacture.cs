@@ -79,5 +79,8 @@ namespace CABOPMANAGEMENT.Models
         public int CompanyLogoID { get; set; }
         public double RemiseAssurance { get; set; }
         public string CompanyRC { get; set; }
+
+        public double MontantHT { get; set; }
+        public double TotalMalade { get; set; }
     }
 }

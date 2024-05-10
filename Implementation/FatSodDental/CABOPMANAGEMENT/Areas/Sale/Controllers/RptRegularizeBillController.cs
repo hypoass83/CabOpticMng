@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
 using FatSod.DataContext.Repositories;
+using System.Web.Configuration;
 
 namespace CABOPMANAGEMENT.Areas.Sale.Controllers
 {
@@ -51,6 +52,7 @@ namespace CABOPMANAGEMENT.Areas.Sale.Controllers
                 ViewBag.CurrentBranch = UserBusDays.FirstOrDefault().BranchID;
                 ViewBag.BusnessDayDate = UserBusDays.FirstOrDefault().BDDateOperation.ToString("yyyy-MM-dd");// businessDay.BDDateOperation;
 
+                ViewBag.currentcompany = WebConfigurationManager.AppSettings["AppNameP"];
 
                 //ViewBag.CurrentTill = userTill.TillID;
 

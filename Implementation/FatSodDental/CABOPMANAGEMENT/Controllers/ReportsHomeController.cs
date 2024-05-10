@@ -1363,7 +1363,8 @@ namespace CABOPMANAGEMENT.Controllers
                     model.NumBPCDate = currentOrder.NumeroBonPriseEnCharge;
                     model.BranchTel = "Tel: " + currentOrder.Branch.Adress.AdressCellNumber + "/" + currentOrder.Branch.Adress.AdressPhoneNumber;
 
-
+                    model.MontantHT = InitialTotalAmount+ currentOrder.TotalMalade;
+                    model.TotalMalade = currentOrder.TotalMalade;
                     model.TotalAmount = InitialTotalAmount;
                     model.RemiseAssurance = currentOrder.RemiseAssurance;
 

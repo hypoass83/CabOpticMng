@@ -207,8 +207,8 @@
                 <table>
                     <tbody>
                         <tr>
-                            <td><span><b>Total HT</b></span></td>
-                            <td style="text-align: right"><span><b>@Model.TotalAmount.ToString("N0")</b></span></td>
+                            <td><span><b>Montant HT</b></span></td>
+                            <td style="text-align: right"><span><b>@Model.MontantHT.ToString("N0")</b></span></td>
                         </tr>
                         <tr>
                             <td><span><b>Remise</b></span></td>
@@ -220,6 +220,14 @@
                         </tr>
                         <tr>
                             <td><span><b>Net</b></span></td>
+                            <td style="text-align: right"><span><b>@Model.MontantHT.ToString("N0")</b></span></td>
+                        </tr>
+                        <tr>
+                            <td><span><b>Non Prise en Charge</b></span></td>
+                            <td style="text-align: right"><span><b>@Model.TotalMalade.ToString("N0")</b></span></td>
+                        </tr>
+                        <tr>
+                            <td><span><b>Quote part Assureur</b></span></td>
                             <td style="text-align: right"><span><b>@Model.TotalAmount.ToString("N0")</b></span></td>
                         </tr>
                     </tbody>
