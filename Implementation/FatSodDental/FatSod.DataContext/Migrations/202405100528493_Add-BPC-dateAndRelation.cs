@@ -148,7 +148,7 @@
         {
             DropColumn("dbo.CustomerOrders", "Relation");
             DropColumn("dbo.CustomerOrders", "DateBPC");
-            throw new NotSupportedException("Scaffolding create or alter procedure operations is not supported in down methods.");
+            //throw new NotSupportedException("Scaffolding create or alter procedure operations is not supported in down methods.");
         }
     }
 }

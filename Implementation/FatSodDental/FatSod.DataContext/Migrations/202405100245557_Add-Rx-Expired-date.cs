@@ -142,7 +142,7 @@
         public override void Down()
         {
             DropColumn("dbo.CustomerOrders", "DateExpiration");
-            //throw new NotSupportedException("Scaffolding create or alter procedure operations is not supported in down methods.");
+            ////throw new NotSupportedException("Scaffolding create or alter procedure operations is not supported in down methods.");
         }
     }
 }
