@@ -7,6 +7,7 @@ namespace CABOPMANAGEMENT.Models
     [Serializable]
     public class ModelRptFacture
     {
+        //id
         public int ModelRptFactureID { get; set; }
         [Required]
         [StringLength(100)]
